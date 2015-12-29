@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2015 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2015 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,42 +23,51 @@
 #endif
 
 #include <gnuradio/io_signature.h>
-#include "transmitter_cc_impl.h"
+#include "transmitter_cvc_impl.h"
 
 namespace gr {
   namespace gfdm {
 
-    transmitter_cc::sptr
-    transmitter_cc::make()
+    transmitter_cvc::sptr
+    transmitter_cvc::make(
+		    int nsubcarrier,
+		    int ntimeslots,
+		    int filter_width,
+		    int filter_type,
+		    float filter_alpha)
     {
       return gnuradio::get_initial_sptr
-        (new transmitter_cc_impl());
+        (new transmitter_cvc_impl(nsubcarrier,
+				 ntimeslots,
+				 filter_width,
+				 filter_type,
+				 filter_alpha));
     }
 
     /*
      * The private constructor
      */
-    transmitter_cc_impl::transmitter_cc_impl()
-      : gr::block("transmitter_cc",
-              gr::io_signature::make(<+MIN_IN+>, <+MAX_IN+>, sizeof(<+ITYPE+>)),
-              gr::io_signature::make(<+MIN_OUT+>, <+MAX_OUT+>, sizeof(<+OTYPE+>)))
+    transmitter_cvc_impl::transmitter_cvc_impl()
+      : gr::block("transmitter_cvc",
+              gr::io_signature::make(1,1, sizeof(gr_complex)),
+              gr::io_signature::make(1,1 , sizeof(gr_complex)))
     {}
 
     /*
      * Our virtual destructor.
      */
-    transmitter_cc_impl::~transmitter_cc_impl()
+    transmitter_cvc_impl::~transmitter_cvc_impl()
     {
     }
 
     void
-    transmitter_cc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
+    transmitter_cvc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
         /* <+forecast+> e.g. ninput_items_required[0] = noutput_items */
     }
 
     int
-    transmitter_cc_impl::general_work (int noutput_items,
+    transmitter_cvc_impl::general_work (int noutput_items,
                        gr_vector_int &ninput_items,
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)

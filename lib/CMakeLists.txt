@@ -26,7 +26,7 @@ include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 list(APPEND gfdm_sources
-    transmitter_cc_impl.cc
+    transmitter_cvc_impl.cc
 )
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)

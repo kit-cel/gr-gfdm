@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <block>
-  <name>transmitter_cc</name>
-  <key>gfdm_transmitter_cc</key>
+  <name>transmitter_cvc</name>
+  <key>gfdm_transmitter_cvc</key>
   <category>gfdm</category>
   <import>import gfdm</import>
-  <make>gfdm.transmitter_cc()</make>
+  <make>gfdm.transmitter_cvc()</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name

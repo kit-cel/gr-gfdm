@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2015 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2015 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,22 +18,22 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_GFDM_TRANSMITTER_CC_IMPL_H
-#define INCLUDED_GFDM_TRANSMITTER_CC_IMPL_H
+#ifndef INCLUDED_GFDM_TRANSMITTER_CVC_IMPL_H
+#define INCLUDED_GFDM_TRANSMITTER_CVC_IMPL_H
 
-#include <gfdm/transmitter_cc.h>
+#include <gfdm/transmitter_cvc.h>
 
 namespace gr {
   namespace gfdm {
 
-    class transmitter_cc_impl : public transmitter_cc
+    class transmitter_cvc_impl : public transmitter_cvc
     {
      private:
       // Nothing to declare in this block.
 
      public:
-      transmitter_cc_impl();
-      ~transmitter_cc_impl();
+      transmitter_cvc_impl();
+      ~transmitter_cvc_impl();
 
       // Where all the action really happens
       void forecast (int noutput_items, gr_vector_int &ninput_items_required);
@@ -47,5 +47,5 @@ namespace gr {
   } // namespace gfdm
 } // namespace gr
 
-#endif /* INCLUDED_GFDM_TRANSMITTER_CC_IMPL_H */
+#endif /* INCLUDED_GFDM_TRANSMITTER_CVC_IMPL_H */
 

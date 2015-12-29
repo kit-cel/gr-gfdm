@@ -19,8 +19,8 @@
  */
 
 
-#ifndef INCLUDED_GFDM_TRANSMITTER_CC_H
-#define INCLUDED_GFDM_TRANSMITTER_CC_H
+#ifndef INCLUDED_GFDM_TRANSMITTER_CVC_H
+#define INCLUDED_GFDM_TRANSMITTER_CVC_H
 
 #include <gfdm/api.h>
 #include <gnuradio/block.h>
@@ -33,24 +33,29 @@ namespace gr {
      * \ingroup gfdm
      *
      */
-    class GFDM_API transmitter_cc : virtual public gr::block
+    class GFDM_API transmitter_cvc : virtual public gr::block
     {
      public:
-      typedef boost::shared_ptr<transmitter_cc> sptr;
+      typedef boost::shared_ptr<transmitter_cvc> sptr;
 
       /*!
-       * \brief Return a shared_ptr to a new instance of gfdm::transmitter_cc.
+       * \brief Return a shared_ptr to a new instance of gfdm::transmitter_cvc.
        *
-       * To avoid accidental use of raw pointers, gfdm::transmitter_cc's
+       * To avoid accidental use of raw pointers, gfdm::transmitter_cvc's
        * constructor is in a private implementation
-       * class. gfdm::transmitter_cc::make is the public interface for
+       * class. gfdm::transmitter_cvc::make is the public interface for
        * creating new instances.
        */
-      static sptr make();
+      static sptr make(
+		    int nsubcarrier,
+		    int ntimeslots,
+		    int filter_width,
+		    int filter_type,
+		    float filter_alpha);
     };
 
   } // namespace gfdm
 } // namespace gr
 
-#endif /* INCLUDED_GFDM_TRANSMITTER_CC_H */
+#endif /* INCLUDED_GFDM_TRANSMITTER_CVC_H */
 

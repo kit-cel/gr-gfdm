@@ -23,7 +23,7 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
 
-class qa_transmitter_cc (gr_unittest.TestCase):
+class qa_transmitter_cvc (gr_unittest.TestCase):
 
     def setUp (self):
         self.tb = gr.top_block ()
@@ -47,4 +47,4 @@ class qa_transmitter_cc (gr_unittest.TestCase):
 
 
 if __name__ == '__main__':
-    gr_unittest.run(qa_transmitter_cc, "qa_transmitter_cc.xml")
+    gr_unittest.run(qa_transmitter_cvc, "qa_transmitter_cvc.xml")
