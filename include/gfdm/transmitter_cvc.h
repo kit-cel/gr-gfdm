@@ -24,6 +24,7 @@
 
 #include <gfdm/api.h>
 #include <gnuradio/block.h>
+#include <gnuradio/sync_block.h>
 
 namespace gr {
   namespace gfdm {
@@ -33,7 +34,7 @@ namespace gr {
      * \ingroup gfdm
      *
      */
-    class GFDM_API transmitter_cvc : virtual public gr::block
+    class GFDM_API transmitter_cvc : virtual public gr::sync_block
     {
      public:
       typedef boost::shared_ptr<transmitter_cvc> sptr;
@@ -50,8 +51,7 @@ namespace gr {
 		    int nsubcarrier,
 		    int ntimeslots,
 		    int filter_width,
-		    int filter_type,
-		    float filter_alpha);
+		    double filter_alpha);
     };
 
   } // namespace gfdm

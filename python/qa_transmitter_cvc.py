@@ -33,10 +33,21 @@ class qa_transmitter_cvc (gr_unittest.TestCase):
 
     def test_001_t (self):
         # set up fg
-        src_data = (1+1j,1-1j,-1-1j,-1+1j)
-        expected_result = (1,2,3)
+        nsubcarrier = 4
+        ntimeslots = 4
+        filter_width = 2
+        filter_alpha = 0.35
+        src_data = (1+1j,1-1j,-1-1j,-1+1j,1+1j,1-1j,1+1j,1+1j,-1-1j,1-1j,-1+1j,-1-1j,1+1j,1-1j,1+1j,1-1j)
+        expected_result = (-1.92239433e-01-0.06435655j,  -7.79145448e-02-1.42576238j,
+        -1.03862842e-01+0.06672548j,  -2.01631722e-01+0.47144911j,
+        -1.18147020e+00-0.59032j   ,   3.42442003e-01+0.06587994j,
+         4.74627623e-01+0.3040393j ,   7.49309212e-01+0.60528329j,
+        -7.18202886e-01-0.59032j   ,   6.36604711e-02+0.08897928j,
+        -8.45392403e-01-0.3040393j ,  -1.41490093e-01-0.15499258j,
+        -1.18147020e+00-0.06435655j,  -8.49657987e-04+0.28888835j,
+         4.74627623e-01-0.06672548j,  -7.88491259e-02+0.06027499j)
         src = blocks.vector_source_c(src_data)
-        tm = gfdm.transmitter()
+        tm = gfdm.transmitter_cvc(nsubcarrier,ntimeslots,filter_width,filter_alpha)
         dst = blocks.vector_sink_f()
         self.tb.connect(src,tm)
         self.tb.connect(tm,dst)
