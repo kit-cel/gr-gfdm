@@ -52,7 +52,7 @@ namespace gr {
 		    int ntimeslots,
 		    int filter_width,
 		    double filter_alpha)
-      : gr::sync_block("transmitter_cvc",
+      : gr::block("transmitter_cvc",
               gr::io_signature::make(1,-1, sizeof(gr_complex)),
               gr::io_signature::make(1,1 , sizeof(gr_complex) * nsubcarrier * ntimeslots)),
         d_nsubcarrier(nsubcarrier),
@@ -77,9 +77,15 @@ namespace gr {
               in[i] = filtertaps[i];
             }
             filter_fft->execute();
-            for (int i=0;i<(d_nsubcarrier/2);i++)
+            // filter_width*d_ntimeslots must be power of 2
+            int filter_length = (filter_width*d_ntimeslots)/2;
+            for (int i=0;i<filter_length;i++)
             {
               d_filtertaps.push_back(out[i]);
+            }
+            for (int i=0;i<filter_width;i++)
+            {
+              d_filtertaps.push_back(out[(d_nsubcarrier*d_ntimeslots-filter_length)+i]);
             }
             delete filter_fft;
 
@@ -95,18 +101,35 @@ namespace gr {
     void
     transmitter_cvc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
-        ninput_items_required[0] = noutput_items;
+        ninput_items_required[0] = d_nsubcarrier * d_ntimeslots * noutput_items;
     }
 
     int
-    transmitter_cvc_impl::work (int noutput_items,
+    transmitter_cvc_impl::general_work (int noutput_items,
+                       gr_vector_int &ninput_items,
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)
     {
         const gr_complex *in = (const gr_complex *) input_items[0];
-        std::vector<gr_complex> *out = (std::vector<gr_complex> *) output_items[0];
+        gr_complex *out = (gr_complex *) output_items[0];
 
-
+        memset((void *) out, 0x00, sizeof(gr_complex) * d_nsubcarrier * d_ntimeslots * noutput_items);
+        fft::fft_complex *subcarrier_fft = new fft::fft_complex(d_ntimeslots,1,1);
+        gr_complex *fft_in = subcarrier_fft->get_inbuf();
+        gr_complex *fft_out = subcarrier_fft->get_outbuf();
+        for (int c = 0; c < d_nsubcarrier;c++)
+        {
+          for (int t = 0; t < d_ntimeslots ;t++)
+          {
+            fft_in[t] = in[c+d_nsubcarrier*t];
+          }
+          subcarrier_fft->execute();
+          // Filter output (tile with factor filter_width) with filter_width * ntimeslots length filtersamples
+          for (int t =0 ; t < d_filter_width*d_ntimeslots;t++)
+          {
+            fft_out[t]*d_filtertaps[t];
+          }
+        }
 
         // Tell runtime system how many output items we produced.
         return noutput_items;

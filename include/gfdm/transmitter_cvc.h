@@ -34,7 +34,7 @@ namespace gr {
      * \ingroup gfdm
      *
      */
-    class GFDM_API transmitter_cvc : virtual public gr::sync_block
+    class GFDM_API transmitter_cvc : virtual public gr::block
     {
      public:
       typedef boost::shared_ptr<transmitter_cvc> sptr;
