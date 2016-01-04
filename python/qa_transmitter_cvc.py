@@ -48,12 +48,13 @@ class qa_transmitter_cvc (gr_unittest.TestCase):
          4.74627623e-01-0.06672548j,  -7.88491259e-02+0.06027499j)
         src = blocks.vector_source_c(src_data)
         tm = gfdm.transmitter_cvc(nsubcarrier,ntimeslots,filter_width,filter_alpha)
-        dst = blocks.vector_sink_f()
+        dst = blocks.vector_sink_c(vlen=nsubcarrier*ntimeslots)
         self.tb.connect(src,tm)
         self.tb.connect(tm,dst)
         self.tb.run ()
         # check data
         result_data = dst.data()
+        print(result_data)
         self.assertComplexTuplesAlmostEqual(expected_result, result_data, 6)
 
 

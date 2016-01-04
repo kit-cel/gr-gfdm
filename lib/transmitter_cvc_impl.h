@@ -35,6 +35,13 @@ namespace gr {
        std::vector<gr_complex> d_filtertaps;
        int d_symbols_per_set;
        int d_filter_width;
+       fft::fft_complex *d_sc_fft;
+       gr_complex * d_sc_fft_in;
+       gr_complex * d_sc_fft_out;
+       fft::fft_complex *d_out_ifft;
+       gr_complex * d_out_ifft_in;
+       gr_complex * d_out_ifft_out;
+
 
      public:
       transmitter_cvc_impl(

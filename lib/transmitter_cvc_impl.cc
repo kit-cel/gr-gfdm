@@ -83,11 +83,18 @@ namespace gr {
             {
               d_filtertaps.push_back(out[i]);
             }
-            for (int i=0;i<filter_width;i++)
+            for (int i=0;i<filter_length;i++)
             {
               d_filtertaps.push_back(out[(d_nsubcarrier*d_ntimeslots-filter_length)+i]);
             }
             delete filter_fft;
+            d_sc_fft = new fft::fft_complex(d_ntimeslots,1,1);
+            d_sc_fft_in = d_sc_fft->get_inbuf();
+            d_sc_fft_out = d_sc_fft->get_outbuf();
+
+            d_out_ifft = new fft::fft_complex(d_ntimeslots*d_nsubcarrier,1,1);
+            d_out_ifft_in = d_out_ifft->get_inbuf();
+            d_out_ifft_out = d_out_ifft->get_outbuf();
 
     }
 
@@ -96,6 +103,8 @@ namespace gr {
      */
     transmitter_cvc_impl::~transmitter_cvc_impl()
     {
+      delete d_sc_fft;
+      delete d_out_ifft;
     }
 
     void
@@ -113,23 +122,34 @@ namespace gr {
         const gr_complex *in = (const gr_complex *) input_items[0];
         gr_complex *out = (gr_complex *) output_items[0];
 
+        for (int i = 0; i<d_out_ifft->inbuf_length();i++)
+        {
+          d_out_ifft_in[i] = 0;
+        }
         memset((void *) out, 0x00, sizeof(gr_complex) * d_nsubcarrier * d_ntimeslots * noutput_items);
-        fft::fft_complex *subcarrier_fft = new fft::fft_complex(d_ntimeslots,1,1);
-        gr_complex *fft_in = subcarrier_fft->get_inbuf();
-        gr_complex *fft_out = subcarrier_fft->get_outbuf();
         for (int c = 0; c < d_nsubcarrier;c++)
         {
+          std::vector<gr_complex> sc;
           for (int t = 0; t < d_ntimeslots ;t++)
           {
-            fft_in[t] = in[c+d_nsubcarrier*t];
+            d_sc_fft_in[t] = in[c+d_nsubcarrier*t];
           }
-          subcarrier_fft->execute();
+          d_sc_fft->execute();
           // Filter output (tile with factor filter_width) with filter_width * ntimeslots length filtersamples
           for (int t =0 ; t < d_filter_width*d_ntimeslots;t++)
           {
-            fft_out[t]*d_filtertaps[t];
+            int ifft_pos = (-((d_filter_width-1)*d_ntimeslots)/2 + c*d_ntimeslots + t) % (1);
+            d_out_ifft_in[ifft_pos] += d_sc_fft_out[t%d_ntimeslots]*d_filtertaps[t];
           }
+          
         }
+        d_out_ifft->execute();
+        for (int i = 0;i<d_ntimeslots*d_nsubcarrier;i++)
+        {
+          out[i] = d_out_ifft_out[i];
+        }
+        //out = d_out_ifft_out;
+        consume_each (noutput_items*d_nsubcarrier*d_ntimeslots);
 
         // Tell runtime system how many output items we produced.
         return noutput_items;
