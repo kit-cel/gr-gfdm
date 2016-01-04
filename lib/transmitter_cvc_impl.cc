@@ -126,32 +126,35 @@ namespace gr {
     {
         const gr_complex *in = (const gr_complex *) input_items[0];
         gr_complex *out = (gr_complex *) output_items[0];
+        int n = d_nsubcarrier*d_ntimeslots;
+        int sc_n = d_ntimeslots*d_filter_width;
+        
+        std::vector<gr_complex> ifft_in(n,0.0j);
 
-        for (int i = 0; i<d_out_ifft->inbuf_length();i++)
-        {
-          d_out_ifft_in[i] = 0;
-        }
-        memset((void *) out, 0x00, sizeof(gr_complex) * d_nsubcarrier * d_ntimeslots * noutput_items);
+        memset((void *) out, 0x00, sizeof(gr_complex) * n * noutput_items);
         for (int c = 0; c < d_nsubcarrier;c++)
         {
-          std::vector<gr_complex> sc;
           for (int t = 0; t < d_ntimeslots ;t++)
           {
             d_sc_fft_in[t] = in[c+d_nsubcarrier*t];
           }
           d_sc_fft->execute();
           // Filter output (tile with factor filter_width) with filter_width * ntimeslots length filtersamples
-          for (int t =0 ; t < d_filter_width*d_ntimeslots;t++)
+          for (int t =0 ; t < sc_n;t++)
           {
-            int ifft_pos = (-((d_filter_width-1)*d_ntimeslots)/2 + c*d_ntimeslots + t) % (1);
-            d_out_ifft_in[ifft_pos] += d_sc_fft_out[t%d_ntimeslots]*d_filtertaps[t];
+            int ifft_pos = mod((-((d_filter_width-1)*d_ntimeslots)/2 + c*d_ntimeslots + t),n);
+            ifft_in[ifft_pos] += d_sc_fft_out[mod(t+(sc_n)/2,d_ntimeslots)]*d_filtertaps[mod((t+(sc_n)/2),sc_n)];
+          }
+          for (int i =0; i< d_ntimeslots*d_nsubcarrier;i++)
+          {
+            d_out_ifft_in[i] = ifft_in[i];
           }
           
         }
         d_out_ifft->execute();
-        for (int i = 0;i<d_ntimeslots*d_nsubcarrier;i++)
+        for (int i = 0;i<n;i++)
         {
-          out[i] = d_out_ifft_out[i];
+          out[i] = d_out_ifft_out[mod(i+n/2,n)];
         }
         //out = d_out_ifft_out;
         consume_each (noutput_items*d_nsubcarrier*d_ntimeslots);
