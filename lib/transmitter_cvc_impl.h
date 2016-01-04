@@ -22,6 +22,7 @@
 #define INCLUDED_GFDM_TRANSMITTER_CVC_IMPL_H
 
 #include <gfdm/transmitter_cvc.h>
+#include <gnuradio/fft/fft.h>
 
 namespace gr {
   namespace gfdm {

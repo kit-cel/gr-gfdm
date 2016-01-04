@@ -74,6 +74,8 @@ target_link_libraries(
   ${Boost_LIBRARIES}
   ${CPPUNIT_LIBRARIES}
   gnuradio-gfdm
+  ${GNURADIO_FFT_LIBRARIES}
+  ${GNURADIO_FILTER_LIBRARIES}
 )
 
 GR_ADD_TEST(test_gfdm test-gfdm)
