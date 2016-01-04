@@ -107,6 +107,11 @@ namespace gr {
       delete d_out_ifft;
     }
 
+    int 
+    transmitter_cvc_impl::mod(int k, int n) {
+          return ((k %= n) < 0) ? k+n : k;
+    }
+
     void
     transmitter_cvc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {

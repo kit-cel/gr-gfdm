@@ -41,6 +41,7 @@ namespace gr {
        fft::fft_complex *d_out_ifft;
        gr_complex * d_out_ifft_in;
        gr_complex * d_out_ifft_out;
+       int mod(int k, int n);
 
 
      public:
