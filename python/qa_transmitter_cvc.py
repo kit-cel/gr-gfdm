@@ -37,7 +37,14 @@ class qa_transmitter_cvc (gr_unittest.TestCase):
         ntimeslots = 4
         filter_width = 2
         filter_alpha = 0.35
-        src_data = (1+1j,1-1j,-1-1j,-1+1j,1+1j,1-1j,1+1j,1+1j,-1-1j,1-1j,-1+1j,-1-1j,1+1j,1-1j,1+1j,1-1j)
+        src_data = (1+1j,1-1j,
+                    -1-1j,-1+1j,
+                    1+1j,1-1j,
+                    1+1j,1+1j,
+                    -1-1j,1-1j,
+                    -1+1j,-1-1j,
+                    1+1j,1-1j,
+                    1+1j,1-1j)
         expected_result = (-1.92239433e-01-0.06435655j,  -7.79145448e-02-1.42576238j,
         -1.03862842e-01+0.06672548j,  -2.01631722e-01+0.47144911j,
         -1.18147020e+00-0.59032j   ,   3.42442003e-01+0.06587994j,
@@ -54,7 +61,6 @@ class qa_transmitter_cvc (gr_unittest.TestCase):
         self.tb.run ()
         # check data
         result_data = dst.data()
-        print(result_data)
         self.assertComplexTuplesAlmostEqual(expected_result, result_data, 6)
 
 
