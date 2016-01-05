@@ -116,6 +116,12 @@ namespace gr {
       delete d_out_ifft;
     }
 
+    std::vector<gr_complex>
+    transmitter_cvc_impl::get_filtertaps()
+    {
+      return d_filtertaps;
+    }
+
     int 
     transmitter_cvc_impl::mod(int k, int n) {
           return ((k %= n) < 0) ? k+n : k;

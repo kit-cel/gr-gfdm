@@ -53,6 +53,7 @@ namespace gr {
                     int filter_width,
                     double filter_alpha);
       ~transmitter_cvc_impl();
+      std::vector<gr_complex> get_filtertaps();
 
       // Where all the action really happens
       void forecast (int noutput_items, gr_vector_int &ninput_items_required);
