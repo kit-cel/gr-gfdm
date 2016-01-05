@@ -60,8 +60,9 @@ namespace gr {
 
     {
 	    double sampling_freq = 1.0/nsubcarrier;
+            // Number of filtertaps is odd and centred
 	    std::vector<float> filtertaps = gr::filter::firdes::root_raised_cosine(
-			    1.0,
+			    d_ntimeslots,
 			    1.0,
 			    sampling_freq,
 			    filter_alpha,
@@ -78,7 +79,11 @@ namespace gr {
               in[i] = filtertaps[mod(i-(d_N)/2,d_N)];
             }
             filter_fft->execute();
+
             // filter_width*d_ntimeslots must be power of 2
+            // Real-valued FFT is symmetrical in f=0
+            // Copy output of filter FFT to d_filtertaps
+            // First for positive frequencies and then for negative frequencies
             int filter_length = (filter_width*d_ntimeslots)/2;
             for (int i=0;i<filter_length;i++)
             {
@@ -89,11 +94,14 @@ namespace gr {
               d_filtertaps.push_back(static_cast<gr_complex>(1.0/d_N)*out[i]);
             }
             delete filter_fft;
-            d_sc_fft = new fft::fft_complex(d_ntimeslots,1,1);
+            
+            // Initialize FFT per subcarrier
+            d_sc_fft = new fft::fft_complex(d_ntimeslots,true,1);
             d_sc_fft_in = d_sc_fft->get_inbuf();
             d_sc_fft_out = d_sc_fft->get_outbuf();
-
-            d_out_ifft = new fft::fft_complex(d_ntimeslots*d_nsubcarrier,1,1);
+            
+            // Initialize resulting IFFT 
+            d_out_ifft = new fft::fft_complex(d_ntimeslots*d_nsubcarrier,false,1);
             d_out_ifft_in = d_out_ifft->get_inbuf();
             d_out_ifft_out = d_out_ifft->get_outbuf();
 
@@ -134,6 +142,7 @@ namespace gr {
         //Initialize length output buffer
         memset((void *) out, 0x00, sizeof(gr_complex) * d_N * noutput_items);
 
+        // subcarrierwise pick input-symbols
         for (int c = 0; c < d_nsubcarrier;c++)
         {
           for (int t = 0; t < d_ntimeslots ;t++)
