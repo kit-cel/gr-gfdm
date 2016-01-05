@@ -33,6 +33,7 @@ namespace gr {
      private:
        int d_nsubcarrier;
        int d_ntimeslots;
+       int d_N;
        std::vector<gr_complex> d_filtertaps;
        int d_symbols_per_set;
        int d_filter_width;
