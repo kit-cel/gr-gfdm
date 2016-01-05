@@ -24,8 +24,6 @@
 
 #include <gnuradio/io_signature.h>
 #include "transmitter_cvc_impl.h"
-#include <gnuradio/fft/fft.h>
-#include <gnuradio/filter/firdes.h>
 
 namespace gr {
   namespace gfdm {

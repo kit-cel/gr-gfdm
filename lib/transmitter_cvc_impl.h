@@ -23,6 +23,7 @@
 
 #include <gfdm/transmitter_cvc.h>
 #include <gnuradio/fft/fft.h>
+#include <gnuradio/filter/firdes.h>
 
 namespace gr {
   namespace gfdm {
