@@ -22,5 +22,6 @@
 ########################################################################
 install(FILES
     api.h
-    transmitter_cvc.h DESTINATION include/gfdm
+    transmitter_cvc.h
+    receiver_cc.h DESTINATION include/gfdm
 )
