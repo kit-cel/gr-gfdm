@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,19 +29,24 @@ namespace gr {
   namespace gfdm {
 
     receiver_cc::sptr
-    receiver_cc::make(nsubcarrier, ntimeslots, filter_width, filter_alpha)
+    receiver_cc::make(int nsubcarrier,
+                      int ntimeslots,
+                      int filter_width,
+                      double filter_alpha)
     {
       return gnuradio::get_initial_sptr
-        (new receiver_cc_impl(nsubcarrier, ntimeslots, filter_width, filter_alpha));
+        (new receiver_cc_impl(int nsubcarrier,int ntimeslots,int filter_width, double filter_alpha));
     }
 
     /*
      * The private constructor
      */
-    receiver_cc_impl::receiver_cc_impl(nsubcarrier, ntimeslots, filter_width, filter_alpha)
+    receiver_cc_impl::receiver_cc_impl(int nsubcarrier, int ntimeslots, int filter_width, double filter_alpha)
       : gr::block("receiver_cc",
-              gr::io_signature::make(<+MIN_IN+>, <+MAX_IN+>, sizeof(<+ITYPE+>)),
-              gr::io_signature::make(<+MIN_OUT+>, <+MAX_OUT+>, sizeof(<+OTYPE+>)))
+              gr::io_signature::make(nsubcarrier*ntimeslots, nsubcarrier*ntimeslots , sizeof(gr_complex)),
+              gr::io_signature::make(nsubcarrier*ntimeslots, nsubcarrier*ntimeslots, sizeof(gr_complex))),
+      d_nsubcarrier(nsubcarrier),
+      d_ntimeslots(ntimeslots)
     {}
 
     /*
@@ -63,8 +68,8 @@ namespace gr {
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)
     {
-        const <+ITYPE*> *in = (const <+ITYPE*> *) input_items[0];
-        <+OTYPE*> *out = (<+OTYPE*> *) output_items[0];
+        const gr_complex *in = (const gr_complex *) input_items[0];
+        gr_complex *out = (gr_complex *) output_items[0];
 
         // Do <+signal processing+>
         // Tell runtime system how many input items we consumed on

@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ namespace gr {
       // Nothing to declare in this block.
 
      public:
-      receiver_cc_impl(nsubcarrier, ntimeslots, filter_width, filter_alpha);
+      receiver_cc_impl(int nsubcarrier, int ntimeslots, int filter_width, double filter_alpha);
       ~receiver_cc_impl();
 
       // Where all the action really happens
