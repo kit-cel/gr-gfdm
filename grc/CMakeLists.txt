@@ -18,7 +18,7 @@
 # Boston, MA 02110-1301, USA.
 
 install(FILES
-    gfdm_transmitter_cvc.xml
+    gfdm_transmitter_cc.xml
     #gfdm_receiver_cc.xml
     gfdm_framer_cc.xml DESTINATION share/gnuradio/grc/blocks
 )
