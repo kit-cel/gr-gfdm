@@ -9,6 +9,7 @@
 
 %{
 #include "gfdm/transmitter_cvc.h"
+#include "gfdm/framer_cc.h"
 //#include "gfdm/receiver_cc.h"
 %}
 
@@ -17,3 +18,5 @@
 GR_SWIG_BLOCK_MAGIC2(gfdm, transmitter_cvc);
 //%include "gfdm/receiver_cc.h"
 //GR_SWIG_BLOCK_MAGIC2(gfdm, receiver_cc);
+%include "gfdm/framer_cc.h"
+GR_SWIG_BLOCK_MAGIC2(gfdm, framer_cc);
