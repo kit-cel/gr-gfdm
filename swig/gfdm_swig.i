@@ -9,11 +9,11 @@
 
 %{
 #include "gfdm/transmitter_cvc.h"
-#include "gfdm/receiver_cc.h"
+//#include "gfdm/receiver_cc.h"
 %}
 
 
 %include "gfdm/transmitter_cvc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, transmitter_cvc);
-%include "gfdm/receiver_cc.h"
-GR_SWIG_BLOCK_MAGIC2(gfdm, receiver_cc);
+//%include "gfdm/receiver_cc.h"
+//GR_SWIG_BLOCK_MAGIC2(gfdm, receiver_cc);

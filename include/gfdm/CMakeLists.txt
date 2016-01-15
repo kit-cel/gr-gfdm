@@ -23,5 +23,6 @@
 install(FILES
     api.h
     transmitter_cvc.h
-    receiver_cc.h DESTINATION include/gfdm
+    #receiver_cc.h
+    DESTINATION include/gfdm
 )
