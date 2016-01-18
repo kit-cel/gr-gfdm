@@ -52,6 +52,24 @@ class qa_transmitter_cvc (gr_unittest.TestCase):
         result_data = dst.data()
         self.assertComplexTuplesAlmostEqual(expected_result, result_data, 2)
 
+    def test_002_t (self):
+        # set up fg
+        nsubcarrier = 64
+        ntimeslots = 32
+        filter_width = 2
+        filter_alpha = 0.35
+        src_data = np.array([np.complex(np.random.choice([-1, 1]), np.random.choice([-1, 1])) for i in xrange(nsubcarrier*ntimeslots)])
+        expected_result = gfdm.modulation.gfdm_tx_fft2(src_data,'rrc',filter_alpha,ntimeslots,nsubcarrier,filter_width,1)
+        src = blocks.vector_source_c(src_data)
+        tm = gfdms.transmitter_cvc(nsubcarrier,ntimeslots,filter_width,filter_alpha)
+        dst = blocks.vector_sink_c(vlen=nsubcarrier*ntimeslots)
+        self.tb.connect(src,tm)
+        self.tb.connect(tm,dst)
+        self.tb.run ()
+        # check data
+        result_data = dst.data()
+        self.assertComplexTuplesAlmostEqual(expected_result, result_data, 3)
+
 
 if __name__ == '__main__':
     gr_unittest.run(qa_transmitter_cvc, "qa_transmitter_cvc.xml")
