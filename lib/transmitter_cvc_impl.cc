@@ -23,20 +23,20 @@
 #endif
 
 #include <gnuradio/io_signature.h>
-#include "transmitter_cc_impl.h"
+#include "transmitter_cvc_impl.h"
 
 namespace gr {
   namespace gfdm {
 
-    transmitter_cc::sptr
-    transmitter_cc::make(
+    transmitter_cvc::sptr
+    transmitter_cvc::make(
 		    int nsubcarrier,
 		    int ntimeslots,
 		    int filter_width,
 		    double filter_alpha)
     {
       return gnuradio::get_initial_sptr
-        (new transmitter_cc_impl(nsubcarrier,
+        (new transmitter_cvc_impl(nsubcarrier,
 				 ntimeslots,
 				 filter_width,
 				 filter_alpha));
@@ -45,12 +45,12 @@ namespace gr {
     /*
      * The private constructor
      */
-    transmitter_cc_impl::transmitter_cc_impl(
+    transmitter_cvc_impl::transmitter_cvc_impl(
 		    int nsubcarrier,
 		    int ntimeslots,
 		    int filter_width,
 		    double filter_alpha)
-      : gr::block("transmitter_cc",
+      : gr::block("transmitter_cvc",
               gr::io_signature::make(1,-1, sizeof(gr_complex)),
               gr::io_signature::make(1,1 , sizeof(gr_complex) * nsubcarrier * ntimeslots)),
         d_nsubcarrier(nsubcarrier),
@@ -67,7 +67,6 @@ namespace gr {
 			    sampling_freq,
 			    filter_alpha,
 			    d_N);
-
              
             // Initialize filter FFT 
             fft::fft_real_fwd *filter_fft = new fft::fft_real_fwd(d_N,1);
@@ -111,31 +110,31 @@ namespace gr {
     /*
      * Our virtual destructor.
      */
-    transmitter_cc_impl::~transmitter_cc_impl()
+    transmitter_cvc_impl::~transmitter_cvc_impl()
     {
       delete d_sc_fft;
       delete d_out_ifft;
     }
 
     std::vector<gr_complex>
-    transmitter_cc_impl::get_filtertaps()
+    transmitter_cvc_impl::get_filtertaps()
     {
       return d_filtertaps;
     }
 
     int 
-    transmitter_cc_impl::mod(int k, int n) {
+    transmitter_cvc_impl::mod(int k, int n) {
           return ((k %= n) < 0) ? k+n : k;
     }
 
     void
-    transmitter_cc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
+    transmitter_cvc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
         ninput_items_required[0] = d_nsubcarrier * d_ntimeslots * noutput_items;
     }
 
     int
-    transmitter_cc_impl::general_work (int noutput_items,
+    transmitter_cvc_impl::general_work (int noutput_items,
                        gr_vector_int &ninput_items,
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)

@@ -1,9 +1,9 @@
 <block>
   <name>Transmitter cvc</name>
-  <key>gfdm_transmitter_cc</key>
+  <key>gfdm_transmitter_cvc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
-  <make>gfdm.transmitter_cc($nsubcarrier, $ntimeslots, $filter_width, $filter_alpha)</make>
+  <make>gfdm.transmitter_cvc($nsubcarrier, $ntimeslots, $filter_width, $filter_alpha)</make>
   <param>
     <name>Nsubcarrier</name>
     <key>nsubcarrier</key>

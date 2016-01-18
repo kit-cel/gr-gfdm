@@ -18,18 +18,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_GFDM_TRANSMITTER_CC_IMPL_H
-#define INCLUDED_GFDM_TRANSMITTER_CC_IMPL_H
+#ifndef INCLUDED_GFDM_TRANSMITTER_CVC_IMPL_H
+#define INCLUDED_GFDM_TRANSMITTER_CVC_IMPL_H
 
-#include <gfdm/transmitter_cc.h>
+#include <gfdm/transmitter_cvc.h>
 #include <gnuradio/fft/fft.h>
 #include <gnuradio/filter/firdes.h>
-#include <volk/volk.h>
 
 namespace gr {
   namespace gfdm {
 
-    class transmitter_cc_impl : public transmitter_cc
+    class transmitter_cvc_impl : public transmitter_cvc
     {
      private:
        int d_nsubcarrier;
@@ -48,12 +47,12 @@ namespace gr {
 
 
      public:
-      transmitter_cc_impl(
+      transmitter_cvc_impl(
                     int nsubcarrier,
                     int ntimeslots,
                     int filter_width,
                     double filter_alpha);
-      ~transmitter_cc_impl();
+      ~transmitter_cvc_impl();
       std::vector<gr_complex> get_filtertaps();
 
       // Where all the action really happens
@@ -68,5 +67,5 @@ namespace gr {
   } // namespace gfdm
 } // namespace gr
 
-#endif /* INCLUDED_GFDM_TRANSMITTER_CC_IMPL_H */
+#endif /* INCLUDED_GFDM_TRANSMITTER_CVC_IMPL_H */
 
