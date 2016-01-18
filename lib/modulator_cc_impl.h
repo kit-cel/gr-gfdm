@@ -29,13 +29,17 @@ namespace gr {
     class modulator_cc_impl : public modulator_cc
     {
      private:
+       int d_ntimeslots;
+       int d_nsubcarrier;
+       int d_filter_width;
+       std::vector<gr_complex> d_filter_taps;
       // Nothing to declare in this block.
 
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
      public:
-      modulator_cc_impl(bool check, const std::string& len_tag_key);
+      modulator_cc_impl(const std::string& len_tag_key, int nsubcarrier, int ntimeslots, int filter_width, double filter_alpha);
       ~modulator_cc_impl();
 
       // Where all the action really happens

@@ -29,7 +29,10 @@ namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief <+description of block+>
+     * \brief modulator_cc modulates an input tagged input stream with subcarrier-wise sorting
+     * according to "Generalized Frequency Division Multiplexing: Analysis of an Alternative
+     * Multi-Carrier Technique for Next Generation Cellular Systems" by N. Michailow
+     * Low Complexity, Sparse Frequency Domain Processing
      * \ingroup gfdm
      *
      */
@@ -46,7 +49,7 @@ namespace gr {
        * class. gfdm::modulator_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(bool check=false, const std::string& len_tag_key="block_len");
+      static sptr make(const std::string& len_tag_key = "frame_len", int nsubcarrier, int ntimeslots, int filter_width, double filter_alpha);
     };
 
   } // namespace gfdm
