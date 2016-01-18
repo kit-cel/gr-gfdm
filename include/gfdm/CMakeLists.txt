@@ -24,5 +24,6 @@ install(FILES
     api.h
     transmitter_cc.h
     #receiver_cc.h
-    framer_cc.h DESTINATION include/gfdm
+    framer_cc.h
+    modulator_cc.h DESTINATION include/gfdm
 )
