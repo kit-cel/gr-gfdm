@@ -46,7 +46,7 @@ namespace gr {
        * class. gfdm::modulator_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make();
+      static sptr make(bool check=false, const std::string& len_tag_key="block_len");
     };
 
   } // namespace gfdm

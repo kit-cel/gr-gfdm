@@ -35,7 +35,7 @@ namespace gr {
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
      public:
-      modulator_cc_impl();
+      modulator_cc_impl(bool check, const std::string& len_tag_key);
       ~modulator_cc_impl();
 
       // Where all the action really happens

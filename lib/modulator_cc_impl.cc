@@ -29,7 +29,11 @@ namespace gr {
   namespace gfdm {
 
     modulator_cc::sptr
-    modulator_cc::make()
+    modulator_cc::make(
+        int nsubcarrier,
+        int ntimeslots,
+        int filter_width,
+        double filter_alpha)
     {
       return gnuradio::get_initial_sptr
         (new modulator_cc_impl());
@@ -38,10 +42,16 @@ namespace gr {
     /*
      * The private constructor
      */
-    modulator_cc_impl::modulator_cc_impl()
+    modulator_cc_impl::modulator_cc_impl(
+        int nsubcarrier,
+        int ntimeslots,
+        int filter_width,
+        double filter_alpha)
       : gr::tagged_stream_block("modulator_cc",
-              gr::io_signature::make(<+MIN_IN+>, <+MAX_IN+>, sizeof(<+ITYPE+>)),
-              gr::io_signature::make(<+MIN_OUT+>, <+MAX_OUT+>, sizeof(<+OTYPE+>)), <+len_tag_key+>)
+              gr::io_signature::make(nsubcarrier*ntimeslots, nsubcarrier*ntimeslots, sizeof(gr_complex)),
+              gr::io_signature::make(nsubcarrier*ntimeslots, nsubcarrier*ntimeslots, sizeof(gr_complex), <+len_tag_key+>),
+      d_ntimeslots(ntimeslots),
+      d_nsubcarrier(nsubcarrier)
     {}
 
     /*
