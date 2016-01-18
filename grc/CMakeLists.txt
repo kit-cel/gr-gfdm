@@ -20,6 +20,7 @@
 install(FILES
     gfdm_transmitter_cvc.xml
     #gfdm_receiver_cc.xml
-    gfdm_framer_cc.xml
-    gfdm_modulator_cc.xml DESTINATION share/gnuradio/grc/blocks
+    #gfdm_framer_cc.xml
+    #gfdm_modulator_cc.xml
+    DESTINATION share/gnuradio/grc/blocks
 )
