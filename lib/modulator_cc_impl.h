@@ -21,7 +21,9 @@
 #ifndef INCLUDED_GFDM_MODULATOR_CC_IMPL_H
 #define INCLUDED_GFDM_MODULATOR_CC_IMPL_H
 
+#include <gnuradio/fft/fft.h>
 #include <gfdm/modulator_cc.h>
+#include <gnuradio/filter/firdes.h>
 
 namespace gr {
   namespace gfdm {
@@ -32,14 +34,27 @@ namespace gr {
        int d_ntimeslots;
        int d_nsubcarrier;
        int d_filter_width;
+       int d_N;
+       int d_fft_len;
        std::vector<gr_complex> d_filter_taps;
+       fft::fft_complex *d_sc_fft;
+       gr_complex * d_sc_fft_in;
+       gr_complex * d_sc_fft_out;
+       fft::fft_complex *d_out_ifft;
+       gr_complex * d_out_ifft_in;
+       gr_complex * d_out_ifft_out;
       // Nothing to declare in this block.
 
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
      public:
-      modulator_cc_impl(const std::string& len_tag_key, int nsubcarrier, int ntimeslots, int filter_width, double filter_alpha);
+      modulator_cc_impl(
+          const std::string& len_tag_key,
+          int nsubcarrier,
+          int ntimeslots,
+          double filter_alpha,
+          int fft_len);
       ~modulator_cc_impl();
 
       // Where all the action really happens
