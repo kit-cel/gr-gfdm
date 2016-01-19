@@ -29,13 +29,21 @@ namespace gr {
     class framer_cc_impl : public framer_cc
     {
      private:
-      // Nothing to declare in this block.
+       int d_ntimeslots;
+       int d_nsubcarrier;
+       bool d_sync;
+       std::vector<gr_complex> d_sync_symbols;
 
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
      public:
-      framer_cc_impl(int nsubcarrier ,int ntimeslots);
+      framer_cc_impl(
+          const std::string& len_tag_key,
+          int nsubcarrier,
+          int ntimeslots,
+          bool sync,
+          std::vector<gr_complex> sync_symbols);
       ~framer_cc_impl();
 
       // Where all the action really happens

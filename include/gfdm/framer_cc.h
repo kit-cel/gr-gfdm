@@ -46,7 +46,12 @@ namespace gr {
        * class. gfdm::framer_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int nsubcarrier ,int ntimeslots);
+      static sptr make(
+          int nsubcarrier,
+          int ntimeslots,
+          bool sync,
+          std::vector<gr_complex> sync_symbols,
+          const std::string& len_tag_key = "frame_len");
     };
 
   } // namespace gfdm

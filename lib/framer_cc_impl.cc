@@ -29,20 +29,51 @@ namespace gr {
   namespace gfdm {
 
     framer_cc::sptr
-    framer_cc::make(int nsubcarrier ,int ntimeslots)
+    framer_cc::make(
+        int nsubcarrier,
+        int ntimeslots,
+        bool sync,
+        std::vector<gr_complex> sync_symbols,
+        const std::string& len_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new framer_cc_impl(nsubcarrier, ntimeslots));
+        (new framer_cc_impl(len_tag_key,
+                            nsubcarrier,
+                            ntimeslots,
+                            sync,
+                            sync_symbols));
     }
 
     /*
      * The private constructor
      */
-    framer_cc_impl::framer_cc_impl(int nsubcarrier ,int ntimeslots)
+    framer_cc_impl::framer_cc_impl(
+        const std::string& len_tag_key,
+        int nsubcarrier,
+        int ntimeslots,
+        bool sync,
+        std::vector<gr_complex> sync_symbols)
       : gr::tagged_stream_block("framer_cc",
-              gr::io_signature::make(<+MIN_IN+>, <+MAX_IN+>, sizeof(<+ITYPE+>)),
-              gr::io_signature::make(<+MIN_OUT+>, <+MAX_OUT+>, sizeof(<+OTYPE+>)), <+len_tag_key+>)
-    {}
+              gr::io_signature::make(1,1, sizeof(gr_complex)),
+              gr::io_signature::make(1,1, sizeof(gr_complex)),
+              len_tag_key),
+      d_nsubcarrier(nsubcarrier),
+      d_ntimeslots(ntimeslots),
+      d_sync(sync)
+    {
+      if (d_sync)
+      {
+        if (sync_symbols.size() < d_nsubcarrier)
+        {
+          throw std::invalid_argument("number of sync symbols must be equal to or greater than nsubcarrier");
+        }else
+        {
+          d_sync_symbols.reserve(d_nsubcarrier);
+          std::memcpy(&d_sync_symbols[0],&sync_symbols[0],sizeof(gr_complex)*nsubcarrier);
+        }
+      }
+    
+    }
 
     /*
      * Our virtual destructor.
@@ -54,8 +85,12 @@ namespace gr {
     int
     framer_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
     {
-      int noutput_items = /* <+set this+> */;
-      return noutput_items ;
+      int noutput_items = ninput_items[0]; 
+      if (d_sync)
+      {
+        int noutput_items = ninput_items[0]+d_nsubcarrier*2; 
+      }
+      return noutput_items;
     }
 
     int
@@ -64,12 +99,34 @@ namespace gr {
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)
     {
-        const <+ITYPE+> *in = (const <+ITYPE+> *) input_items[0];
-        <+OTYPE+> *out = (<+OTYPE+> *) output_items[0];
+        const gr_complex *in = (const gr_complex *) input_items[0];
+        gr_complex *out = (gr_complex *) output_items[0]; 
 
-        // Do <+signal processing+>
+        if (d_sync)
+        {
+          for (int i=0; i<d_nsubcarrier; i++)
+          {
+            add_item_tag(0, nitems_written(0),
+                pmt::string_to_symbol("gfdm_sync_symbol"),
+                pmt::from_uint64(2*d_nsubcarrier));
+            *out = d_sync_symbols[i];
+            out++;
+            *out = d_sync_symbols[i];
+            out++;
+          }
+        }
+        for (int k=0; k<d_nsubcarrier;k++)
+        {
+          add_item_tag(0, nitems_written(2*d_nsubcarrier),
+              pmt::string_to_symbol("gfdm_data"),
+              pmt::from_uint64(d_ntimeslots*d_nsubcarrier));
+          for(int m=0; m<d_ntimeslots; m++)
+          {
+            out[k*d_ntimeslots+m] = in[(m*d_nsubcarrier+k)];
+            
+          }
+        }
 
-        // Tell runtime system how many output items we produced.
         return noutput_items;
     }
 
