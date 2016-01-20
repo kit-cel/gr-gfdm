@@ -88,7 +88,7 @@ namespace gr {
       int noutput_items = ninput_items[0]; 
       if (d_sync)
       {
-        int noutput_items = ninput_items[0]+d_nsubcarrier*2; 
+        noutput_items = ninput_items[0]+(d_nsubcarrier*2); 
       }
       return noutput_items;
     }
@@ -101,33 +101,34 @@ namespace gr {
     {
         const gr_complex *in = (const gr_complex *) input_items[0];
         gr_complex *out = (gr_complex *) output_items[0]; 
-
+        
+        int sync_offset = 0;
         if (d_sync)
         {
+          sync_offset = 2*d_nsubcarrier;
           for (int i=0; i<d_nsubcarrier; i++)
           {
-            add_item_tag(0, nitems_written(0),
-                pmt::string_to_symbol("gfdm_sync_symbol"),
-                pmt::from_uint64(2*d_nsubcarrier));
-            *out = d_sync_symbols[i];
-            out++;
-            *out = d_sync_symbols[i];
-            out++;
+            out[2*i+1] = d_sync_symbols[i];
+            out[2*i] = d_sync_symbols[i];
           }
+          add_item_tag(0, nitems_written(0),
+              pmt::string_to_symbol("gfdm_sync"),
+              pmt::from_uint64(2*d_nsubcarrier));
         }
-        for (int k=0; k<d_nsubcarrier;k++)
-        {
-          add_item_tag(0, nitems_written(2*d_nsubcarrier),
+        add_item_tag(0, nitems_written(0)+sync_offset,
               pmt::string_to_symbol("gfdm_data"),
               pmt::from_uint64(d_ntimeslots*d_nsubcarrier));
+        for (int k=0; k<d_nsubcarrier; k++)
+        {
           for(int m=0; m<d_ntimeslots; m++)
           {
-            out[k*d_ntimeslots+m] = in[(m*d_nsubcarrier+k)];
+            out[(k*d_ntimeslots)+m+sync_offset] = in[(m*d_nsubcarrier+k)];
             
           }
         }
+        int new_noutput_items = d_nsubcarrier*d_ntimeslots+sync_offset;
 
-        return noutput_items;
+        return new_noutput_items;
     }
 
   } /* namespace gfdm */
