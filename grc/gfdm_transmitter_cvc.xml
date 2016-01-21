@@ -1,5 +1,5 @@
 <block>
-  <name>Transmitter cvc</name>
+  <name>GFDM - Transmitter</name>
   <key>gfdm_transmitter_cvc</key>
   <category>GFDM</category>
   <import>import gfdm</import>

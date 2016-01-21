@@ -1,5 +1,5 @@
 <block>
-  <name>Framer cc</name>
+  <name>GFDM - Framer</name>
   <key>gfdm_framer_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
@@ -8,21 +8,25 @@
     <name>Nsubcarrier</name>
     <key>nsubcarrier</key>
     <type>int</type>
+    <value>16</value>
   </param>
   <param>
     <name>Ntimeslots</name>
     <key>ntimeslots</key>
     <type>int</type>
+    <value>16</value>
   </param>
   <param>
     <name>Sync</name>
     <key>sync</key>
-    <type>raw</type>
+    <type>bool</type>
+    <value>false</value>
   </param>
   <param>
     <name>Sync_symbols</name>
     <key>sync_symbols</key>
     <type>complex_vector</type>
+    <value>[]</value>
   </param>
   <param>
     <name>Len_tag_key</name>
