@@ -30,11 +30,11 @@ namespace gr {
 
     modulator_cc::sptr
     modulator_cc::make(
-        const std::string& len_tag_key,
         int nsubcarrier,
         int ntimeslots,
         double filter_alpha,
-        int fft_len)
+        int fft_len,
+        const std::string& len_tag_key)
     {
       return gnuradio::get_initial_sptr
         (new modulator_cc_impl(len_tag_key,
@@ -123,7 +123,17 @@ namespace gr {
     int
     modulator_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
     {
-      int noutput_items = ninput_items[0];
+      int noutput_items;
+      if (ninput_items[0] == d_N)
+      {
+        noutput_items = d_fft_len;
+      } else if (ninput_items[0] == d_N+2*d_nsubcarrier)
+      {
+        noutput_items = d_fft_len+d_sync_fft_len;
+      } else
+      {
+        throw std::runtime_error("wrong number of input_items");
+      }
       return noutput_items;
     }
 
@@ -142,6 +152,7 @@ namespace gr {
         bool sync = false;
         uint64_t sync_offset = 0;
         uint64_t data_offset = 0;
+        int sync_length = 0;
         for (std::vector<gr::tag_t>::iterator it = tags.begin() ; it!= tags.end(); ++it)
         {
           if (pmt::symbol_to_string(it->key) == "gfdm_sync")
@@ -153,18 +164,18 @@ namespace gr {
           {
             data_offset = pmt::to_uint64(it->value) - nitems_read(0);                        
           }
-
         }
         
         if (sync)
         {
         //do sync stuff
+        sync_length = d_sync_fft_len;
 
         }
 
-        // 1. FFT on subcarrier
         for (int k=0; k<d_nsubcarrier; k++)
         {
+        // 1. FFT on subcarrier
           std::vector<gr_complex> sc_tmp(d_filter_width*d_ntimeslots);
           std::memcpy(d_sc_fft_in,&in[data_offset+k*d_ntimeslots],sizeof(gr_complex)*d_ntimeslots);
           d_sc_fft->execute();
@@ -174,17 +185,18 @@ namespace gr {
             ::volk_32fc_x2_multiply_32fc(&sc_tmp[l*d_ntimeslots],&d_sc_fft_out[0],
                 &d_filter_taps[l*d_ntimeslots],d_ntimeslots);
           }
-          for (int n=0; n < d_ntimeslots*d_nsubcarrier; n++)
-          {
-
-          }
-
-
-        }
         // 3. Add to ifft-vector
+        // Calculate ifft offset (not shifted, possibly longer than symbols, some outofband radiation, per subcarrier offset
+          int ifft_offset = ( d_N/2 + (d_fft_len-d_N)/2 - (d_filter_width*d_ntimeslots)/2 + k*d_ntimeslots ) % d_N;
+          for (int n=0; n < d_filter_width*d_ntimeslots; n++)
+          {
+            d_out_ifft_in[(ifft_offset + n % d_N)] += sc_tmp[(n + (d_filter_width+d_ntimeslots)/2) % d_filter_width*d_ntimeslots];
+          }
+        }
+        d_out_ifft->execute();
+        ::volk_32fc_s32fc_multiply_32fc(&out[sync_length],&d_out_ifft_out[0],static_cast<gr_complex>(1.0/d_fft_len),d_fft_len);
 
-
-        return noutput_items;
+        return sync_length+d_fft_len;
     }
 
   } /* namespace gfdm */

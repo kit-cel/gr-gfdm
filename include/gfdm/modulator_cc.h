@@ -50,11 +50,11 @@ namespace gr {
        * creating new instances.
        */
       static sptr make(
-          const std::string& len_tag_key = "frame_len",
           int nsubcarrier,
           int ntimeslots,
           double filter_alpha,
-          int fft_len);
+          int fft_len,
+          const std::string& len_tag_key = "frame_len");
     };
 
   } // namespace gfdm
