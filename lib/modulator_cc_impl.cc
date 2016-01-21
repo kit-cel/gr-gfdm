@@ -37,11 +37,11 @@ namespace gr {
         const std::string& len_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new modulator_cc_impl(len_tag_key,
-                               nsubcarrier,
+        (new modulator_cc_impl(nsubcarrier,
                                ntimeslots,
                                filter_alpha,
-                               fft_len)
+                               fft_len,
+                               len_tag_key)
          );
 
     }
@@ -50,11 +50,11 @@ namespace gr {
      * The private constructor
      */
     modulator_cc_impl::modulator_cc_impl(
-        const std::string& len_tag_key,
         int nsubcarrier,
         int ntimeslots,
         double filter_alpha,
-        int fft_len)
+        int fft_len,
+        const std::string& len_tag_key)
       : gr::tagged_stream_block("modulator_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -158,11 +158,11 @@ namespace gr {
           if (pmt::symbol_to_string(it->key) == "gfdm_sync")
           {
             sync = true;
-            sync_offset = pmt::to_uint64(it->value) - nitems_read(0);
+            sync_offset = it->offset - nitems_read(0);
 
           }else if (pmt::symbol_to_string(it->key) == "gfdm_data")
           {
-            data_offset = pmt::to_uint64(it->value) - nitems_read(0);                        
+            data_offset = it->offset - nitems_read(0);       
           }
         }
         

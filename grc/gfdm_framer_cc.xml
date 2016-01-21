@@ -7,26 +7,26 @@
   <param>
     <name>Nsubcarrier</name>
     <key>nsubcarrier</key>
-    <type>int</type>
     <value>16</value>
+    <type>int</type>
   </param>
   <param>
     <name>Ntimeslots</name>
     <key>ntimeslots</key>
-    <type>int</type>
     <value>16</value>
+    <type>int</type>
   </param>
   <param>
     <name>Sync</name>
     <key>sync</key>
-    <type>bool</type>
     <value>false</value>
+    <type>bool</type>
   </param>
   <param>
     <name>Sync_symbols</name>
     <key>sync_symbols</key>
-    <type>complex_vector</type>
     <value>[]</value>
+    <type>complex_vector</type>
   </param>
   <param>
     <name>Len_tag_key</name>

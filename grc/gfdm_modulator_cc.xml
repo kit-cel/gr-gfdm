@@ -7,26 +7,26 @@
   <param>
     <name>Nsubcarrier</name>
     <key>nsubcarrier</key>
-    <type>int</type>
     <value>16</value>
+    <type>int</type>
   </param>
   <param>
     <name>Ntimeslots</name>
     <key>ntimeslots</key>
-    <type>int</type>
     <value>16</value>
+    <type>int</type>
   </param>
   <param>
     <name>Filter_alpha</name>
     <key>filter_alpha</key>
-    <type>real</type>
     <value>0.35</value>
+    <type>real</type>
   </param>
   <param>
     <name>Fft_len</name>
     <key>fft_len</key>
-    <type>int</type>
     <value>256</value>
+    <type>int</type>
   </param>
   <param>
     <name>Len_tag_key</name>

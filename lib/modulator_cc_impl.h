@@ -56,11 +56,11 @@ namespace gr {
 
      public:
       modulator_cc_impl(
-          const std::string& len_tag_key,
           int nsubcarrier,
           int ntimeslots,
           double filter_alpha,
-          int fft_len);
+          int fft_len,
+          const std::string& len_tag_key);
       ~modulator_cc_impl();
 
       // Where all the action really happens
