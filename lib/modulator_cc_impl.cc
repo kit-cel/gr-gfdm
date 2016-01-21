@@ -98,6 +98,10 @@ namespace gr {
       d_sc_fft_in = d_sc_fft->get_inbuf();
       d_sc_fft_out = d_sc_fft->get_outbuf();
 
+      //Initiailize sync FFTs in case there are sync symbols
+      d_sync_ifft = new fft::fft_complex(d_sync_fft_len, false, 1);
+      d_sync_ifft_in = d_sync_ifft->get_inbuf();
+      d_sync_ifft_out = d_sync_ifft->get_outbuf();
 
       //Initialize resulting FFT
       d_out_ifft = new fft::fft_complex(d_fft_len,false,1);
@@ -112,6 +116,7 @@ namespace gr {
     modulator_cc_impl::~modulator_cc_impl()
     {
       delete d_sc_fft;
+      delete d_sync_ifft;
       delete d_out_ifft;
     }
 
@@ -119,7 +124,7 @@ namespace gr {
     modulator_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
     {
       int noutput_items = ninput_items[0];
-      return noutput_items ;
+      return noutput_items;
     }
 
     int
@@ -130,8 +135,53 @@ namespace gr {
     {
         const gr_complex *in = (const gr_complex *) input_items[0];
         gr_complex *out = (gr_complex *) output_items[0];
+        std::vector <gr::tag_t> tags;
+        std::memset(d_out_ifft_in, 0x00, sizeof(gr_complex)*d_fft_len);
+        
+        get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0)+ninput_items[0]);
+        bool sync = false;
+        uint64_t sync_offset = 0;
+        uint64_t data_offset = 0;
+        for (std::vector<gr::tag_t>::iterator it = tags.begin() ; it!= tags.end(); ++it)
+        {
+          if (pmt::symbol_to_string(it->key) == "gfdm_sync")
+          {
+            sync = true;
+            sync_offset = pmt::to_uint64(it->value) - nitems_read(0);
 
-        // Do signal processing!
+          }else if (pmt::symbol_to_string(it->key) == "gfdm_data")
+          {
+            data_offset = pmt::to_uint64(it->value) - nitems_read(0);                        
+          }
+
+        }
+        
+        if (sync)
+        {
+        //do sync stuff
+
+        }
+
+        // 1. FFT on subcarrier
+        for (int k=0; k<d_nsubcarrier; k++)
+        {
+          std::vector<gr_complex> sc_tmp(d_filter_width*d_ntimeslots);
+          std::memcpy(d_sc_fft_in,&in[data_offset+k*d_ntimeslots],sizeof(gr_complex)*d_ntimeslots);
+          d_sc_fft->execute();
+        // 2. Multiply  with filtertaps (times filter_width)
+          for (int l=0; l<d_filter_width; l++)
+          {
+            ::volk_32fc_x2_multiply_32fc(&sc_tmp[l*d_ntimeslots],&d_sc_fft_out[0],
+                &d_filter_taps[l*d_ntimeslots],d_ntimeslots);
+          }
+          for (int n=0; n < d_ntimeslots*d_nsubcarrier; n++)
+          {
+
+          }
+
+
+        }
+        // 3. Add to ifft-vector
 
 
         return noutput_items;

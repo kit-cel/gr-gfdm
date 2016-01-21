@@ -24,6 +24,8 @@
 #include <gnuradio/fft/fft.h>
 #include <gfdm/modulator_cc.h>
 #include <gnuradio/filter/firdes.h>
+#include <pmt/pmt.h>
+#include <volk/volk.h>
 
 namespace gr {
   namespace gfdm {
@@ -36,10 +38,14 @@ namespace gr {
        int d_filter_width;
        int d_N;
        int d_fft_len;
+       int d_sync_fft_len;
        std::vector<gr_complex> d_filter_taps;
        fft::fft_complex *d_sc_fft;
        gr_complex * d_sc_fft_in;
        gr_complex * d_sc_fft_out;
+       fft::fft_complex *d_sync_ifft;
+       gr_complex * d_sync_ifft_in;
+       gr_complex * d_sync_ifft_out;
        fft::fft_complex *d_out_ifft;
        gr_complex * d_out_ifft_in;
        gr_complex * d_out_ifft_out;
