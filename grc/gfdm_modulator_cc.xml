@@ -3,7 +3,7 @@
   <key>gfdm_modulator_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
-  <make>gfdm.modulator_cc($nsubcarrier, $ntimeslots, $filter_alpha, $fft_len, $len_tag_key)</make>
+  <make>gfdm.modulator_cc($nsubcarrier, $ntimeslots, $filter_alpha, $fft_len, $sync_fft_len, $len_tag_key)</make>
   <param>
     <name>Nsubcarrier</name>
     <key>nsubcarrier</key>
@@ -26,6 +26,12 @@
     <name>Fft_len</name>
     <key>fft_len</key>
     <value>256</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Sync_fft_len</name>
+    <key>sync_fft_len</key>
+    <value>32</value>
     <type>int</type>
   </param>
   <param>

@@ -34,6 +34,7 @@ namespace gr {
         int ntimeslots,
         double filter_alpha,
         int fft_len,
+        int sync_fft_len,
         const std::string& len_tag_key)
     {
       return gnuradio::get_initial_sptr
@@ -41,6 +42,7 @@ namespace gr {
                                ntimeslots,
                                filter_alpha,
                                fft_len,
+                               sync_fft_len,
                                len_tag_key)
          );
 
@@ -54,6 +56,7 @@ namespace gr {
         int ntimeslots,
         double filter_alpha,
         int fft_len,
+        int sync_fft_len,
         const std::string& len_tag_key)
       : gr::tagged_stream_block("modulator_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -62,15 +65,16 @@ namespace gr {
       d_ntimeslots(ntimeslots),
       d_nsubcarrier(nsubcarrier),
       d_N(ntimeslots*nsubcarrier),
-      d_fft_len(fft_len)
+      d_fft_len(fft_len),
+      d_sync_fft_len(sync_fft_len)
     {
       if (d_fft_len < d_N)
       {
         throw std::invalid_argument("fft_len must be greater than or equal to nsubcarrier*ntimeslots");
       }
-      int d_filter_width = 2;
+      d_filter_width = 2;
       std::vector<float> filtertaps = gr::filter::firdes::root_raised_cosine(
-          double(d_nsubcarrier),
+          1.0,
           1.0,
           double(1.0/d_nsubcarrier),
           filter_alpha,
@@ -78,15 +82,13 @@ namespace gr {
       fft::fft_real_fwd *filter_fft = new fft::fft_real_fwd(d_N,1);
       float *in = filter_fft->get_inbuf();
       gr_complex *out = filter_fft->get_outbuf();
-
+      std::memset((void*) in, 0x00, sizeof(float)*d_N);
       //Copy Filtertaps in FFT Input
-      std::memcpy((void*) in, &filtertaps[0], sizeof(gr_complex)*d_N);
-      
+      std::memcpy((void*) in, &filtertaps[0], sizeof(float)*d_N);
       filter_fft->execute();
-      d_filter_taps.reserve(d_filter_width*d_ntimeslots);
+      d_filter_taps.resize(d_ntimeslots*d_filter_width,0j);
       // Only works for d_filter_width = 2 needs some rework for d_filter_width other than 
       std::memcpy(&d_filter_taps[0], out, sizeof(gr_complex)*d_ntimeslots);
-      d_filter_taps[d_ntimeslots] = gr_complex(0j);
       for (int i=0; i<d_ntimeslots-1; i++)
       {
         d_filter_taps[i+d_ntimeslots+1] = std::conj(d_filter_taps[d_ntimeslots-1-i]);
@@ -165,19 +167,18 @@ namespace gr {
             data_offset = it->offset - nitems_read(0);       
           }
         }
-        
+
         if (sync)
         {
         //do sync stuff
         sync_length = d_sync_fft_len;
 
         }
-
         for (int k=0; k<d_nsubcarrier; k++)
         {
         // 1. FFT on subcarrier
-          std::vector<gr_complex> sc_tmp(d_filter_width*d_ntimeslots);
-          std::memcpy(d_sc_fft_in,&in[data_offset+k*d_ntimeslots],sizeof(gr_complex)*d_ntimeslots);
+          std::vector<gr_complex> sc_tmp(d_filter_width*d_ntimeslots,0j);
+          std::memcpy(&d_sc_fft_in[0],&in[data_offset+k*d_ntimeslots],sizeof(gr_complex)*d_ntimeslots);
           d_sc_fft->execute();
         // 2. Multiply  with filtertaps (times filter_width)
           for (int l=0; l<d_filter_width; l++)
@@ -187,15 +188,14 @@ namespace gr {
           }
         // 3. Add to ifft-vector
         // Calculate ifft offset (not shifted, possibly longer than symbols, some outofband radiation, per subcarrier offset
-          int ifft_offset = ( d_N/2 + (d_fft_len-d_N)/2 - (d_filter_width*d_ntimeslots)/2 + k*d_ntimeslots ) % d_N;
+          int ifft_offset = ( d_fft_len/2 + (d_fft_len-d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots ) % d_fft_len;
           for (int n=0; n < d_filter_width*d_ntimeslots; n++)
           {
-            d_out_ifft_in[(ifft_offset + n % d_N)] += sc_tmp[(n + (d_filter_width+d_ntimeslots)/2) % d_filter_width*d_ntimeslots];
+            d_out_ifft_in[((ifft_offset + n) % d_fft_len)] += sc_tmp[(n + (d_filter_width*d_ntimeslots)/2) % (d_filter_width*d_ntimeslots)];
           }
         }
         d_out_ifft->execute();
         ::volk_32fc_s32fc_multiply_32fc(&out[sync_length],&d_out_ifft_out[0],static_cast<gr_complex>(1.0/d_fft_len),d_fft_len);
-
         return sync_length+d_fft_len;
     }
 

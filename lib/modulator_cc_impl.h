@@ -60,6 +60,7 @@ namespace gr {
           int ntimeslots,
           double filter_alpha,
           int fft_len,
+          int sync_fft_len,
           const std::string& len_tag_key);
       ~modulator_cc_impl();
 
