@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 Andrej Rode.
+ * Copyright 2016 <+YOU OR YOUR COMPANY+>.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #define INCLUDED_GFDM_RECEIVER_CC_H
 
 #include <gfdm/api.h>
-#include <gnuradio/block.h>
+#include <gnuradio/tagged_stream_block.h>
 
 namespace gr {
   namespace gfdm {
@@ -33,7 +33,7 @@ namespace gr {
      * \ingroup gfdm
      *
      */
-    class GFDM_API receiver_cc : virtual public gr::block
+    class GFDM_API receiver_cc : virtual public gr::tagged_stream_block
     {
      public:
       typedef boost::shared_ptr<receiver_cc> sptr;
@@ -46,7 +46,7 @@ namespace gr {
        * class. gfdm::receiver_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int nsubcarrier, int ntimeslots, int filter_width, double filter_alpha);
+      static sptr make();
     };
 
   } // namespace gfdm

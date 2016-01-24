@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 Andrej Rode.
+ * Copyright 2016 <+YOU OR YOUR COMPANY+>.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,14 +31,15 @@ namespace gr {
      private:
       // Nothing to declare in this block.
 
+     protected:
+      int calculate_output_stream_length(const gr_vector_int &ninput_items);
+
      public:
-      receiver_cc_impl(int nsubcarrier, int ntimeslots, int filter_width, double filter_alpha);
+      receiver_cc_impl();
       ~receiver_cc_impl();
 
       // Where all the action really happens
-      void forecast (int noutput_items, gr_vector_int &ninput_items_required);
-
-      int general_work(int noutput_items,
+      int work(int noutput_items,
 		       gr_vector_int &ninput_items,
 		       gr_vector_const_void_star &input_items,
 		       gr_vector_void_star &output_items);

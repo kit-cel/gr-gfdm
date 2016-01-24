@@ -30,7 +30,7 @@ list(APPEND gfdm_sources
     #receiver_cc_impl.cc
     framer_cc_impl.cc
     modulator_cc_impl.cc
-    )
+    receiver_cc_impl.cc )
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)

@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 Andrej Rode.
+ * Copyright 2016 <+YOU OR YOUR COMPANY+>.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,24 +29,19 @@ namespace gr {
   namespace gfdm {
 
     receiver_cc::sptr
-    receiver_cc::make(int nsubcarrier,
-                      int ntimeslots,
-                      int filter_width,
-                      double filter_alpha)
+    receiver_cc::make()
     {
       return gnuradio::get_initial_sptr
-        (new receiver_cc_impl(int nsubcarrier,int ntimeslots,int filter_width, double filter_alpha));
+        (new receiver_cc_impl());
     }
 
     /*
      * The private constructor
      */
-    receiver_cc_impl::receiver_cc_impl(int nsubcarrier, int ntimeslots, int filter_width, double filter_alpha)
-      : gr::block("receiver_cc",
-              gr::io_signature::make(nsubcarrier*ntimeslots, nsubcarrier*ntimeslots , sizeof(gr_complex)),
-              gr::io_signature::make(nsubcarrier*ntimeslots, nsubcarrier*ntimeslots, sizeof(gr_complex))),
-      d_nsubcarrier(nsubcarrier),
-      d_ntimeslots(ntimeslots)
+    receiver_cc_impl::receiver_cc_impl()
+      : gr::tagged_stream_block("receiver_cc",
+              gr::io_signature::make(<+MIN_IN+>, <+MAX_IN+>, sizeof(<+ITYPE+>)),
+              gr::io_signature::make(<+MIN_OUT+>, <+MAX_OUT+>, sizeof(<+OTYPE+>)), <+len_tag_key+>)
     {}
 
     /*
@@ -56,25 +51,23 @@ namespace gr {
     {
     }
 
-    void
-    receiver_cc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
+    int
+    receiver_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
     {
-        /* <+forecast+> e.g. ninput_items_required[0] = noutput_items */
+      int noutput_items = /* <+set this+> */;
+      return noutput_items ;
     }
 
     int
-    receiver_cc_impl::general_work (int noutput_items,
+    receiver_cc_impl::work (int noutput_items,
                        gr_vector_int &ninput_items,
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)
     {
-        const gr_complex *in = (const gr_complex *) input_items[0];
-        gr_complex *out = (gr_complex *) output_items[0];
+        const <+ITYPE+> *in = (const <+ITYPE+> *) input_items[0];
+        <+OTYPE+> *out = (<+OTYPE+> *) output_items[0];
 
         // Do <+signal processing+>
-        // Tell runtime system how many input items we consumed on
-        // each input stream.
-        consume_each (noutput_items);
 
         // Tell runtime system how many output items we produced.
         return noutput_items;
