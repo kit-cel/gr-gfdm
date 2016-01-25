@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 
 #include <gfdm/receiver_cc.h>
 #include <gnuradio/fft/fft.h>
+#include <volk/volk.h>
+#include <gnuradio/filter/firdes.h>
 
 namespace gr {
   namespace gfdm {
