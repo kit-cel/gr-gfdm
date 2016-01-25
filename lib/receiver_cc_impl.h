@@ -22,6 +22,7 @@
 #define INCLUDED_GFDM_RECEIVER_CC_IMPL_H
 
 #include <gfdm/receiver_cc.h>
+#include <gnuradio/fft/fft.h>
 
 namespace gr {
   namespace gfdm {
@@ -29,13 +30,29 @@ namespace gr {
     class receiver_cc_impl : public receiver_cc
     {
      private:
-      // Nothing to declare in this block.
+       int d_nsubcarrier;
+       int d_ntimeslots;
+       int d_filter_width;
+       int d_N;
+       int d_fft_len;
+       std::vector<gr_complex> d_filter_taps;
+       fft::fft_complex *d_in_fft;
+       gr_complex * d_in_fft_in;
+       gr_complex * d_in_fft_out;
+       fft::fft_complex * d_sc_ifft;
+       gr_complex * d_sc_ifft_in;
+       gr_complex * d_sc_ifft_out;
 
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
      public:
-      receiver_cc_impl();
+      receiver_cc_impl(
+          int nsubcarrier,
+          int ntimeslots,
+          double filter_alpha, 
+          int fft_len,
+          const std::string& len_tag_key);
       ~receiver_cc_impl();
 
       // Where all the action really happens

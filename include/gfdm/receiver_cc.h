@@ -46,7 +46,12 @@ namespace gr {
        * class. gfdm::receiver_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make();
+      static sptr make(
+          int nsubcarrier,
+          int ntimeslots,
+          double filter_alpha,
+          int fft_len,
+          const std::string& len_tag_key = "frame_len");
     };
 
   } // namespace gfdm
