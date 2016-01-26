@@ -7,7 +7,7 @@
   <param>
     <name>Nsubcarrier</name>
     <key>nsubcarrier</key>
-    <value>16</16>
+    <value>16</value>
     <type>int</type>
   </param>
   <param>

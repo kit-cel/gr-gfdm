@@ -60,18 +60,29 @@ namespace gr {
       d_fft_len(fft_len)
     {
       d_filter_width = 2;
-      std::vector<float> filtertaps = gr::filter::firdes::root_raised_cosine(
+      std::vector<float> filtertaps(d_N);
+      std::vector<float> filtertaps_center = gr::filter::firdes::root_raised_cosine(
           1.0,
           1.0,
           double(1.0/d_nsubcarrier),
           filter_alpha,
           d_N);
+      for (int i=0;i<d_N;i++)
+      {
+        filtertaps[i] = filtertaps_center[(i+d_N/2) % d_N];
+      }
       fft::fft_real_fwd *filter_fft = new fft::fft_real_fwd(d_N,1);
       float *in = filter_fft->get_inbuf();
       gr_complex *out = filter_fft->get_outbuf();
       std::memset((void*) in, 0x00, sizeof(float)*d_N);
       //Copy Filtertaps in FFT Input
-      std::memcpy((void*) in, &filtertaps[0], sizeof(float)*d_N);
+      std::memcpy((void*) in, &filtertaps[0], sizeof(float)*d_N); 
+      std::cout << "Calculated filtertaps in timedomain" << std::endl;
+      for (int n=0;n<d_N;n++)
+      {
+        std::cout << filtertaps[n] <<" ,";
+      }
+      std::cout << std::endl;
       filter_fft->execute();
       d_filter_taps.resize(d_ntimeslots*d_filter_width,0j);
       // Only works for d_filter_width = 2 needs some rework for d_filter_width other than 
@@ -80,6 +91,12 @@ namespace gr {
       {
         d_filter_taps[i+d_ntimeslots+1] = std::conj(d_filter_taps[d_ntimeslots-1-i]);
       }
+      std::cout<<"Saved filter taps"<<std::endl;
+      for (int n=0; n<d_ntimeslots*d_filter_width;n++)
+      {
+        std::cout<<d_filter_taps[n];
+      }
+      std::cout <<std::endl;
       delete filter_fft;
 
       //Initialize input FFT
@@ -128,18 +145,26 @@ namespace gr {
         d_in_fft->execute();
         // 2. Extract subcarrier
         // 3. Filter and superposition every subcarrier
+        
+        // Copy FFT output in temporary vector and add first subcarrier to the end 
+        std::vector<gr_complex> fft_out(d_fft_len+d_ntimeslots*d_filter_width);
+        std::memcpy(&fft_out[0],&d_in_fft_out[0],sizeof(gr_complex)*d_fft_len);
+        std::memcpy(&fft_out[d_fft_len],&d_in_fft_out[0],sizeof(gr_complex)*d_ntimeslots*d_filter_width);
+         
         for (int k=0; k<d_nsubcarrier; k++)
         {
+          //Initialize all temporary vectors
           std::vector<gr_complex> sc_postfft(d_ntimeslots*d_filter_width);
           std::vector<gr_complex> sc_postfilter(d_ntimeslots*d_filter_width);
           std::vector<gr_complex> sc_postifft(d_ntimeslots);
+
           //Subcarrier-Offset = d_fft_len/2 + (d_fft_len-d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots ) % d_fft_len
           int sc_offset = (d_fft_len/2 + (d_fft_len - d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots) % d_fft_len;
-          gr_complex * sc = &d_in_fft_out[sc_offset];
+          gr_complex * sc = &fft_out[sc_offset];
           // Only valid for d_filter_width = 2
           for (int n=0;n<d_filter_width*d_ntimeslots;n++)
           {
-            sc_postfft.push_back(sc[n + d_ntimeslots % d_ntimeslots*d_filter_width]);
+            sc_postfft[n] = sc[n + d_ntimeslots % d_ntimeslots*d_filter_width];
 
           }
 
@@ -147,7 +172,7 @@ namespace gr {
               &sc_postfft[0],&d_filter_taps[0],d_ntimeslots*d_filter_width);
           // Only valid for d_filter_width = 2
           ::volk_32f_x2_add_32f((float*)&d_sc_ifft_in[0],
-              (float*)&sc_postfilter[0],(float*)&sc_postfilter[d_ntimeslots],2*d_ntimeslots);
+              (float*)(&sc_postfilter[0]),(float*)(&sc_postfilter[d_ntimeslots]),d_filter_width*d_ntimeslots);
         // 4. apply ifft on every filtered and superpositioned subcarrier
           d_sc_ifft->execute();
           ::volk_32fc_s32fc_multiply_32fc(&sc_postifft[0],&d_sc_ifft_out[0],static_cast<gr_complex>(1.0/d_ntimeslots),d_ntimeslots);
