@@ -73,21 +73,26 @@ namespace gr {
         throw std::invalid_argument("fft_len must be greater than or equal to nsubcarrier*ntimeslots");
       }
       d_filter_width = 2;
-      std::vector<float> filtertaps = gr::filter::firdes::root_raised_cosine(
+      std::vector<float> filtertaps(d_N);
+      std::vector<float> filtertaps_center = gr::filter::firdes::root_raised_cosine(
           1.0,
           1.0,
           double(1.0/d_nsubcarrier),
           filter_alpha,
           d_N);
+      for (int i=0;i<d_N;i++)
+      {
+        filtertaps[i] = filtertaps_center[(i+d_N/2) % d_N];
+      }
       fft::fft_real_fwd *filter_fft = new fft::fft_real_fwd(d_N,1);
       float *in = filter_fft->get_inbuf();
       gr_complex *out = filter_fft->get_outbuf();
       std::memset((void*) in, 0x00, sizeof(float)*d_N);
       //Copy Filtertaps in FFT Input
-      std::memcpy((void*) in, &filtertaps[0], sizeof(float)*d_N);
+      std::memcpy(&in[0], &filtertaps[0], sizeof(float)*d_N);
       filter_fft->execute();
       d_filter_taps.resize(d_ntimeslots*d_filter_width,0j);
-      // Only works for d_filter_width = 2 needs some rework for d_filter_width other than 
+      // Only works for d_filter_width = 2 needs some rework for d_filter_width other than 2
       std::memcpy(&d_filter_taps[0], out, sizeof(gr_complex)*d_ntimeslots);
       for (int i=0; i<d_ntimeslots-1; i++)
       {
