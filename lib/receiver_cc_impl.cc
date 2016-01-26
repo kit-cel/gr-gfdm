@@ -77,12 +77,6 @@ namespace gr {
       std::memset((void*) in, 0x00, sizeof(float)*d_N);
       //Copy Filtertaps in FFT Input
       std::memcpy((void*) in, &filtertaps[0], sizeof(float)*d_N); 
-      std::cout << "Calculated filtertaps in timedomain" << std::endl;
-      for (int n=0;n<d_N;n++)
-      {
-        std::cout << filtertaps[n] <<" ,";
-      }
-      std::cout << std::endl;
       filter_fft->execute();
       d_filter_taps.resize(d_ntimeslots*d_filter_width,0j);
       // Only works for d_filter_width = 2 needs some rework for d_filter_width other than 
@@ -91,12 +85,6 @@ namespace gr {
       {
         d_filter_taps[i+d_ntimeslots+1] = std::conj(d_filter_taps[d_ntimeslots-1-i]);
       }
-      std::cout<<"Saved filter taps"<<std::endl;
-      for (int n=0; n<d_ntimeslots*d_filter_width;n++)
-      {
-        std::cout<<d_filter_taps[n];
-      }
-      std::cout <<std::endl;
       delete filter_fft;
 
       //Initialize input FFT
@@ -146,7 +134,7 @@ namespace gr {
         // 2. Extract subcarrier
         // 3. Filter and superposition every subcarrier
         
-        // Copy FFT output in temporary vector and add first subcarrier to the end 
+        // Copy FFT output in temporary vector and add beginning (length of d_ntimeslots*d_filter_width) to the end 
         std::vector<gr_complex> fft_out(d_fft_len+d_ntimeslots*d_filter_width);
         std::memcpy(&fft_out[0],&d_in_fft_out[0],sizeof(gr_complex)*d_fft_len);
         std::memcpy(&fft_out[d_fft_len],&d_in_fft_out[0],sizeof(gr_complex)*d_ntimeslots*d_filter_width);
@@ -157,14 +145,14 @@ namespace gr {
           std::vector<gr_complex> sc_postfft(d_ntimeslots*d_filter_width);
           std::vector<gr_complex> sc_postfilter(d_ntimeslots*d_filter_width);
           std::vector<gr_complex> sc_postifft(d_ntimeslots);
-
-          //Subcarrier-Offset = d_fft_len/2 + (d_fft_len-d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots ) % d_fft_len
+          
+          //FFT output is not centered:
+          //Subcarrier-Offset = d_fft_len/2 + (d_fft_len-d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots ) modulo d_fft_len
           int sc_offset = (d_fft_len/2 + (d_fft_len - d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots) % d_fft_len;
           gr_complex * sc = &fft_out[sc_offset];
-          // Only valid for d_filter_width = 2
           for (int n=0;n<d_filter_width*d_ntimeslots;n++)
           {
-            sc_postfft[n] = sc[n + d_ntimeslots % d_ntimeslots*d_filter_width];
+            sc_postfft[n] = sc[(n + (d_ntimeslots*d_filter_width)/2) % (d_ntimeslots*d_filter_width)];
 
           }
 
@@ -172,10 +160,10 @@ namespace gr {
               &sc_postfft[0],&d_filter_taps[0],d_ntimeslots*d_filter_width);
           // Only valid for d_filter_width = 2
           ::volk_32f_x2_add_32f((float*)&d_sc_ifft_in[0],
-              (float*)(&sc_postfilter[0]),(float*)(&sc_postfilter[d_ntimeslots]),d_filter_width*d_ntimeslots);
+              (float*)(&sc_postfilter[0]),(float*)(&sc_postfilter[d_ntimeslots]),2*d_ntimeslots);
         // 4. apply ifft on every filtered and superpositioned subcarrier
           d_sc_ifft->execute();
-          ::volk_32fc_s32fc_multiply_32fc(&sc_postifft[0],&d_sc_ifft_out[0],static_cast<gr_complex>(1.0/d_ntimeslots),d_ntimeslots);
+          ::volk_32fc_s32fc_multiply_32fc(&sc_postifft[0],&d_sc_ifft_out[0],static_cast<gr_complex>(1.0/(float)d_ntimeslots),d_ntimeslots);
 
           for (int m=0; m<d_ntimeslots; m++)
           {
