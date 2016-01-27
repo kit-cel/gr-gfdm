@@ -68,37 +68,15 @@ namespace gr {
       d_fft_len(fft_len),
       d_sync_fft_len(sync_fft_len)
     {
+      d_filter_width = 2;
       if (d_fft_len < d_N)
       {
         throw std::invalid_argument("fft_len must be greater than or equal to nsubcarrier*ntimeslots");
       }
-      d_filter_width = 2;
-      std::vector<float> filtertaps(d_N);
-      std::vector<float> filtertaps_center = gr::filter::firdes::root_raised_cosine(
-          1.0,
-          1.0,
-          double(1.0/d_nsubcarrier),
-          filter_alpha,
-          d_N);
-      for (int i=0;i<d_N;i++)
-      {
-        filtertaps[i] = filtertaps_center[(i+d_N/2) % d_N];
-      }
-      fft::fft_real_fwd *filter_fft = new fft::fft_real_fwd(d_N,1);
-      float *in = filter_fft->get_inbuf();
-      gr_complex *out = filter_fft->get_outbuf();
-      std::memset((void*) in, 0x00, sizeof(float)*d_N);
-      //Copy Filtertaps in FFT Input
-      std::memcpy(&in[0], &filtertaps[0], sizeof(float)*d_N);
-      filter_fft->execute();
-      d_filter_taps.resize(d_ntimeslots*d_filter_width,0j);
-      // Only works for d_filter_width = 2 needs some rework for d_filter_width other than 2
-      std::memcpy(&d_filter_taps[0], out, sizeof(gr_complex)*d_ntimeslots);
-      for (int i=0; i<d_ntimeslots-1; i++)
-      {
-        d_filter_taps[i+d_ntimeslots+1] = std::conj(d_filter_taps[d_ntimeslots-1-i]);
-      }
-      delete filter_fft;
+      d_filter_taps.resize(d_ntimeslots*d_filter_width);
+      rrc_filter_sparse *filter_gen = new rrc_filter_sparse(d_N,filter_alpha,d_filter_width,nsubcarrier,ntimeslots);
+      filter_gen->get_taps(d_filter_taps);
+      delete filter_gen;
 
       //Initialize FFT per subcarrier
       d_sc_fft = new fft::fft_complex(d_ntimeslots,true,1);

@@ -27,8 +27,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 list(APPEND gfdm_sources
     transmitter_cvc_impl.cc
-    #receiver_cc_impl.cc
     framer_cc_impl.cc
+    gfdm_utils.cc
     modulator_cc_impl.cc
     receiver_cc_impl.cc )
 

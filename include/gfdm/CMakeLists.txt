@@ -23,8 +23,8 @@
 install(FILES
     api.h
     transmitter_cvc.h
-    #receiver_cc.h
     framer_cc.h
     modulator_cc.h
+    gfdm_utils.h
     receiver_cc.h DESTINATION include/gfdm
 )

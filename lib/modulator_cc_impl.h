@@ -26,6 +26,7 @@
 #include <gnuradio/filter/firdes.h>
 #include <pmt/pmt.h>
 #include <volk/volk.h>
+#include <gfdm/gfdm_utils.h>
 
 namespace gr {
   namespace gfdm {
