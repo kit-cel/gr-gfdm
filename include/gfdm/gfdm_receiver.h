@@ -25,8 +25,10 @@
 #endif
 
 #include <gfdm/api.h>
+#include <gfdm/gfdm_utils.h>
 #include <gnuradio/fft/fft.h>
 #include <gnuradio/gr_complex.h>
+#include <volk/volk.h>
 
 namespace gr {
   namespace gfdm {
@@ -40,19 +42,20 @@ namespace gr {
           int d_filter_width;
           int d_N;
           int d_fft_len;
+          std::vector<gr_complex> d_filter_taps;
+          std::vector< std::vector<gr_complex> > *sc_fdomain;
           fft::fft_complex *d_in_fft;
           gr_complex *d_in_fft_in;
           gr_complex *d_in_fft_out;
           fft::fft_complex *d_sc_ifft;
           gr_complex *d_sc_ifft_in;
           gr_complex *d_sc_ifft_out;
-          std::vector< std::vector<gr_complex> > *sc_fdomain;
 
-          void filter_superposition(std::vector< std::vector<gr_complex> > &out, gr_complex &in);
-          void demodulate_subcarrier(gr_complex &out, std::vector< std::vector<gr_complex> > &sc_fdomain);
+          void filter_superposition(std::vector< std::vector<gr_complex> > &out, const gr_complex in[]);
+          void demodulate_subcarrier(gr_complex out[], std::vector< std::vector<gr_complex> > &sc_fdomain);
 
         public:
-          gfdm_receiver();
+          gfdm_receiver(int nsubcarrier, int ntimeslots, double filter_alpha, int fft_len);
           ~gfdm_receiver();
           
 

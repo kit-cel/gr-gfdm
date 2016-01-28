@@ -30,26 +30,94 @@ namespace gr {
   namespace gfdm {
     namespace kernel {
           
-      gfdm_receiver::gfdm_receiver()
+      gfdm_receiver::gfdm_receiver(int nsubcarrier,
+                                   int ntimeslots,
+                                   double filter_alpha,
+                                   int fft_len)
+        : 
+        d_nsubcarrier(nsubcarrier),
+        d_ntimeslots(ntimeslots),
+        d_N(ntimeslots*nsubcarrier),
+        d_fft_len(fft_len)
+
       {
+
+        d_filter_width = 2;
+        d_filter_taps.resize(d_ntimeslots*d_filter_width);
+        gfdm::rrc_filter_sparse *filter_gen = new rrc_filter_sparse(d_N,filter_alpha,d_filter_width,nsubcarrier,ntimeslots);
+        filter_gen->get_taps(d_filter_taps);
+        delete filter_gen;
+      
+        //Initialize input FFT
+        d_in_fft = new fft::fft_complex(d_fft_len,true,1);
+        d_in_fft_in = d_in_fft->get_inbuf();
+        d_in_fft_out = d_in_fft->get_outbuf();
+      
+        //Initialize IFFT per subcarrier
+        d_sc_ifft = new fft::fft_complex(d_ntimeslots,false,1);
+        d_sc_ifft_in = d_sc_ifft->get_inbuf();
+        d_sc_ifft_out = d_sc_ifft->get_outbuf();
+
+        //Initialize vector of vectors for temporary subcarrier data
+        sc_fdomain->resize(nsubcarrier);
+        for (std::vector< std::vector<gr_complex> >::iterator it =sc_fdomain->begin();it != sc_fdomain->end();++it)
+        {
+          it->resize(ntimeslots);
+        }
       }
      
       gfdm_receiver::~gfdm_receiver()
       {
-
+        delete d_in_fft;
+        delete d_sc_ifft;
       }
       
       void
       gfdm_receiver::filter_superposition(std::vector< std::vector<gr_complex> > &out,
-          gr_complex &in)
+          const gr_complex in[] )
       {
+        std::memcpy(&d_in_fft_in[0],&in[0],sizeof(gr_complex)*d_fft_len);
+        d_in_fft->execute();
+        std::vector<gr_complex> fft_out(d_fft_len+d_ntimeslots*d_filter_width);
+        std::memcpy(&fft_out[0],&d_in_fft_out[0],sizeof(gr_complex)*d_fft_len);
+        std::memcpy(&fft_out[d_fft_len],&d_in_fft_out[0],sizeof(gr_complex)*d_ntimeslots*d_filter_width);
+        for (int k=0; k<d_nsubcarrier; k++)
+        {
+          std::vector<gr_complex> sc_postfft(d_ntimeslots*d_filter_width);
+          std::vector<gr_complex> sc_postfilter(d_ntimeslots*d_filter_width);
+          //FFT output is not centered:
+          //Subcarrier-Offset = d_fft_len/2 + (d_fft_len-d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots ) modulo d_fft_len
+          int sc_offset = (d_fft_len/2 + (d_fft_len - d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots) % d_fft_len;
+          gr_complex * sc = &fft_out[sc_offset];
+          for (int n=0;n<d_filter_width*d_ntimeslots;n++)
+          {
+            sc_postfft[n] = sc[(n + (d_ntimeslots*d_filter_width)/2) % (d_ntimeslots*d_filter_width)];
+          }
+          ::volk_32fc_x2_multiply_32fc(&sc_postfilter[0],
+              &sc_postfft[0],&d_filter_taps[0],d_ntimeslots*d_filter_width);
+          // Only valid for d_filter_width = 2, write own kernel for complex addition
+          ::volk_32f_x2_add_32f((float*)&out[k][0],
+              (float*)(&sc_postfilter[0]),(float*)(&sc_postfilter[d_ntimeslots]),2*d_ntimeslots);
+          }
 
       }
 
       void
-      gfdm_receiver::demodulate_subcarrier(gr_complex &out,
+      gfdm_receiver::demodulate_subcarrier(gr_complex out[],
           std::vector< std::vector<gr_complex> > &sc_fdomain)
       {
+        // 4. apply ifft on every filtered and superpositioned subcarrier
+        for (int k=0; k<d_nsubcarrier; k++)
+        {
+          std::vector<gr_complex> sc_postifft(d_ntimeslots);
+          std::memcpy(&d_sc_ifft_in[0],&sc_fdomain[k][0],sizeof(gr_complex)*d_ntimeslots);
+          d_sc_ifft->execute();
+          ::volk_32fc_s32fc_multiply_32fc(&sc_postifft[0],&d_sc_ifft_out[0],static_cast<gr_complex>(1.0/(float)d_ntimeslots),d_ntimeslots);
+          for (int m=0; m<d_ntimeslots; m++)
+          {
+            out[k+m*d_nsubcarrier] = sc_postifft[m];
+          }
+        }
 
       }
 
