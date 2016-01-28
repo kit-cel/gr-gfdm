@@ -24,40 +24,35 @@
 #define INCLUDED_GFDM_RECEIVER_H
 #endif
 
-#include <gfdm/api.h>
-#include <gnuradio/fft/fft.h>
-#include <gnuradio/gr_complex.h>
+#include <gfdm/gfdm_receiver.h>
 
 namespace gr {
   namespace gfdm {
     namespace kernel {
-      
-      class GFDM_API gfdm_receiver
-      {
-        protected:
-          int d_nsubcarrier;
-          int d_ntimeslots;
-          int d_filter_width;
-          int d_N;
-          int d_fft_len;
-          fft::fft_complex *d_in_fft;
-          gr_complex *d_in_fft_in;
-          gr_complex *d_in_fft_out;
-          fft::fft_complex *d_sc_ifft;
-          gr_complex *d_sc_ifft_in;
-          gr_complex *d_sc_ifft_out;
-          std::vector< std::vector<gr_complex> > *sc_fdomain;
-
-          void filter_superposition(std::vector< std::vector<gr_complex> > &out, gr_complex &in);
-          void demodulate_subcarrier(gr_complex &out, std::vector< std::vector<gr_complex> > &sc_fdomain);
-
-        public:
-          gfdm_receiver();
-          ~gfdm_receiver();
           
+      gfdm_receiver::gfdm_receiver()
+      {
+      }
+     
+      gfdm_receiver::~gfdm_receiver()
+      {
 
+      }
+      
+      void
+      gfdm_receiver::filter_superposition(std::vector< std::vector<gr_complex> > &out,
+          gr_complex &in)
+      {
 
-      };
+      }
+
+      void
+      gfdm_receiver::demodulate_subcarrier(gr_complex &out,
+          std::vector< std::vector<gr_complex> > &sc_fdomain)
+      {
+
+      }
+
     } /* namespace kernel */
   } /* namespace filter */
 } /* namespace gr */
