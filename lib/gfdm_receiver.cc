@@ -59,8 +59,8 @@ namespace gr {
         d_sc_ifft_out = d_sc_ifft->get_outbuf();
 
         //Initialize vector of vectors for temporary subcarrier data
-        sc_fdomain->resize(nsubcarrier);
-        for (std::vector< std::vector<gr_complex> >::iterator it =sc_fdomain->begin();it != sc_fdomain->end();++it)
+        d_sc_fdomain->resize(nsubcarrier);
+        for (std::vector< std::vector<gr_complex> >::iterator it =d_sc_fdomain->begin();it != d_sc_fdomain->end();++it)
         {
           it->resize(ntimeslots);
         }
@@ -119,6 +119,13 @@ namespace gr {
           }
         }
 
+      }
+
+      void
+      gfdm_receiver::gfdm_work(gr_complex out[], gr_complex in[], int ninput_items, int noutputitems)
+      {
+       filter_superposition(*d_sc_fdomain,in);
+       demodulate_subcarrier(out,*d_sc_fdomain);
       }
 
     } /* namespace kernel */
