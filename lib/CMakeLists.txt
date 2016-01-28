@@ -29,8 +29,10 @@ list(APPEND gfdm_sources
     transmitter_cvc_impl.cc
     framer_cc_impl.cc
     gfdm_utils.cc
+    gfdm_receiver.cc
     modulator_cc_impl.cc
-    receiver_cc_impl.cc )
+    #receiver_cc_impl.cc
+    receiver2_cc_impl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)

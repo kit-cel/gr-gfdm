@@ -44,7 +44,7 @@ namespace gr {
 
         d_filter_width = 2;
         d_filter_taps.resize(d_ntimeslots*d_filter_width);
-        gfdm::rrc_filter_sparse *filter_gen = new rrc_filter_sparse(d_N,filter_alpha,d_filter_width,nsubcarrier,ntimeslots);
+        rrc_filter_sparse *filter_gen = new rrc_filter_sparse(d_N,filter_alpha,d_filter_width,nsubcarrier,ntimeslots);
         filter_gen->get_taps(d_filter_taps);
         delete filter_gen;
       
@@ -122,7 +122,7 @@ namespace gr {
       }
 
       void
-      gfdm_receiver::gfdm_work(gr_complex out[], gr_complex in[], int ninput_items, int noutputitems)
+      gfdm_receiver::gfdm_work(gr_complex out[],const gr_complex in[], int ninput_items, int noutputitems)
       {
        filter_superposition(*d_sc_fdomain,in);
        demodulate_subcarrier(out,*d_sc_fdomain);

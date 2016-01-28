@@ -57,7 +57,7 @@ namespace gr {
         public:
           gfdm_receiver(int nsubcarrier, int ntimeslots, double filter_alpha, int fft_len);
           ~gfdm_receiver();
-          void gfdm_work(gr_complex out[], gr_complex in[], int ninputitems, int noutputitems);
+          void gfdm_work(gr_complex out[], const gr_complex in[], int ninputitems, int noutputitems);
           
 
 
