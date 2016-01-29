@@ -36,6 +36,9 @@ namespace gr {
        void remove_sc_interference(
            std::vector< std::vector<gr_complex> > &sc_symbols,
            std::vector< std::vector<gr_complex> > &sc_fdomain);
+       fft::fft_complex *d_sc_fft;
+       gr_complex *d_sc_fft_in;
+       gr_complex *d_sc_fft_out;
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 

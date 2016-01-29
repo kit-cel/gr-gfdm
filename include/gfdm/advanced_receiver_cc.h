@@ -24,8 +24,9 @@
 
 #include <gfdm/api.h>
 #include <gnuradio/tagged_stream_block.h>
-#include <gnuradio/digital/constellation.h>
 #include <gfdm/gfdm_receiver.h>
+#include <gnuradio/digital/api.h>
+#include <gnuradio/digital/constellation.h>
 
 namespace gr {
   namespace gfdm {

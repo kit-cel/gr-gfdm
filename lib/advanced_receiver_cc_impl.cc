@@ -44,12 +44,15 @@ namespace gr {
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               len_tag_key),
       gfdm_receiver(nsubcarrier, ntimeslots, filter_alpha, fft_len),
-      d_constellation(constellation)
+      d_constellation(constellation),
+      d_ic_iter(ic_iter)
     {
-      d_ic_filter_taps.resize(ntimeslots);
+      d_ic_filter_taps.resize(d_ntimeslots);
       // Only works for d_filter_width = 2
       ::volk_32fc_x2_multiply_32fc(&d_ic_filter_taps[0],&d_filter_taps[0],&d_filter_taps[d_ntimeslots],d_ntimeslots);
-    
+      d_sc_fft = new fft::fft_complex(d_ntimeslots,true,1);
+      d_sc_fft_in = d_sc_fft->get_inbuf();
+      d_sc_fft_out = d_sc_fft->get_outbuf();
     }
 
     /*
@@ -83,25 +86,23 @@ namespace gr {
         remove_sc_interference(d_sc_symbols,d_sc_fdomain);
         //Should work since output is assigned after operation and no volk calls are in demodulate_subcarrier
         demodulate_subcarrier(d_sc_symbols,d_sc_symbols);
-
       }
+      serialize_output(&out[0],d_sc_symbols);
 
-
-
-      return noutput_items;
+      return d_N;
     }
 
     void
     advanced_receiver_cc_impl::map_sc_symbols( std::vector< std::vector<gr_complex> > &sc_symbols)
     {
       unsigned int symbol_tmp = 0;
-      std::vector<gr_complex> const_poinst = d_constellation->points();
+      std::vector<gr_complex> const_points = d_constellation->points();
       for (int k=0;k<d_nsubcarrier;k++)
       {
         for (int m=0;m<d_ntimeslots;m++)
         {
           symbol_tmp =d_constellation->decision_maker(&sc_symbols[k][m]);
-          sc_symbols[k][m] = const_poinst[symbol_tmp];
+          sc_symbols[k][m] = const_points[symbol_tmp];
         }
       }
     }
@@ -113,8 +114,9 @@ namespace gr {
       std::vector<gr_complex> sc_tmp(d_ntimeslots);
       for (int k=0; k<d_nsubcarrier; k++)
       {
-        ::volk_32f_x2_add_32f((float*)&sc_tmp[0],(float*)&prev_sc_symbols[(k-1 % d_nsubcarrier + d_nsubcarrier) % d_nsubcarrier][0],(float*)&prev_sc_symbols[(k+1% d_nsubcarrier)][0],2*d_ntimeslots);
-        ::volk_32fc_x2_multiply_32fc(&sc_symbols[k][0],&d_ic_filter_taps[0],&sc_tmp[0],d_ntimeslots);
+        ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[(((k-1) % d_nsubcarrier) + d_nsubcarrier) % d_nsubcarrier][0],(float*)&prev_sc_symbols[((k+1)% d_nsubcarrier)][0],2*d_ntimeslots);
+        d_sc_fft->execute();
+        ::volk_32fc_x2_multiply_32fc(&sc_symbols[k][0],&d_ic_filter_taps[0],&d_sc_fft_out[0],d_ntimeslots);
         ::volk_32f_x2_subtract_32f((float*)&sc_tmp[0],(float*)&sc_fdomain[k][0],(float*)&sc_symbols[k][0],2*d_ntimeslots);
         ::std::memcpy(&sc_symbols[k][0],&sc_tmp[0],sizeof(gr_complex)*d_ntimeslots);
 
