@@ -45,3 +45,4 @@ GR_ADD_TEST(qa_transmitter_cvc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/
 #GR_ADD_TEST(qa_framer_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_framer_cc.py)
 #GR_ADD_TEST(qa_modulator_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_modulator_cc.py)
 GR_ADD_TEST(qa_receiver_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_receiver_cc.py)
+GR_ADD_TEST(qa_advanced_receiver_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_advanced_receiver_cc.py)

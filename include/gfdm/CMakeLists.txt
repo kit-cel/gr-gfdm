@@ -27,5 +27,6 @@ install(FILES
     modulator_cc.h
     gfdm_utils.h
     gfdm_receiver.h
-    receiver_cc.h DESTINATION include/gfdm
+    receiver_cc.h
+    advanced_receiver_cc.h DESTINATION include/gfdm
 )
