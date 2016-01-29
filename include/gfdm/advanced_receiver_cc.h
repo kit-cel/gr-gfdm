@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 
 #include <gfdm/api.h>
 #include <gnuradio/tagged_stream_block.h>
+#include <gnuradio/digital/constellation.h>
+#include <gfdm/gfdm_receiver.h>
 
 namespace gr {
   namespace gfdm {
@@ -46,7 +48,14 @@ namespace gr {
        * class. gfdm::advanced_receiver_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int nsubcarrier, int ntimeslots, double filter_alpha, int fft_len, int it_iter, const std::string& len_tag_key = "frame_len");
+      static sptr make(
+          int nsubcarrier,
+          int ntimeslots,
+          double filter_alpha,
+          int fft_len,
+          int ic_iter,
+          gr::digital::constellation_sptr constellation,
+          const std::string& len_tag_key = "frame_len");
     };
 
   } // namespace gfdm
