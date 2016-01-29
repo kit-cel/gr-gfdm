@@ -41,7 +41,6 @@ namespace gr {
         d_fft_len(fft_len)
 
       {
-
         d_filter_width = 2;
         d_filter_taps.resize(d_ntimeslots*d_filter_width);
         rrc_filter_sparse *filter_gen = new rrc_filter_sparse(d_N,filter_alpha,d_filter_width,nsubcarrier,ntimeslots);
@@ -57,10 +56,9 @@ namespace gr {
         d_sc_ifft = new fft::fft_complex(d_ntimeslots,false,1);
         d_sc_ifft_in = d_sc_ifft->get_inbuf();
         d_sc_ifft_out = d_sc_ifft->get_outbuf();
-
         //Initialize vector of vectors for temporary subcarrier data
-        d_sc_fdomain->resize(nsubcarrier);
-        for (std::vector< std::vector<gr_complex> >::iterator it =d_sc_fdomain->begin();it != d_sc_fdomain->end();++it)
+        d_sc_fdomain.resize(nsubcarrier);
+        for (std::vector< std::vector<gr_complex> >::iterator it = d_sc_fdomain.begin();it != d_sc_fdomain.end();++it)
         {
           it->resize(ntimeslots);
         }
@@ -124,8 +122,8 @@ namespace gr {
       void
       gfdm_receiver::gfdm_work(gr_complex out[],const gr_complex in[], int ninput_items, int noutputitems)
       {
-       filter_superposition(*d_sc_fdomain,in);
-       demodulate_subcarrier(out,*d_sc_fdomain);
+       filter_superposition(d_sc_fdomain,in);
+       demodulate_subcarrier(out,d_sc_fdomain);
       }
 
     } /* namespace kernel */

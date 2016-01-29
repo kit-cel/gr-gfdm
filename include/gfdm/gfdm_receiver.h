@@ -43,7 +43,7 @@ namespace gr {
           int d_N;
           int d_fft_len;
           std::vector<gr_complex> d_filter_taps;
-          std::vector< std::vector<gr_complex> > *d_sc_fdomain;
+          std::vector< std::vector<gr_complex> > d_sc_fdomain;
           fft::fft_complex *d_in_fft;
           gr_complex *d_in_fft_in;
           gr_complex *d_in_fft_out;
