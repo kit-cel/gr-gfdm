@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2016 Andrej Rode
+ * Copyright 2016 Andrej Rode.
  *
  * This file is part of GNU Radio
  *
@@ -62,6 +62,11 @@ namespace gr {
         {
           it->resize(ntimeslots);
         }
+        d_sc_symbols.resize(nsubcarrier);
+        for (std::vector< std::vector<gr_complex> >::iterator it = d_sc_symbols.begin();it != d_sc_symbols.end();++it)
+        {
+          it->resize(ntimeslots);
+        }
       }
      
       gfdm_receiver::~gfdm_receiver()
@@ -101,7 +106,7 @@ namespace gr {
       }
 
       void
-      gfdm_receiver::demodulate_subcarrier(gr_complex out[],
+      gfdm_receiver::demodulate_subcarrier(std::vector< std::vector<gr_complex> > &out,
           std::vector< std::vector<gr_complex> > &sc_fdomain)
       {
         // 4. apply ifft on every filtered and superpositioned subcarrier
@@ -110,20 +115,30 @@ namespace gr {
           std::vector<gr_complex> sc_postifft(d_ntimeslots);
           std::memcpy(&d_sc_ifft_in[0],&sc_fdomain[k][0],sizeof(gr_complex)*d_ntimeslots);
           d_sc_ifft->execute();
-          ::volk_32fc_s32fc_multiply_32fc(&sc_postifft[0],&d_sc_ifft_out[0],static_cast<gr_complex>(1.0/(float)d_ntimeslots),d_ntimeslots);
-          for (int m=0; m<d_ntimeslots; m++)
-          {
-            out[k+m*d_nsubcarrier] = sc_postifft[m];
-          }
+          ::volk_32fc_s32fc_multiply_32fc(&out[k][0],&d_sc_ifft_out[0],static_cast<gr_complex>(1.0/(float)d_ntimeslots),d_ntimeslots);
         }
 
+      }
+
+      void
+      gfdm_receiver::serialize_output(gr_complex out[],
+          std::vector< std::vector<gr_complex> > &sc_symbols)
+      {
+        for (int k=0; k<d_nsubcarrier; k++)
+        {
+          for (int m=0; m<d_ntimeslots; m++)
+          {
+            out[k+m*d_nsubcarrier] = sc_symbols[k][m];
+          }
+        }
       }
 
       void
       gfdm_receiver::gfdm_work(gr_complex out[],const gr_complex in[], int ninput_items, int noutputitems)
       {
        filter_superposition(d_sc_fdomain,in);
-       demodulate_subcarrier(out,d_sc_fdomain);
+       demodulate_subcarrier(d_sc_symbols,d_sc_fdomain);
+       serialize_output(out,d_sc_symbols);
       }
 
     } /* namespace kernel */

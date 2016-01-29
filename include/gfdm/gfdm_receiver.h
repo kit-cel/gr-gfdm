@@ -44,6 +44,7 @@ namespace gr {
           int d_fft_len;
           std::vector<gr_complex> d_filter_taps;
           std::vector< std::vector<gr_complex> > d_sc_fdomain;
+          std::vector< std::vector<gr_complex> > d_sc_symbols;
           fft::fft_complex *d_in_fft;
           gr_complex *d_in_fft_in;
           gr_complex *d_in_fft_out;
@@ -52,7 +53,8 @@ namespace gr {
           gr_complex *d_sc_ifft_out;
 
           void filter_superposition(std::vector< std::vector<gr_complex> > &out, const gr_complex in[]);
-          void demodulate_subcarrier(gr_complex out[], std::vector< std::vector<gr_complex> > &sc_fdomain);
+          void demodulate_subcarrier(std::vector< std::vector<gr_complex> > &out, std::vector< std::vector<gr_complex> > &sc_fdomain);
+          void serialize_output(gr_complex out[], std::vector< std::vector<gr_complex> > &sc_symbols);
 
         public:
           gfdm_receiver(int nsubcarrier, int ntimeslots, double filter_alpha, int fft_len);
