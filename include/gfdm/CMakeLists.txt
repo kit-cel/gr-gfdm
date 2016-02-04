@@ -28,5 +28,6 @@ install(FILES
     gfdm_utils.h
     gfdm_receiver.h
     receiver_cc.h
-    advanced_receiver_cc.h DESTINATION include/gfdm
+    advanced_receiver_cc.h
+    sync_cc.h DESTINATION include/gfdm
 )

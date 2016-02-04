@@ -33,7 +33,8 @@ list(APPEND gfdm_sources
     modulator_cc_impl.cc
     #receiver_cc_impl.cc
     receiver2_cc_impl.cc
-    advanced_receiver_cc_impl.cc)
+    advanced_receiver_cc_impl.cc
+    sync_cc_impl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)
