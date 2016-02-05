@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ namespace gr {
        * class. gfdm::sync_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int nsubcarrier);
+      static sptr make(int sync_fft_len, int cp_length);
     };
 
   } // namespace gfdm

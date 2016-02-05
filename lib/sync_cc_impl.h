@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #define INCLUDED_GFDM_SYNC_CC_IMPL_H
 
 #include <gfdm/sync_cc.h>
+#include <volk/volk.h>
 
 namespace gr {
   namespace gfdm {
@@ -29,10 +30,17 @@ namespace gr {
     class sync_cc_impl : public sync_cc
     {
      private:
-      // Nothing to declare in this block.
+       int d_sync_fft_len;
+       int d_cp_length;
+       bool d_initialized;
+       gr_complex d_autocorr_value;
+       
+       void initialize( const gr_complex in[] );
+
+
 
      public:
-      sync_cc_impl(int nsubcarrier);
+      sync_cc_impl(int sync_fft_len, int cp_length);
       ~sync_cc_impl();
 
       // Where all the action really happens
