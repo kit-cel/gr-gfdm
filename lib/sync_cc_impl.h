@@ -33,14 +33,17 @@ namespace gr {
        int d_sync_fft_len;
        int d_cp_length;
        bool d_initialized;
+       int d_block_len;
+       int d_L;
        gr_complex d_autocorr_value;
        
        void initialize( const gr_complex in[] );
+       void iterate( gr_complex out[], const gr_complex start[], int num_items);
 
 
 
      public:
-      sync_cc_impl(int sync_fft_len, int cp_length);
+      sync_cc_impl(int sync_fft_len, int cp_length, int fft_len);
       ~sync_cc_impl();
 
       // Where all the action really happens

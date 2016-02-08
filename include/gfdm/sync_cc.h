@@ -46,7 +46,7 @@ namespace gr {
        * class. gfdm::sync_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int sync_fft_len, int cp_length);
+      static sptr make(int sync_fft_len, int cp_length, int fft_len);
     };
 
   } // namespace gfdm
