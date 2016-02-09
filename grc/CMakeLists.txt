@@ -24,5 +24,6 @@ install(FILES
     gfdm_modulator_cc.xml
     gfdm_receiver_cc.xml
     gfdm_advanced_receiver_cc.xml
-    gfdm_sync_cc.xml DESTINATION share/gnuradio/grc/blocks
+    gfdm_sync_cc.xml
+    gfdm_cyclic_prefixer_cc.xml DESTINATION share/gnuradio/grc/blocks
 )

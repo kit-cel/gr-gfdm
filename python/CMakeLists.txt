@@ -47,3 +47,4 @@ GR_ADD_TEST(qa_transmitter_cvc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/
 GR_ADD_TEST(qa_receiver_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_receiver_cc.py)
 GR_ADD_TEST(qa_advanced_receiver_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_advanced_receiver_cc.py)
 GR_ADD_TEST(qa_sync_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_sync_cc.py)
+GR_ADD_TEST(qa_cyclic_prefixer_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_cyclic_prefixer_cc.py)

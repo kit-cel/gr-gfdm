@@ -29,5 +29,6 @@ install(FILES
     gfdm_receiver.h
     receiver_cc.h
     advanced_receiver_cc.h
-    sync_cc.h DESTINATION include/gfdm
+    sync_cc.h
+    cyclic_prefixer_cc.h DESTINATION include/gfdm
 )

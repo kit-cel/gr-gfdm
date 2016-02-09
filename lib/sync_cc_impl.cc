@@ -75,10 +75,6 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
       gr_complex *corr_out;
-      if (output_items.size()>1)
-      {
-        corr_out = (gr_complex *) output_items[1];
-      }
       std::vector<gr_complex> P_d(d_block_len);
       std::vector<float> P_d_abs(d_block_len);
       std::vector<float> P_d_i(d_block_len-d_cp_length);
@@ -99,12 +95,6 @@ namespace gr {
       }
       //P_d[0] corresponds to in[1] due to history?
       iterate(&P_d[0], &in[0], d_block_len);
-      //in[0] is last item of previous block
-      std::memcpy(&out[0],&in[1],sizeof(gr_complex)*d_block_len);
-      if (output_items.size()>1)
-      {
-        std::memcpy(&corr_out[0],&P_d[0],sizeof(gr_complex)*d_block_len);
-      }
 
       //Now integrate along time axis (length cp)
       ::volk_32fc_magnitude_32f(&P_d_abs[0],&P_d[0],d_block_len);
@@ -154,8 +144,17 @@ namespace gr {
       max = std::max_element(P_d_res.begin(),P_d_res.end());
       max_index = std::distance(P_d_res.begin(),max) -1;
 
-      //Add evaluation with threshold and multipath detection
-      //Add Stream tags ond max
+      //Add evaluation with threshold and multipath detection (argfirst)
+      //Add Stream tags on max
+      
+      //in[0] is last item of previous block
+      std::memcpy(&out[0],&in[1],sizeof(gr_complex)*d_block_len);
+      // Copy P_d into second (float) port
+      if (output_items.size()>1)
+      {
+        corr_out = (gr_complex *) output_items[1];
+        std::memcpy(&corr_out[0],&P_d[0],sizeof(gr_complex)*d_block_len);
+      }
             
 
       consume_each(d_block_len);

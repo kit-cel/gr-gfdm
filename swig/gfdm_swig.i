@@ -16,6 +16,7 @@
 #include "gfdm/advanced_receiver_cc.h"
 #include "gnuradio/digital/constellation.h"
 #include "gfdm/sync_cc.h"
+#include "gfdm/cyclic_prefixer_cc.h"
 %}
 
 %include "gfdm/transmitter_cvc.h"
@@ -34,3 +35,5 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, advanced_receiver_cc);
 %include "gnuradio/swig/constellation.i"
 %include "gfdm/sync_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, sync_cc);
+%include "gfdm/cyclic_prefixer_cc.h"
+GR_SWIG_BLOCK_MAGIC2(gfdm, cyclic_prefixer_cc);
