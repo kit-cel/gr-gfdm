@@ -35,7 +35,8 @@ list(APPEND gfdm_sources
     receiver2_cc_impl.cc
     advanced_receiver_cc_impl.cc
     sync_cc_impl.cc
-    cyclic_prefixer_cc_impl.cc)
+    cyclic_prefixer_cc_impl.cc
+    preamble_generator.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)

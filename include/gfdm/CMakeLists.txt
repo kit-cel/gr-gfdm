@@ -30,5 +30,6 @@ install(FILES
     receiver_cc.h
     advanced_receiver_cc.h
     sync_cc.h
-    cyclic_prefixer_cc.h DESTINATION include/gfdm
+    cyclic_prefixer_cc.h
+    preamble_generator.h DESTINATION include/gfdm
 )
