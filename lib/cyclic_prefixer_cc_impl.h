@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,14 @@ namespace gr {
     class cyclic_prefixer_cc_impl : public cyclic_prefixer_cc
     {
      private:
-      // Nothing to declare in this block.
+       int d_cp_length;
+
 
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
      public:
-      cyclic_prefixer_cc_impl(int cp_length);
+      cyclic_prefixer_cc_impl(int cp_length, const std::string& len_tag_key);
       ~cyclic_prefixer_cc_impl();
 
       // Where all the action really happens

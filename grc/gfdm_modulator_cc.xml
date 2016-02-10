@@ -1,5 +1,5 @@
 <block>
-  <name>GFDM - Modulator</name>
+  <name>GFDM Modulator</name>
   <key>gfdm_modulator_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>

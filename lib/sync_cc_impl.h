@@ -36,6 +36,7 @@ namespace gr {
        int d_block_len;
        int d_L;
        gr_complex d_autocorr_value;
+       std::vector<gr_complex> known_preamble;
        
        void initialize( const gr_complex in[] );
        void iterate( gr_complex out[], const gr_complex start[], int num_items);

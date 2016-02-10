@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,6 +146,7 @@ namespace gr {
 
       //Add evaluation with threshold and multipath detection (argfirst)
       //Add Stream tags on max
+       
       
       //in[0] is last item of previous block
       std::memcpy(&out[0],&in[1],sizeof(gr_complex)*d_block_len);

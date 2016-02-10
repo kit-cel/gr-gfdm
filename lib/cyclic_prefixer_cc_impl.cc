@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Andrej Rode.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,19 +29,20 @@ namespace gr {
   namespace gfdm {
 
     cyclic_prefixer_cc::sptr
-    cyclic_prefixer_cc::make(int cp_length)
+    cyclic_prefixer_cc::make(int cp_length,const std::string& len_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new cyclic_prefixer_cc_impl(cp_length));
+        (new cyclic_prefixer_cc_impl(cp_length, len_tag_key));
     }
 
     /*
      * The private constructor
      */
-    cyclic_prefixer_cc_impl::cyclic_prefixer_cc_impl(int cp_length)
+    cyclic_prefixer_cc_impl::cyclic_prefixer_cc_impl(int cp_length, const std::string& len_tag_key)
       : gr::tagged_stream_block("cyclic_prefixer_cc",
-              gr::io_signature::make(<+MIN_IN+>, <+MAX_IN+>, sizeof(<+ITYPE+>)),
-              gr::io_signature::make(<+MIN_OUT+>, <+MAX_OUT+>, sizeof(<+OTYPE+>)), <+len_tag_key+>)
+              gr::io_signature::make(1, 1, sizeof(gr_complex)),
+              gr::io_signature::make(1, 1, sizeof(gr_complex)), len_tag_key),
+        d_cp_length(cp_length)
     {}
 
     /*
@@ -54,7 +55,7 @@ namespace gr {
     int
     cyclic_prefixer_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
     {
-      int noutput_items = /* <+set this+> */;
+      int noutput_items = ninput_items[0] + d_cp_length;
       return noutput_items ;
     }
 
@@ -64,13 +65,13 @@ namespace gr {
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)
     {
-      const <+ITYPE+> *in = (const <+ITYPE+> *) input_items[0];
-      <+OTYPE+> *out = (<+OTYPE+> *) output_items[0];
+      const gr_complex *in = (const gr_complex *) input_items[0];
+      gr_complex *out = (gr_complex *) output_items[0];
 
-      // Do <+signal processing+>
+      std::memcpy(&out[d_cp_length], &in[0], ninput_items[0]*sizeof(gr_complex));
+      std::memcpy(&out[0], in+ninput_items[0]-d_cp_length, d_cp_length*sizeof(gr_complex));
 
-      // Tell runtime system how many output items we produced.
-      return noutput_items;
+      return d_cp_length+ninput_items[0];
     }
 
   } /* namespace gfdm */

@@ -1,38 +1,27 @@
-<?xml version="1.0"?>
 <block>
-  <name>cyclic_prefixer_cc</name>
+  <name>GFDM cyclic prefixer</name>
   <key>gfdm_cyclic_prefixer_cc</key>
-  <category>gfdm</category>
+  <category>GFDM</category>
   <import>import gfdm</import>
-  <make>gfdm.cyclic_prefixer_cc($cp_length)</make>
-  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
-       Sub-nodes:
-       * name
-       * key (makes the value accessible as $keyname, e.g. in the make node)
-       * type -->
+  <make>gfdm.cyclic_prefixer_cc($cp_length, $len_tag_key)</make>
   <param>
-    <name>...</name>
-    <key>...</key>
-    <type>...</type>
+    <name>Cp_length</name>
+    <key>cp_length</key>
+    <value> 0 </value>
+    <type>int</type>
   </param>
-
-  <!-- Make one 'sink' node per input. Sub-nodes:
-       * name (an identifier for the GUI)
-       * type
-       * vlen
-       * optional (set to 1 for optional inputs) -->
+  <param>
+    <name>Len_tag_key</name>
+    <key>len_tag_key</key>
+    <value> "gfdm_block"</value>
+    <type>string</type>
+  </param>
   <sink>
     <name>in</name>
-    <type><!-- e.g. int, float, complex, byte, short, xxx_vector, ...--></type>
+    <type>complex</type>
   </sink>
-
-  <!-- Make one 'source' node per output. Sub-nodes:
-       * name (an identifier for the GUI)
-       * type
-       * vlen
-       * optional (set to 1 for optional inputs) -->
   <source>
     <name>out</name>
-    <type><!-- e.g. int, float, complex, byte, short, xxx_vector, ...--></type>
+    <type>complex</type>
   </source>
 </block>

@@ -1,5 +1,5 @@
 <block>
-  <name>Receiver cc</name>
+  <name>GFDM Simple Receiver</name>
   <key>gfdm_receiver_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
