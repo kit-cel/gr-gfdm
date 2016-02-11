@@ -22,7 +22,6 @@
 
 #ifndef INCLUDED_GFDM_UTILS_H
 #define INCLUDED_GFDM_UTILS_H
-#endif
 
 #include <gfdm/api.h>
 #include <gnuradio/filter/firdes.h>
@@ -43,3 +42,4 @@ namespace gr {
 
   } /* namespace gfdm */
 } /* namespace gr */
+#endif

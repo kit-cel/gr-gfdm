@@ -1,38 +1,26 @@
 <?xml version="1.0"?>
 <block>
-  <name>preamble_generator</name>
+  <name>GFDM Preamble Generator</name>
   <key>gfdm_preamble_generator</key>
-  <category>gfdm</category>
+  <category>GFDM</category>
   <import>import gfdm</import>
-  <make>gfdm.preamble_generator($nsubcarrier, $filter_alpha)</make>
-  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
-       Sub-nodes:
-       * name
-       * key (makes the value accessible as $keyname, e.g. in the make node)
-       * type -->
+  <make>gfdm.preamble_generator($nsubcarrier, $filter_alpha, $sync_fft_len)</make>
   <param>
-    <name>...</name>
-    <key>...</key>
-    <type>...</type>
+	<name>Nsubcarrier</name>
+	<key>nsubcarrier</key>
+	<value>16</value>
+	<type>int</type>
   </param>
-
-  <!-- Make one 'sink' node per input. Sub-nodes:
-       * name (an identifier for the GUI)
-       * type
-       * vlen
-       * optional (set to 1 for optional inputs) -->
-  <sink>
-    <name>in</name>
-    <type><!-- e.g. int, float, complex, byte, short, xxx_vector, ...--></type>
-  </sink>
-
-  <!-- Make one 'source' node per output. Sub-nodes:
-       * name (an identifier for the GUI)
-       * type
-       * vlen
-       * optional (set to 1 for optional inputs) -->
-  <source>
-    <name>out</name>
-    <type><!-- e.g. int, float, complex, byte, short, xxx_vector, ...--></type>
-  </source>
+  <param>
+    	<name>Filter alpha</name>
+    	<key>filter_alpha</key>
+    	<value>0.35</value>
+    	<type>real</type>
+  </param>
+  <param>
+	  <name>Sync FFT Len</name>
+	  <key>sync_fft_len</key>
+	  <value>32</value>
+	  <type>int</type>
+  </param>
 </block>

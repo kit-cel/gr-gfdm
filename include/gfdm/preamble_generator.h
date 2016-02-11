@@ -23,6 +23,10 @@
 #define INCLUDED_GFDM_PREAMBLE_GENERATOR_H
 
 #include <gfdm/api.h>
+#include <gfdm/gfdm_utils.h>
+#include <gnuradio/fft/fft.h>
+#include <gnuradio/gr_complex.h>
+#include <volk/volk.h>
 
 namespace gr {
   namespace gfdm {
@@ -34,9 +38,14 @@ namespace gr {
     class GFDM_API preamble_generator
     {
     public:
-      preamble_generator(int nsubcarrier, double filter_alpha);
+      preamble_generator(int nsubcarrier,  double filter_alpha, int sync_fft_len);
       ~preamble_generator();
+      std::vector<gr_complex> get_preamble() {return d_samp_preamble;};
+      std::vector<gr_complex> get_symbol_seq() {return d_symbols;};
     private:
+      std::vector<gr_complex> d_samp_preamble;
+      std::vector<gr_complex> d_symbols;
+
     };
 
   } // namespace gfdm
