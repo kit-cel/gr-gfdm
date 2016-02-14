@@ -29,6 +29,7 @@ namespace gr {
   namespace gfdm {
 
     preamble_generator::preamble_generator(int nsubcarrier, double filter_alpha, int sync_fft_len)
+      :d_sync_fft_len(sync_fft_len)
     {
       float qam_energy = (1/::sqrt(2.0));
       std::vector<float> symbol_choices(2);

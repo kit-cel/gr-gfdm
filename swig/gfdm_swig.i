@@ -39,3 +39,4 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, sync_cc);
 %include "gfdm/cyclic_prefixer_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, cyclic_prefixer_cc);
 %include "gfdm/preamble_generator.h"
+%include "preamble_generator.i"

@@ -29,16 +29,16 @@ namespace gr {
   namespace gfdm {
 
     sync_cc::sptr
-    sync_cc::make(int sync_fft_len, int cp_length, int fft_len)
+    sync_cc::make(int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> known_preamble, const std::string& gfdm_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new sync_cc_impl(sync_fft_len, cp_length, fft_len));
+        (new sync_cc_impl(sync_fft_len, cp_length, fft_len, known_preamble, gfdm_tag_key));
     }
 
     /*
      * The private constructor
      */
-    sync_cc_impl::sync_cc_impl(int sync_fft_len, int cp_length, int fft_len)
+    sync_cc_impl::sync_cc_impl(int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> known_preamble, const std::string& gfdm_tag_key)
       : gr::block("sync_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 2, sizeof(gr_complex))),
@@ -46,11 +46,13 @@ namespace gr {
       d_sync_fft_len(sync_fft_len),
       d_cp_length(cp_length),
       d_block_len(2*cp_length+fft_len+sync_fft_len),
-      d_L(sync_fft_len/2)
+      d_L(sync_fft_len/2),
+      d_known_preamble(known_preamble)
     {
       set_history(2);
       // Make sure to have only multiple of( one GFDM Block + Sync) in input
       gr::block::set_output_multiple( d_block_len+d_sync_fft_len );
+      d_P_d_abs_prev.resize(cp_length,0j);
     }
 
     /*
@@ -75,11 +77,17 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
       gr_complex *corr_out;
+
+      //Initialize some vectors to hold Correlation_data
+      //P_d: (complex) autocorrelation of length sync_fft_len/2 to detect signal with two identical halves length sync_fft_len
+      //P_d_abs: absolute value
+      //P_d_i: integrated P_d_abs -cp_length:0 to eliminate CP Plateau
       std::vector<gr_complex> P_d(d_block_len);
-      std::vector<float> P_d_abs(d_block_len);
-      std::vector<float> P_d_i(d_block_len-d_cp_length);
+      //Add last (length cp_length) samples from P_d_abs to start (to integrate cp_length samples)
+      std::vector<float> P_d_abs(d_block_len+d_cp_length);
+      std::vector<float> P_d_i(d_block_len);
       
-      // Main task: autocorrelate L samples with previos L samples -> need to know whats the upsampling factor
+      // Main task: autocorrelate L samples with following L samples -> need to know whats the upsampling factor
       // Flow:
       // 1. autocorrelate L samples with next L samples and save value.
       // 2. multiply/conjugate L+1 with (2*L+1) and add to autocorrelation value
@@ -93,33 +101,39 @@ namespace gr {
         initialize(in); //Initial Value in 
         d_initialized = true;
       }
-      //P_d[0] corresponds to in[1] due to history?
       iterate(&P_d[0], &in[0], d_block_len);
-
+      
       //Now integrate along time axis (length cp)
-      ::volk_32fc_magnitude_32f(&P_d_abs[0],&P_d[0],d_block_len);
-      for (int i=0;i<(d_block_len-d_cp_length);i++)
+      if (d_cp_length)
       {
-        for (int k=0;k<d_cp_length;k++)
+        ::volk_32fc_magnitude_32f(&P_d_abs[d_cp_length],&P_d[0],d_block_len);
+        std::memcpy(&P_d_abs[0],&d_P_d_abs_prev[0],sizeof(gr_complex)*d_cp_length);
+        for (int i=d_cp_length;i<(d_block_len+d_cp_length);i++)
         {
-          P_d_i[i] += P_d_abs[i+k];
+          for (int k=0;k<d_cp_length;k++)
+          {
+            P_d_i[i-d_cp_length] += P_d_abs[i-k];
+          }
         }
+      }else
+      {
+        ::volk_32fc_magnitude_32f(&P_d_abs[0], &P_d[0],d_block_len);
+        std::memcpy(&P_d_i[0],&P_d_abs[0],sizeof(float)*d_block_len);
       }
       
       //Find max abs
-      
       std::vector<float>::iterator max;
       max = std::max_element(P_d_i.begin(),P_d_i.end());
       int max_index = std::distance(P_d_i.begin(),max) - 1;
       //Calculate angle <P_d
       float angle =(float) std::atan2((double) std::imag(P_d[max_index]), (double) std::real(P_d[max_index]));
       float cfo = angle/M_PI;
-
+      
       //Correct CFO with epsilon = angle/pi
       std::vector<gr_complex> cfo_correction(d_block_len+d_sync_fft_len);
       for (int i=0;i<(d_block_len+d_sync_fft_len);i++)
       {
-        cfo_correction[i] = std::exp( (gr_complex) (2j*M_PI*(cfo/d_sync_fft_len)*i) );
+        cfo_correction[i] = std::exp( gr_complex(2j*M_PI*(cfo/d_sync_fft_len)*i) );
       }
       std::vector<gr_complex> corrected_input_sequence(d_block_len+d_sync_fft_len);
       ::volk_32fc_x2_multiply_conjugate_32fc(&corrected_input_sequence[0],&cfo_correction[0],&in[1],d_block_len+d_sync_fft_len);
@@ -129,7 +143,7 @@ namespace gr {
       for (int i=0; i<(d_block_len);i++)
       {
         std::vector<gr_complex> cc_tmp(d_sync_fft_len);
-        ::volk_32fc_x2_multiply_32fc(&cc_tmp[0],&corrected_input_sequence[i],&known_preamble[0],d_sync_fft_len);
+        ::volk_32fc_x2_multiply_32fc(&cc_tmp[0],&corrected_input_sequence[i],&d_known_preamble[0],d_sync_fft_len);
         for (int k=0; k<d_sync_fft_len;k++)
         {
           cross_correlation[i] += (gr_complex) (1/d_sync_fft_len) * cc_tmp[k];
@@ -156,8 +170,6 @@ namespace gr {
         corr_out = (gr_complex *) output_items[1];
         std::memcpy(&corr_out[0],&P_d[0],sizeof(gr_complex)*d_block_len);
       }
-            
-
       consume_each(d_block_len);
       
       return d_block_len;

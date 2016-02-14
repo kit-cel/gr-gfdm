@@ -24,6 +24,7 @@
 
 #include <gfdm/api.h>
 #include <gnuradio/block.h>
+#include <gfdm/preamble_generator.h>
 
 namespace gr {
   namespace gfdm {
@@ -46,7 +47,7 @@ namespace gr {
        * class. gfdm::sync_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int sync_fft_len, int cp_length, int fft_len);
+      static sptr make(int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> known_preamble, const std::string& gfdm_tag_key = "gfdm_block" );
     };
 
   } // namespace gfdm
