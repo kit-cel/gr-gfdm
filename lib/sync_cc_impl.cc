@@ -52,7 +52,7 @@ namespace gr {
       set_history(2);
       // Make sure to have only multiple of( one GFDM Block + Sync) in input
       gr::block::set_output_multiple( d_block_len+d_sync_fft_len );
-      d_P_d_abs_prev.resize(cp_length,0j);
+      d_P_d_abs_prev.resize(cp_length,0);
     }
 
     /*
@@ -108,12 +108,13 @@ namespace gr {
       if (d_cp_length)
       {
         ::volk_32fc_magnitude_32f(&P_d_abs[d_cp_length],&P_d[0],d_block_len);
-        std::memcpy(&P_d_abs[0],&d_P_d_abs_prev[0],sizeof(gr_complex)*d_cp_length);
-        for (int i=d_cp_length;i<(d_block_len+d_cp_length);i++)
+        std::memcpy(&P_d_abs[0],&d_P_d_abs_prev[0],sizeof(float)*d_cp_length);
+        std::memcpy(&d_P_d_abs_prev[0],&P_d_abs[d_block_len],sizeof(float)*d_cp_length);
+        for (int i=0;i<(d_block_len);i++)
         {
           for (int k=0;k<d_cp_length;k++)
           {
-            P_d_i[i-d_cp_length] += P_d_abs[i-k];
+            P_d_i[i] += P_d_abs[i+k];
           }
         }
       }else
@@ -121,6 +122,7 @@ namespace gr {
         ::volk_32fc_magnitude_32f(&P_d_abs[0], &P_d[0],d_block_len);
         std::memcpy(&P_d_i[0],&P_d_abs[0],sizeof(float)*d_block_len);
       }
+
       
       //Find max abs
       std::vector<float>::iterator max;

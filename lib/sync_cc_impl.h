@@ -37,7 +37,7 @@ namespace gr {
        int d_L;
        gr_complex d_autocorr_value;
        std::vector<gr_complex> d_known_preamble;
-       std::vector<gr_complex> d_P_d_abs_prev;
+       std::vector<float> d_P_d_abs_prev;
        std::string d_gfdm_tag_key;
        
        void initialize( const gr_complex in[] );
