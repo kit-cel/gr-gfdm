@@ -40,6 +40,7 @@ namespace gr {
        int d_N;
        int d_fft_len;
        int d_sync_fft_len;
+       std::string d_len_tag_key;
        std::vector<gr_complex> d_filter_taps;
        fft::fft_complex *d_sc_fft;
        gr_complex * d_sc_fft_in;
@@ -54,6 +55,7 @@ namespace gr {
 
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
+      virtual void update_length_tags  (int n_produced, int n_ports);
 
      public:
       modulator_cc_impl(

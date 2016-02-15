@@ -68,8 +68,8 @@ namespace gr {
           throw std::invalid_argument("number of sync symbols must be equal to or greater than nsubcarrier");
         }else
         {
-          d_sync_symbols.reserve(d_nsubcarrier);
-          std::memcpy(&d_sync_symbols[0],&sync_symbols[0],sizeof(gr_complex)*nsubcarrier);
+          d_sync_symbols.resize(2*d_nsubcarrier);
+          std::memcpy(&d_sync_symbols[0],&sync_symbols[0],sizeof(gr_complex)*2*nsubcarrier);
         }
       }
     
@@ -106,11 +106,13 @@ namespace gr {
         if (d_sync)
         {
           sync_offset = 2*d_nsubcarrier;
-          for (int i=0; i<d_nsubcarrier; i++)
-          {
-            out[2*i+1] = d_sync_symbols[i];
-            out[2*i] = d_sync_symbols[i];
-          }
+//          for (int i=0; i<d_nsubcarrier; i++)
+//          {
+//            out[2*i+1] = d_sync_symbols[i];
+//            out[2*i] = d_sync_symbols[i];
+//          }
+          std::cout<<d_sync_symbols.size() <<std::endl;
+          std::memcpy(&out[0],&d_sync_symbols[0],sizeof(gr_complex)*2*d_nsubcarrier);
           add_item_tag(0, nitems_written(0),
               pmt::string_to_symbol("gfdm_sync"),
               pmt::from_uint64(2*d_nsubcarrier));

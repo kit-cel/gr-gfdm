@@ -66,8 +66,10 @@ namespace gr {
       d_nsubcarrier(nsubcarrier),
       d_N(ntimeslots*nsubcarrier),
       d_fft_len(fft_len),
-      d_sync_fft_len(sync_fft_len)
+      d_sync_fft_len(sync_fft_len),
+      d_len_tag_key(len_tag_key)
     {
+      set_tag_propagation_policy(TPP_DONT);
       d_filter_width = 2;
       if (d_fft_len < d_N)
       {
@@ -122,6 +124,12 @@ namespace gr {
       return noutput_items;
     }
 
+    void
+    modulator_cc_impl::update_length_tags(int n_produced, int n_ports)
+    {
+      return ;
+    }
+
     int
     modulator_cc_impl::work (int noutput_items,
                        gr_vector_int &ninput_items,
@@ -138,12 +146,14 @@ namespace gr {
         uint64_t sync_offset = 0;
         uint64_t data_offset = 0;
         int sync_length = 0;
+        uint64_t nsync_items = 0;
         for (std::vector<gr::tag_t>::iterator it = tags.begin() ; it!= tags.end(); ++it)
         {
           if (pmt::symbol_to_string(it->key) == "gfdm_sync")
           {
             sync = true;
             sync_offset = it->offset - nitems_read(0);
+            nsync_items = pmt::to_uint64(it->value);
 
           }else if (pmt::symbol_to_string(it->key) == "gfdm_data")
           {
@@ -155,7 +165,10 @@ namespace gr {
         {
         //do sync stuff
         sync_length = d_sync_fft_len;
-
+        std::memcpy(&out[0],&in[sync_offset],sizeof(gr_complex)*nsync_items);
+        add_item_tag(0, nitems_written(0),
+            pmt::string_to_symbol(d_len_tag_key),
+            pmt::from_long(nsync_items));
         }
         for (int k=0; k<d_nsubcarrier; k++)
         {
@@ -179,6 +192,10 @@ namespace gr {
         }
         d_out_ifft->execute();
         ::volk_32fc_s32fc_multiply_32fc(&out[sync_length],&d_out_ifft_out[0],static_cast<gr_complex>(1.0/d_fft_len),d_fft_len);
+
+        add_item_tag(0, nitems_written(0)+sync_length,
+            pmt::string_to_symbol(d_len_tag_key),
+            pmt::from_long(d_fft_len));
         return sync_length+d_fft_len;
     }
 

@@ -41,7 +41,7 @@ namespace gr {
     sync_cc_impl::sync_cc_impl(int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> known_preamble, const std::string& gfdm_tag_key)
       : gr::block("sync_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
-              gr::io_signature::make(1, 2, sizeof(gr_complex))),
+              gr::io_signature::make3(1, 3, sizeof(gr_complex),sizeof(gr_complex),sizeof(float))),
       d_initialized(false),
       d_sync_fft_len(sync_fft_len),
       d_cp_length(cp_length),
@@ -77,6 +77,7 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
       gr_complex *corr_out;
+      gr_complex *corr_i_out;
 
       //Initialize some vectors to hold Correlation_data
       //P_d: (complex) autocorrelation of length sync_fft_len/2 to detect signal with two identical halves length sync_fft_len
@@ -169,6 +170,11 @@ namespace gr {
       {
         corr_out = (gr_complex *) output_items[1];
         std::memcpy(&corr_out[0],&P_d[0],sizeof(gr_complex)*d_block_len);
+      }
+      if (output_items.size()>2)
+      {
+        corr_i_out = (gr_complex *) output_items[2];
+        std::memcpy(&corr_i_out[0],&P_d_i[0],sizeof(float)*d_block_len);
       }
       consume_each(d_block_len);
       

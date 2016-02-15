@@ -43,7 +43,9 @@ namespace gr {
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex)), len_tag_key),
         d_cp_length(cp_length)
-    {}
+    {
+      set_tag_propagation_policy(TPP_DONT);
+    }
 
     /*
      * Our virtual destructor.

@@ -46,4 +46,9 @@
     <type>complex</type>
     <optional>1</optional>
   </source>
+  <source>
+    <name>corr_i_out</name>
+    <type>float</type>
+    <optional>1</optional>
+  </source>
 </block>
