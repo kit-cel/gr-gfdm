@@ -23,6 +23,7 @@
 
 #include <gfdm/sync_cc.h>
 #include <volk/volk.h>
+#include <pmt/pmt.h>
 
 namespace gr {
   namespace gfdm {
@@ -30,6 +31,7 @@ namespace gr {
     class sync_cc_impl : public sync_cc
     {
      private:
+       int d_fft_len;
        int d_sync_fft_len;
        int d_cp_length;
        bool d_initialized;

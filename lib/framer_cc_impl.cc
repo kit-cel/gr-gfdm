@@ -111,7 +111,6 @@ namespace gr {
 //            out[2*i+1] = d_sync_symbols[i];
 //            out[2*i] = d_sync_symbols[i];
 //          }
-          std::cout<<d_sync_symbols.size() <<std::endl;
           std::memcpy(&out[0],&d_sync_symbols[0],sizeof(gr_complex)*2*d_nsubcarrier);
           add_item_tag(0, nitems_written(0),
               pmt::string_to_symbol("gfdm_sync"),

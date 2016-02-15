@@ -43,12 +43,15 @@ namespace gr {
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make3(1, 3, sizeof(gr_complex),sizeof(gr_complex),sizeof(float))),
       d_initialized(false),
+      d_fft_len(fft_len),
       d_sync_fft_len(sync_fft_len),
       d_cp_length(cp_length),
       d_block_len(2*cp_length+fft_len+sync_fft_len),
       d_L(sync_fft_len/2),
-      d_known_preamble(known_preamble)
+      d_known_preamble(known_preamble),
+      d_gfdm_tag_key(gfdm_tag_key)
     {
+      set_tag_propagation_policy(TPP_DONT);
       set_history(2);
       // Make sure to have only multiple of( one GFDM Block + Sync) in input
       gr::block::set_output_multiple( d_block_len+d_sync_fft_len );
@@ -127,10 +130,12 @@ namespace gr {
       //Find max abs
       std::vector<float>::iterator max;
       max = std::max_element(P_d_i.begin(),P_d_i.end());
-      int max_index = std::distance(P_d_i.begin(),max) - 1;
+      int max_index1 = std::distance(P_d_i.begin(),max);
       //Calculate angle <P_d
-      float angle =(float) std::atan2((double) std::imag(P_d[max_index]), (double) std::real(P_d[max_index]));
+      float angle =(float) std::atan2((double) std::imag(P_d[max_index1]), (double) std::real(P_d[max_index1]));
       float cfo = angle/M_PI;
+
+      std::cout << "Carrier Frequency Offset: " <<cfo<<std::endl;
       
       //Correct CFO with epsilon = angle/pi
       std::vector<gr_complex> cfo_correction(d_block_len+d_sync_fft_len);
@@ -159,11 +164,21 @@ namespace gr {
       std::vector<float> P_d_res(d_block_len);
       ::volk_32f_x2_multiply_32f(&P_d_res[0],&cc_abs[0],&P_d_abs[0],d_block_len);
       max = std::max_element(P_d_res.begin(),P_d_res.end());
-      max_index = std::distance(P_d_res.begin(),max) -1;
+      int max_index2 = std::distance(P_d_res.begin(),max);
 
       //Add evaluation with threshold and multipath detection (argfirst)
       //Add Stream tags on max
-       
+      
+      std::cout << "First Autocorrelation maximum: " << max_index1 <<std::endl;
+      std::cout << "CC maximum: " << max_index2 <<std::endl;
+      
+      add_item_tag(0, nitems_written(0)+max_index1,
+          pmt::string_to_symbol(d_gfdm_tag_key),
+          pmt::from_long(d_sync_fft_len));
+
+      add_item_tag(0,nitems_written(0)+max_index1+d_sync_fft_len+d_cp_length,
+          pmt::string_to_symbol("gfdm_data"),
+          pmt::from_long(d_fft_len));
       
       //in[0] is last item of previous block
       std::memcpy(&out[0],&in[1],sizeof(gr_complex)*d_block_len);
@@ -177,6 +192,9 @@ namespace gr {
       {
         corr_i_out = (gr_complex *) output_items[2];
         std::memcpy(&corr_i_out[0],&P_d_i[0],sizeof(float)*d_block_len);
+        add_item_tag(2, nitems_written(0)+max_index1,
+            pmt::string_to_symbol(d_gfdm_tag_key),
+            pmt::from_long(d_sync_fft_len));       
       }
       consume_each(d_block_len);
       
