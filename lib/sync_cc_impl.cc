@@ -41,7 +41,7 @@ namespace gr {
     sync_cc_impl::sync_cc_impl(int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> known_preamble, const std::string& gfdm_tag_key)
       : gr::block("sync_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
-              gr::io_signature::make3(1, 3, sizeof(gr_complex),sizeof(gr_complex),sizeof(float))),
+              gr::io_signature::make3(1, 4, sizeof(gr_complex),sizeof(gr_complex),sizeof(float))),
       d_initialized(false),
       d_fft_len(fft_len),
       d_sync_fft_len(sync_fft_len),
@@ -80,7 +80,8 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
       gr_complex *corr_out;
-      gr_complex *corr_i_out;
+      float *corr_i_out;
+      float *res_out;
 
       //Initialize some vectors to hold Correlation_data
       //P_d: (complex) autocorrelation of length sync_fft_len/2 to detect signal with two identical halves length sync_fft_len
@@ -154,15 +155,15 @@ namespace gr {
         ::volk_32fc_x2_multiply_32fc(&cc_tmp[0],&corrected_input_sequence[i],&d_known_preamble[0],d_sync_fft_len);
         for (int k=0; k<d_sync_fft_len;k++)
         {
-          cross_correlation[i] += (gr_complex) (1/d_sync_fft_len) * cc_tmp[k];
+          cross_correlation[i] += (gr_complex) (((gr_complex)1.0) / ((gr_complex) d_sync_fft_len)) * cc_tmp[k];
         }
-
       }
       //multiply crosscorelation with P_d (autocorrelation)
       std::vector<float> cc_abs(d_block_len);
       ::volk_32fc_magnitude_32f(&cc_abs[0],&cross_correlation[0],d_block_len);
       std::vector<float> P_d_res(d_block_len);
       ::volk_32f_x2_multiply_32f(&P_d_res[0],&cc_abs[0],&P_d_abs[0],d_block_len);
+
       max = std::max_element(P_d_res.begin(),P_d_res.end());
       int max_index2 = std::distance(P_d_res.begin(),max);
 
@@ -190,11 +191,16 @@ namespace gr {
       }
       if (output_items.size()>2)
       {
-        corr_i_out = (gr_complex *) output_items[2];
+        corr_i_out = (float *) output_items[2];
         std::memcpy(&corr_i_out[0],&P_d_i[0],sizeof(float)*d_block_len);
         add_item_tag(2, nitems_written(0)+max_index1,
             pmt::string_to_symbol(d_gfdm_tag_key),
             pmt::from_long(d_sync_fft_len));       
+      }
+      if (output_items.size()>3)
+      {
+        res_out = (float *) output_items[3];
+        std::memcpy(&res_out[0], &cc_abs[0], sizeof(float)*d_block_len);
       }
       consume_each(d_block_len);
       
