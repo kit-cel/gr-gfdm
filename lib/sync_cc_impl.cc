@@ -173,7 +173,7 @@ namespace gr {
       std::cout << "First Autocorrelation maximum: " << max_index1 <<std::endl;
       std::cout << "CC maximum: " << max_index2 <<std::endl;
       
-      add_item_tag(0, nitems_written(0)+max_index1,
+      add_item_tag(0, nitems_written(0)+max_index2,
           pmt::string_to_symbol(d_gfdm_tag_key),
           pmt::from_long(d_sync_fft_len));
 
@@ -200,7 +200,7 @@ namespace gr {
       if (output_items.size()>3)
       {
         res_out = (float *) output_items[3];
-        std::memcpy(&res_out[0], &cc_abs[0], sizeof(float)*d_block_len);
+        std::memcpy(&res_out[0], &P_d_res[0], sizeof(float)*d_block_len);
       }
       consume_each(d_block_len);
       

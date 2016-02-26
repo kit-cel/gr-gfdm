@@ -112,9 +112,20 @@ namespace gr {
     {
       std::vector< std::vector<gr_complex> > prev_sc_symbols = sc_symbols;
       std::vector<gr_complex> sc_tmp(d_ntimeslots);
+      std::vector<gr_complex> sc_zeros(d_ntimeslots);
       for (int k=0; k<d_nsubcarrier; k++)
       {
-        ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[(((k-1) % d_nsubcarrier) + d_nsubcarrier) % d_nsubcarrier][0],(float*)&prev_sc_symbols[((k+1)% d_nsubcarrier)][0],2*d_ntimeslots);
+        if(d_ntimeslots*d_nsubcarrier < d_N && ((k==0) || (k==d_nsubcarrier-1)))
+        {
+          if (k==0)
+          {
+            ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[((k+1)% d_nsubcarrier)][0],(float*)&sc_zeros[0],2*d_ntimeslots);
+          }else if(k==d_nsubcarrier-1){
+            ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[(((k-1) % d_nsubcarrier) + d_nsubcarrier ) % d_nsubcarrier][0],(float*)&sc_zeros[0],2*d_ntimeslots);
+          }
+        }else{
+          ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[(((k-1) % d_nsubcarrier) + d_nsubcarrier) % d_nsubcarrier][0],(float*)&prev_sc_symbols[((k+1)% d_nsubcarrier)][0],2*d_ntimeslots);
+        }
         d_sc_fft->execute();
         ::volk_32fc_x2_multiply_32fc(&sc_symbols[k][0],&d_ic_filter_taps[0],&d_sc_fft_out[0],d_ntimeslots);
         ::volk_32f_x2_subtract_32f((float*)&sc_tmp[0],(float*)&sc_fdomain[k][0],(float*)&sc_symbols[k][0],2*d_ntimeslots);
