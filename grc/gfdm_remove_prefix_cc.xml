@@ -1,0 +1,42 @@
+<block>
+  <name>Remove prefix cc</name>
+  <key>gfdm_remove_prefix_cc</key>
+  <category>GFDM</category>
+  <import>import gfdm</import>
+  <make>gfdm.remove_prefix_cc($sync_fft_len, $fft_len, $cp_length, $gfdm_sync_tag_key, $gfdm_len_tag_key)</make>
+  <param>
+    <name>Sync_fft_len</name>
+    <key>sync_fft_len</key>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Fft_len</name>
+    <key>fft_len</key>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Cp_length</name>
+    <key>cp_length</key>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Gfdm_sync_tag_key</name>
+    <key>gfdm_sync_tag_key</key>
+    <value> "gfdm_sync"</value>
+    <type>string</type>
+  </param>
+  <param>
+    <name>Gfdm_len_tag_key</name>
+    <key>gfdm_len_tag_key</key>
+    <value> "gfdm_frame"</value>
+    <type>string</type>
+  </param>
+  <sink>
+    <name>in</name>
+    <type>complex</type>
+  </sink>
+  <source>
+    <name>out</name>
+    <type>complex</type>
+  </source>
+</block>

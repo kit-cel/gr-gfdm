@@ -19,14 +19,11 @@
  */
 
 
-#ifndef INCLUDED_GFDM_ADVANCED_RECEIVER_CC_H
-#define INCLUDED_GFDM_ADVANCED_RECEIVER_CC_H
+#ifndef INCLUDED_GFDM_REMOVE_PREFIX_CC_H
+#define INCLUDED_GFDM_REMOVE_PREFIX_CC_H
 
 #include <gfdm/api.h>
-#include <gnuradio/tagged_stream_block.h>
-#include <gfdm/gfdm_receiver.h>
-#include <gnuradio/digital/api.h>
-#include <gnuradio/digital/constellation.h>
+#include <gnuradio/block.h>
 
 namespace gr {
   namespace gfdm {
@@ -36,31 +33,24 @@ namespace gr {
      * \ingroup gfdm
      *
      */
-    class GFDM_API advanced_receiver_cc : virtual public gr::tagged_stream_block
+    class GFDM_API remove_prefix_cc : virtual public gr::block
     {
      public:
-      typedef boost::shared_ptr<advanced_receiver_cc> sptr;
+      typedef boost::shared_ptr<remove_prefix_cc> sptr;
 
       /*!
-       * \brief Return a shared_ptr to a new instance of gfdm::advanced_receiver_cc.
+       * \brief Return a shared_ptr to a new instance of gfdm::remove_prefix_cc.
        *
-       * To avoid accidental use of raw pointers, gfdm::advanced_receiver_cc's
+       * To avoid accidental use of raw pointers, gfdm::remove_prefix_cc'
        * constructor is in a private implementation
-       * class. gfdm::advanced_receiver_cc::make is the public interface for
+       * class. gfdm::remove_prefix_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(
-          int nsubcarrier,
-          int ntimeslots,
-          double filter_alpha,
-          int fft_len,
-          int ic_iter,
-          gr::digital::constellation_sptr constellation,
-          const std::string& len_tag_key = "gfdm_frame");
+      static sptr make(int sync_fft_len, int fft_len, int cp_length, const std::string& gfdm_sync_tag_key = "gfdm_sync", const std::string& gfdm_len_tag_key = "gfdm_frame");
     };
 
   } // namespace gfdm
 } // namespace gr
 
-#endif /* INCLUDED_GFDM_ADVANCED_RECEIVER_CC_H */
+#endif /* INCLUDED_GFDM_REMOVE_PREFIX_CC_H */
 

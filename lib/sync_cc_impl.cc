@@ -177,10 +177,6 @@ namespace gr {
           pmt::string_to_symbol(d_gfdm_tag_key),
           pmt::from_long(d_sync_fft_len));
 
-      add_item_tag(0,nitems_written(0)+max_index1+d_sync_fft_len+d_cp_length,
-          pmt::string_to_symbol("gfdm_data"),
-          pmt::from_long(d_fft_len));
-      
       //in[0] is last item of previous block
       std::memcpy(&out[0],&in[1],sizeof(gr_complex)*d_block_len);
       // Copy P_d into second (float) port

@@ -18,6 +18,7 @@
 #include "gfdm/sync_cc.h"
 #include "gfdm/cyclic_prefixer_cc.h"
 #include "gfdm/preamble_generator.h"
+#include "gfdm/remove_prefix_cc.h"
 %}
 
 %include "gfdm/transmitter_cvc.h"
@@ -40,3 +41,5 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, sync_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, cyclic_prefixer_cc);
 %include "gfdm/preamble_generator.h"
 %include "preamble_generator.i"
+%include "gfdm/remove_prefix_cc.h"
+GR_SWIG_BLOCK_MAGIC2(gfdm, remove_prefix_cc);
