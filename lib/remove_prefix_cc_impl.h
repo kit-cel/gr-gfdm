@@ -34,8 +34,8 @@ namespace gr {
        int d_cp_length;
        int d_block_len;
        int d_block_left;
-       const std::string& d_gfdm_sync_tag_key;
-       const std::string& d_gfdm_len_tag_key;
+       std::string d_gfdm_sync_tag_key;
+       std::string d_gfdm_len_tag_key;
 
      public:
       remove_prefix_cc_impl(int sync_fft_len, int fft_len, int cp_length, const std::string& gfdm_sync_tag_key, const std::string& gfdm_len_tag_key);

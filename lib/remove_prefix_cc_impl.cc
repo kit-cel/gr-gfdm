@@ -51,7 +51,8 @@ namespace gr {
       d_gfdm_len_tag_key(gfdm_len_tag_key),
       d_block_left(0)
     {
-      set_output_multiple(d_fft_len);             
+      set_output_multiple(d_fft_len);
+      set_tag_propagation_policy(TPP_DONT);
     }
 
     /*
@@ -75,14 +76,13 @@ namespace gr {
     {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
-      std::vector< tag_t > sync_tags;
+      std::vector< tag_t > sync_tags(1);
       noutput_items = 0;
       if (d_block_left>0){
         std::memcpy(&out[0],&in[0],sizeof(gr_complex)*d_block_left);
         noutput_items += d_block_left;
       }
-
-      get_tags_in_range(sync_tags,0,nitems_read(0),nitems_read(0)+ninput_items[0],pmt::string_to_symbol(d_gfdm_sync_tag_key));
+      get_tags_in_range(sync_tags,0,nitems_read(0),nitems_read(0)+ninput_items[0]-1, pmt::string_to_symbol(d_gfdm_sync_tag_key));
       
       if (sync_tags.size() > 0)
       {
@@ -96,6 +96,7 @@ namespace gr {
                 pmt::string_to_symbol(d_gfdm_len_tag_key),
                 pmt::from_long(d_fft_len));
             noutput_items += d_fft_len;
+            d_block_left = 0;
           }else{
             std::memcpy(&out[noutput_items],&in[block_start],sizeof(gr_complex)*(ninput_items[0]-block_start));
             add_item_tag(0, nitems_written(0)+noutput_items,

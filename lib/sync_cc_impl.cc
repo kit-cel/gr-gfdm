@@ -136,23 +136,23 @@ namespace gr {
       float angle =(float) std::atan2((double) std::imag(P_d[max_index1]), (double) std::real(P_d[max_index1]));
       float cfo = angle/M_PI;
 
-      std::cout << "Carrier Frequency Offset: " <<cfo<<std::endl;
+      //std::cout << "Carrier Frequency Offset: " <<cfo<<std::endl;
       
       //Correct CFO with epsilon = angle/pi
       std::vector<gr_complex> cfo_correction(d_block_len+d_sync_fft_len);
       for (int i=0;i<(d_block_len+d_sync_fft_len);i++)
       {
-        cfo_correction[i] = std::exp( gr_complex(2j*M_PI*(cfo/d_sync_fft_len)*i) );
+        cfo_correction[i] = std::exp( gr_complex(2j*M_PI*(cfo/d_sync_fft_len)*i));
       }
       std::vector<gr_complex> corrected_input_sequence(d_block_len+d_sync_fft_len);
-      ::volk_32fc_x2_multiply_conjugate_32fc(&corrected_input_sequence[0],&cfo_correction[0],&in[1],d_block_len+d_sync_fft_len);
+      ::volk_32fc_x2_multiply_32fc(&corrected_input_sequence[0],&cfo_correction[0],&in[1],d_block_len+d_sync_fft_len);
       //Crosscorrelate known preamble and sync_preamble
       //Known Preamble must have length d_sync_fft_len
       std::vector<gr_complex> cross_correlation(d_block_len);
       for (int i=0; i<(d_block_len);i++)
       {
         std::vector<gr_complex> cc_tmp(d_sync_fft_len);
-        ::volk_32fc_x2_multiply_32fc(&cc_tmp[0],&corrected_input_sequence[i],&d_known_preamble[0],d_sync_fft_len);
+        ::volk_32fc_x2_multiply_conjugate_32fc(&cc_tmp[0],&d_known_preamble[0],&corrected_input_sequence[i],d_sync_fft_len);
         for (int k=0; k<d_sync_fft_len;k++)
         {
           cross_correlation[i] += (gr_complex) (((gr_complex)1.0) / ((gr_complex) d_sync_fft_len)) * cc_tmp[k];
@@ -170,8 +170,8 @@ namespace gr {
       //Add evaluation with threshold and multipath detection (argfirst)
       //Add Stream tags on max
       
-      std::cout << "First Autocorrelation maximum: " << max_index1 <<std::endl;
-      std::cout << "CC maximum: " << max_index2 <<std::endl;
+      //std::cout << "First Autocorrelation maximum: " << max_index1 <<std::endl;
+      //std::cout << "CC maximum: " << max_index2 <<std::endl;
       
       add_item_tag(0, nitems_written(0)+max_index2,
           pmt::string_to_symbol(d_gfdm_tag_key),
@@ -183,7 +183,10 @@ namespace gr {
       if (output_items.size()>1)
       {
         corr_out = (gr_complex *) output_items[1];
-        std::memcpy(&corr_out[0],&P_d[0],sizeof(gr_complex)*d_block_len);
+        std::memcpy(&corr_out[0],&corrected_input_sequence[0],sizeof(gr_complex)*d_block_len);
+        add_item_tag(1, nitems_written(0)+max_index2,
+          pmt::string_to_symbol(d_gfdm_tag_key),
+          pmt::from_long(d_sync_fft_len));
       }
       if (output_items.size()>2)
       {
