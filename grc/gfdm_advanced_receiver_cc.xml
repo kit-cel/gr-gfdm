@@ -4,6 +4,7 @@
   <category>GFDM</category>
   <import>import gfdm</import>
   <make>gfdm.advanced_receiver_cc($nsubcarrier, $ntimeslots, $filter_alpha, $fft_len, $ic_iter, $constellation, $len_tag_key)</make>
+  <callback>set_ic($ic_iter)</callback>
   <param>
     <name>Nsubcarrier</name>
     <key>nsubcarrier</key>

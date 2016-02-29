@@ -52,6 +52,7 @@ namespace gr {
           gr::digital::constellation_sptr constellation,
           const std::string& len_tag_key);
       ~advanced_receiver_cc_impl();
+      void set_ic(int ic_iter){d_ic_iter = ic_iter;}
 
       // Where all the action really happens
       int work(int noutput_items,
