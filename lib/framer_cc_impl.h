@@ -33,17 +33,19 @@ namespace gr {
        int d_nsubcarrier;
        bool d_sync;
        std::vector<gr_complex> d_sync_symbols;
+       gr::gfdm::preamble_generator_sptr d_preamble_generator;
 
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
      public:
       framer_cc_impl(
-          const std::string& len_tag_key,
           int nsubcarrier,
           int ntimeslots,
           bool sync,
-          std::vector<gr_complex> sync_symbols);
+          std::vector<gr_complex> sync_symbols,
+          gr::gfdm::preamble_generator_sptr preamble_generator,
+          const std::string& len_tag_key);
       ~framer_cc_impl();
 
       // Where all the action really happens

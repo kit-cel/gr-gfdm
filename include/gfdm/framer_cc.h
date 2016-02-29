@@ -23,6 +23,7 @@
 #define INCLUDED_GFDM_FRAMER_CC_H
 
 #include <gfdm/api.h>
+#include <gfdm/preamble_generator.h>
 #include <gnuradio/tagged_stream_block.h>
 
 namespace gr {
@@ -51,6 +52,7 @@ namespace gr {
           int ntimeslots,
           bool sync,
           std::vector<gr_complex> sync_symbols,
+          gr::gfdm::preamble_generator_sptr preamble_generator,
           const std::string& len_tag_key = "frame_len");
     };
 

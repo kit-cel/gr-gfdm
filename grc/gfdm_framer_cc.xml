@@ -3,7 +3,7 @@
   <key>gfdm_framer_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
-  <make>gfdm.framer_cc($nsubcarrier, $ntimeslots, $sync, $sync_symbols, $len_tag_key)</make>
+  <make>gfdm.framer_cc($nsubcarrier, $ntimeslots, $sync, $sync_symbols, $preamble_generator, $len_tag_key)</make>
   <param>
     <name>Nsubcarrier</name>
     <key>nsubcarrier</key>
@@ -27,6 +27,11 @@
     <key>sync_symbols</key>
     <value>[]</value>
     <type>complex_vector</type>
+  </param>
+  <param>
+    <name>Preamble_Generator</name>
+    <key>preamble_generator</key>
+    <type>raw</type>
   </param>
   <param>
     <name>Len_tag_key</name>

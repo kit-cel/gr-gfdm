@@ -86,6 +86,14 @@ namespace gr {
     preamble_generator::~preamble_generator()
     {
     }
+    
+    preamble_generator::sptr
+    preamble_generator::make(int nsubcarrier, double filter_alpha, int sync_fft_len)
+    {
+      return preamble_generator::sptr(
+          new preamble_generator(nsubcarrier, filter_alpha, sync_fft_len));
+      
+    }
 
   } /* namespace gfdm */
 } /* namespace gr */

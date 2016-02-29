@@ -34,36 +34,44 @@ namespace gr {
         int ntimeslots,
         bool sync,
         std::vector<gr_complex> sync_symbols,
+        gr::gfdm::preamble_generator_sptr preamble_generator,
         const std::string& len_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new framer_cc_impl(len_tag_key,
-                            nsubcarrier,
+        (new framer_cc_impl(nsubcarrier,
                             ntimeslots,
                             sync,
-                            sync_symbols));
+                            sync_symbols,
+                            preamble_generator,
+                            len_tag_key));
     }
 
     /*
      * The private constructor
      */
     framer_cc_impl::framer_cc_impl(
-        const std::string& len_tag_key,
         int nsubcarrier,
         int ntimeslots,
         bool sync,
-        std::vector<gr_complex> sync_symbols)
+        std::vector<gr_complex> sync_symbols,
+        gr::gfdm::preamble_generator_sptr preamble_generator,
+        const std::string& len_tag_key)
       : gr::tagged_stream_block("framer_cc",
               gr::io_signature::make(1,1, sizeof(gr_complex)),
               gr::io_signature::make(1,1, sizeof(gr_complex)),
               len_tag_key),
       d_nsubcarrier(nsubcarrier),
       d_ntimeslots(ntimeslots),
+      d_preamble_generator(preamble_generator),
       d_sync(sync)
     {
       if (d_sync)
       {
-        if (sync_symbols.size() < d_nsubcarrier)
+        if (d_preamble_generator){
+          d_sync_symbols.resize(d_preamble_generator->get_preamble_len());
+          std::memcpy(&d_sync_symbols[0],&d_preamble_generator->get_preamble()[0],sizeof(gr_complex)*d_preamble_generator->get_preamble_len());
+        }
+        else if (sync_symbols.size() < d_nsubcarrier)
         {
           throw std::invalid_argument("number of sync symbols must be equal to or greater than nsubcarrier");
         }else

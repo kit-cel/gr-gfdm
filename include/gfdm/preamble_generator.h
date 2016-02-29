@@ -44,6 +44,7 @@ namespace gr {
       : public boost::enable_shared_from_this<preamble_generator>
     {
     public:
+      typedef boost::shared_ptr<preamble_generator> sptr;
       preamble_generator(int nsubcarrier,  double filter_alpha, int sync_fft_len);
       ~preamble_generator();
       std::vector<gr_complex> get_preamble() 
@@ -62,6 +63,7 @@ namespace gr {
       {
         return d_sync_fft_len;
       }
+      static sptr make(int nsubcarrier, double filter_alpha, int sync_fft_len);
     private:
       std::vector<gr_complex> d_samp_preamble;
       std::vector<gr_complex> d_symbols;
