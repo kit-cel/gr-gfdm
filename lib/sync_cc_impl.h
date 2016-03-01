@@ -38,6 +38,7 @@ namespace gr {
        int d_block_len;
        int d_L;
        gr_complex d_autocorr_value;
+       gr::gfdm::preamble_generator_sptr d_preamble_generator;
        std::vector<gr_complex> d_known_preamble;
        std::vector<float> d_P_d_abs_prev;
        std::string d_gfdm_tag_key;
@@ -48,7 +49,7 @@ namespace gr {
 
 
      public:
-      sync_cc_impl(int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> known_preamble, const std::string& gfdm_tag_key);
+      sync_cc_impl(int sync_fft_len, int cp_length, int fft_len, gr::gfdm::preamble_generator_sptr preamble_generator, const std::string& gfdm_tag_key);
       ~sync_cc_impl();
 
       // Where all the action really happens

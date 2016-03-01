@@ -68,12 +68,13 @@ namespace gr {
       if (d_sync)
       {
         if (d_preamble_generator){
-          d_sync_symbols.resize(d_preamble_generator->get_preamble_len());
-          std::memcpy(&d_sync_symbols[0],&d_preamble_generator->get_preamble()[0],sizeof(gr_complex)*d_preamble_generator->get_preamble_len());
-        }
-        else if (sync_symbols.size() < d_nsubcarrier)
-        {
-          throw std::invalid_argument("number of sync symbols must be equal to or greater than nsubcarrier");
+          //d_sync_symbols.resize(d_preamble_generator->get_preamble_len());
+          d_sync_symbols = d_preamble_generator->get_preamble();
+          //std::memcpy(&d_sync_symbols[0],&d_preamble_generator->get_preamble()[0],sizeof(gr_complex)*d_preamble_generator->get_preamble_len());
+        //}
+        //else if (sync_symbols.size() < d_nsubcarrier)
+        //{
+        //  throw std::invalid_argument("number of sync symbols must be equal to or greater than nsubcarrier");
         }else
         {
           d_sync_symbols.resize(2*d_nsubcarrier);
@@ -113,16 +114,16 @@ namespace gr {
         int sync_offset = 0;
         if (d_sync)
         {
-          sync_offset = 2*d_nsubcarrier;
+          sync_offset = d_sync_symbols.size();
 //          for (int i=0; i<d_nsubcarrier; i++)
 //          {
 //            out[2*i+1] = d_sync_symbols[i];
 //            out[2*i] = d_sync_symbols[i];
 //          }
-          std::memcpy(&out[0],&d_sync_symbols[0],sizeof(gr_complex)*2*d_nsubcarrier);
+          std::memcpy(&out[0],&d_sync_symbols[0],sizeof(gr_complex)*d_sync_symbols.size());
           add_item_tag(0, nitems_written(0),
               pmt::string_to_symbol("gfdm_sync"),
-              pmt::from_uint64(2*d_nsubcarrier));
+              pmt::from_uint64(d_sync_symbols.size()));
         }
         add_item_tag(0, nitems_written(0)+sync_offset,
               pmt::string_to_symbol("gfdm_data"),

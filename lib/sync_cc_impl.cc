@@ -29,16 +29,16 @@ namespace gr {
   namespace gfdm {
 
     sync_cc::sptr
-    sync_cc::make(int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> known_preamble, const std::string& gfdm_tag_key)
+    sync_cc::make(int sync_fft_len, int cp_length, int fft_len, gr::gfdm::preamble_generator_sptr preamble_generator, const std::string& gfdm_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new sync_cc_impl(sync_fft_len, cp_length, fft_len, known_preamble, gfdm_tag_key));
+        (new sync_cc_impl(sync_fft_len, cp_length, fft_len, preamble_generator, gfdm_tag_key));
     }
 
     /*
      * The private constructor
      */
-    sync_cc_impl::sync_cc_impl(int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> known_preamble, const std::string& gfdm_tag_key)
+    sync_cc_impl::sync_cc_impl(int sync_fft_len, int cp_length, int fft_len, gr::gfdm::preamble_generator_sptr preamble_generator, const std::string& gfdm_tag_key)
       : gr::block("sync_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make3(1, 4, sizeof(gr_complex),sizeof(gr_complex),sizeof(float))),
@@ -48,7 +48,7 @@ namespace gr {
       d_cp_length(cp_length),
       d_block_len(2*cp_length+fft_len+sync_fft_len),
       d_L(sync_fft_len/2),
-      d_known_preamble(known_preamble),
+      d_preamble_generator(preamble_generator),
       d_gfdm_tag_key(gfdm_tag_key)
     {
       set_tag_propagation_policy(TPP_DONT);
@@ -56,6 +56,7 @@ namespace gr {
       // Make sure to have only multiple of( one GFDM Block + Sync) in input
       gr::block::set_output_multiple( d_block_len+d_sync_fft_len );
       d_P_d_abs_prev.resize(cp_length,0);
+      d_known_preamble = d_preamble_generator->get_preamble();
     }
 
     /*
@@ -142,7 +143,7 @@ namespace gr {
       std::vector<gr_complex> cfo_correction(d_block_len+d_sync_fft_len);
       for (int i=0;i<(d_block_len+d_sync_fft_len);i++)
       {
-        cfo_correction[i] = std::exp( gr_complex(2j*M_PI*(cfo/d_sync_fft_len)*i));
+        cfo_correction[i] = std::exp( gr_complex(2j*M_PI*(cfo/(d_sync_fft_len/2))*i));
       }
       std::vector<gr_complex> corrected_input_sequence(d_block_len+d_sync_fft_len);
       ::volk_32fc_x2_multiply_32fc(&corrected_input_sequence[0],&cfo_correction[0],&in[1],d_block_len+d_sync_fft_len);

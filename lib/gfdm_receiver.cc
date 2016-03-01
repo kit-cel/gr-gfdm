@@ -79,7 +79,8 @@ namespace gr {
       gfdm_receiver::filter_superposition(std::vector< std::vector<gr_complex> > &out,
           const gr_complex in[] )
       {
-        std::memcpy(&d_in_fft_in[0],&in[0],sizeof(gr_complex)*d_fft_len);
+        ::volk_32fc_s32fc_multiply_32fc(&d_in_fft_in[0],&in[0],static_cast<gr_complex>(float(d_N)/float(d_fft_len)),d_fft_len);
+        //std::memcpy(&d_in_fft_in[0],&in[0],sizeof(gr_complex)*d_fft_len);
         d_in_fft->execute();
         std::vector<gr_complex> fft_out(d_fft_len+d_ntimeslots*d_filter_width);
         std::memcpy(&fft_out[0],&d_in_fft_out[0],sizeof(gr_complex)*d_fft_len);

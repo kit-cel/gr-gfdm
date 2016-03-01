@@ -57,6 +57,7 @@ namespace gr {
           int ic_iter,
           gr::digital::constellation_sptr constellation,
           const std::string& len_tag_key = "gfdm_frame");
+      virtual void set_ic(int ic_iter){};
     };
 
   } // namespace gfdm

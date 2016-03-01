@@ -31,10 +31,10 @@ namespace gr {
     preamble_generator::preamble_generator(int nsubcarrier, double filter_alpha, int sync_fft_len)
       :d_sync_fft_len(sync_fft_len)
     {
-      float qam_energy = (1/::sqrt(2.0));
+      float qam_energy = float(1.0/std::sqrt(2.0));
       std::vector<float> symbol_choices(2);
-      symbol_choices.push_back(-qam_energy);
-      symbol_choices.push_back(qam_energy);
+      symbol_choices[0] = (-qam_energy);
+      symbol_choices[1]= (qam_energy);
       d_symbols.resize(nsubcarrier);
       d_samp_preamble.resize(sync_fft_len);
 
@@ -56,6 +56,7 @@ namespace gr {
       rrc_filter_sparse* sc_filter = new gfdm::rrc_filter_sparse(2*nsubcarrier, filter_alpha, 2, nsubcarrier, 2);
       // Get sc filtertaps
       sc_filter->get_taps(filter_taps);
+      std::memset(&ifft_in[0],0x00,sizeof(gr_complex)*sync_fft_len);
       for (int sc=0; sc<nsubcarrier;sc++)
       {
         std::vector<gr_complex> sc_tmp(2*2,0j);
@@ -68,15 +69,15 @@ namespace gr {
           ::volk_32fc_x2_multiply_32fc(&sc_tmp[l*2],&filter_taps[l*2],&sc_fft_out[0],2);
         }
 
-        int ifft_offset = ( sync_fft_len/2 + (sync_fft_len-2*nsubcarrier)/2 -(sc*2)) % sync_fft_len;
+        int ifft_offset = ( sync_fft_len/2 + ((sync_fft_len-2*nsubcarrier)/2) + (sc*2)) % sync_fft_len;
         for (int n=0; n< 2*2; n++)
         {
-          ifft_in[(ifft_offset+n) % sync_fft_len] += sc_tmp[(n+(2*2)/2) % (2*2)];
+          ifft_in[(((ifft_offset+n) % sync_fft_len) + sync_fft_len) % sync_fft_len] += sc_tmp[(n+(2*2)/2) % (2*2)];
         }      
       
       }
       ifft->execute();
-      ::volk_32fc_s32fc_multiply_32fc(&d_samp_preamble[0],&ifft_out[0], static_cast<gr_complex>(1.0/sync_fft_len),sync_fft_len);
+      ::volk_32fc_s32fc_multiply_32fc(&d_samp_preamble[0],&ifft_out[0], static_cast<gr_complex>(1.0/(2*nsubcarrier)),sync_fft_len);
       delete ifft;
       delete sc_fft;
       delete sc_filter;

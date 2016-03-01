@@ -114,7 +114,7 @@ namespace gr {
       if (ninput_items[0] == d_N)
       {
         noutput_items = d_fft_len;
-      } else if (ninput_items[0] == d_N+2*d_nsubcarrier)
+      } else if (ninput_items[0] == d_N+d_sync_fft_len)
       {
         noutput_items = d_fft_len+d_sync_fft_len;
       } else
@@ -191,7 +191,7 @@ namespace gr {
           }
         }
         d_out_ifft->execute();
-        ::volk_32fc_s32fc_multiply_32fc(&out[sync_length],&d_out_ifft_out[0],static_cast<gr_complex>(1.0/d_fft_len),d_fft_len);
+        ::volk_32fc_s32fc_multiply_32fc(&out[sync_length],&d_out_ifft_out[0],static_cast<gr_complex>(1.0/d_N),d_fft_len);
 
         add_item_tag(0, nitems_written(0)+sync_length,
             pmt::string_to_symbol(d_len_tag_key),

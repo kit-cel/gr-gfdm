@@ -5,7 +5,7 @@
   <category>GFDM</category>
   <import>import gfdm</import>
   <var_make>self.$(id) = $(id) = gfdm.preamble_generator($nsubcarrier, $filter_alpha, $sync_fft_len).base()</var_make>
-  <var_value> gfdm.preamble_generator($nsubcarrier, $filter_alpha, $sync_fft_len)</var_value>
+  <var_value>gfdm.preamble_generator($nsubcarrier, $filter_alpha, $sync_fft_len)</var_value>
   <make></make>
   <param>
 	<name>Nsubcarrier</name>

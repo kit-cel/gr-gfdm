@@ -3,32 +3,32 @@
   <key>gfdm_sync_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
-  <make>gfdm.sync_cc($sync_fft_len, $cp_length, $fft_len, $known_preamble, $gfdm_tag_key)</make>
+  <make>gfdm.sync_cc($sync_fft_len, $cp_length, $fft_len, $preamble_generator, $gfdm_tag_key)</make>
   <param>
-    <name>Sync_fft_len</name>
+    <name>Sync FFT length</name>
     <key>sync_fft_len</key>
     <value>32</value>
     <type>int</type>
   </param>
   <param>
-    <name>Cp_length</name>
+    <name>CP length</name>
     <key>cp_length</key>
     <value>0</value>
     <type>int</type>
   </param>
   <param>
-    <name>Fft_len</name>
+    <name>FFT length</name>
     <key>fft_len</key>
     <value>256</value>
     <type>int</type>
   </param>
   <param>
-    <name>Known_Preamble</name>
-    <key>known_preamble</key>
-    <type>complex_vector</type>
+    <name>Preamble generator</name>
+    <key>preamble_generator</key>
+    <type>raw</type>
   </param>
   <param>
-    <name>GFDM Tag Key</name>
+    <name>GFDM tag key</name>
     <key>gfdm_tag_key</key>
     <value>"gfdm_block"</value>
     <type>string</type>
