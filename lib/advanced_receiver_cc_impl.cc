@@ -47,6 +47,7 @@ namespace gr {
       d_constellation(constellation),
       d_ic_iter(ic_iter)
     {
+      set_relative_rate(double(d_N)/double(d_fft_len));
       d_ic_filter_taps.resize(d_ntimeslots);
       // Only works for d_filter_width = 2
       ::volk_32fc_x2_multiply_32fc(&d_ic_filter_taps[0],&d_filter_taps[0],&d_filter_taps[d_ntimeslots],d_ntimeslots);

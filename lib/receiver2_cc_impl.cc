@@ -56,6 +56,7 @@ namespace gr {
               gr::io_signature::make(1, 1, sizeof(gr_complex)), len_tag_key),
       kernel::gfdm_receiver(nsubcarrier, ntimeslots, filter_alpha, fft_len)
     {
+      set_relative_rate(double(d_N)/double(d_fft_len));
 
     }
 

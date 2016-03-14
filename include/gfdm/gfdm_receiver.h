@@ -65,7 +65,7 @@ namespace gr {
 
       };
     } /* namespace kernel */
-  } /* namespace filter */
+  } /* namespace gfdm */
 } /* namespace gr */
 
 

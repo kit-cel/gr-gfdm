@@ -70,6 +70,7 @@ namespace gr {
       d_len_tag_key(len_tag_key)
     {
       set_tag_propagation_policy(TPP_DONT);
+      set_relative_rate(double(fft_len)/double(d_N));
       d_filter_width = 2;
       if (d_fft_len < d_N)
       {
