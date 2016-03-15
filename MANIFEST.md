@@ -1,16 +1,17 @@
-title: The GFDM OOT Module
-brief: Short description of gr-gfdm
-tags: # Tags are arbitrary, but look at CGRAN what other authors are using
+title: GFDM - OOT Module for GNU Radio
+brief: Implementation of the GFDM waveform for usage in GNU Radio
+tags:  
   - sdr
+  - waveform
+  - 5G
+  - synchronization
 author:
-  - Author Name <authors@email.address>
+  - Andrej Rode <mail@andrejro.de>
 copyright_owner:
-  - Copyright Owner 1
+  - Andrej Rode 
 license:
-#repo: # Put the URL of the repository here, or leave blank for default
+  - GPLv3
+repo: https://github.com/kit-cel/gr-gfdm.git 
 #website: <module_website> # If you have a separate project website, put it here
 #icon: <icon_url> # Put a URL to a square image here that will be used as an icon on CGRAN
 ---
-A longer, multi-line description of gr-gfdm.
-You may use some *basic* Markdown here.
-If left empty, it will try to find a README file instead.
