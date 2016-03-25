@@ -34,16 +34,14 @@ namespace gr {
         int ntimeslots,
         bool sync,
         std::vector<gr_complex> sync_symbols,
-        gr::gfdm::preamble_generator_sptr preamble_generator,
-        const std::string& len_tag_key)
+        gr::gfdm::preamble_generator_sptr preamble_generator)
     {
       return gnuradio::get_initial_sptr
         (new framer_cc_impl(nsubcarrier,
                             ntimeslots,
                             sync,
                             sync_symbols,
-                            preamble_generator,
-                            len_tag_key));
+                            preamble_generator));
     }
 
     /*
@@ -54,12 +52,10 @@ namespace gr {
         int ntimeslots,
         bool sync,
         std::vector<gr_complex> sync_symbols,
-        gr::gfdm::preamble_generator_sptr preamble_generator,
-        const std::string& len_tag_key)
-      : gr::tagged_stream_block("framer_cc",
+        gr::gfdm::preamble_generator_sptr preamble_generator)
+      : gr::block("framer_cc",
               gr::io_signature::make(1,1, sizeof(gr_complex)),
-              gr::io_signature::make(1,1, sizeof(gr_complex)),
-              len_tag_key),
+              gr::io_signature::make(1,1, sizeof(gr_complex))),
       d_nsubcarrier(nsubcarrier),
       d_ntimeslots(ntimeslots),
       d_preamble_generator(preamble_generator),
@@ -80,6 +76,9 @@ namespace gr {
           d_sync_symbols.resize(2*d_nsubcarrier);
           std::memcpy(&d_sync_symbols[0],&sync_symbols[0],sizeof(gr_complex)*2*nsubcarrier);
         }
+        gr::block::set_output_multiple(d_nsubcarrier*d_ntimeslots+d_sync_symbols.size());
+      }else{
+        gr::block::set_output_multiple(d_nsubcarrier*d_ntimeslots);
       }
     
     }
@@ -91,19 +90,14 @@ namespace gr {
     {
     }
 
-    int
-    framer_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
+    void
+    framer_cc_impl::forecast(int noutput_items, gr_vector_int &ninput_items_required)
     {
-      int noutput_items = ninput_items[0]; 
-      if (d_sync)
-      {
-        noutput_items = ninput_items[0]+(d_nsubcarrier*2); 
-      }
-      return noutput_items;
+      ninput_items_required[0] = d_nsubcarrier+d_ntimeslots;
     }
 
     int
-    framer_cc_impl::work (int noutput_items,
+    framer_cc_impl::general_work (int noutput_items,
                        gr_vector_int &ninput_items,
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)
@@ -128,6 +122,9 @@ namespace gr {
         add_item_tag(0, nitems_written(0)+sync_offset,
               pmt::string_to_symbol("gfdm_data"),
               pmt::from_uint64(d_ntimeslots*d_nsubcarrier));
+        add_item_tag(0,nitems_written(0),
+              pmt::string_to_symbol("gfdm_frame"),
+              pmt::from_long(d_ntimeslots*d_nsubcarrier+sync_offset));
         for (int k=0; k<d_nsubcarrier; k++)
         {
           for(int m=0; m<d_ntimeslots; m++)

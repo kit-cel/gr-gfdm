@@ -23,18 +23,18 @@
 #define INCLUDED_GFDM_FRAMER_CC_H
 
 #include <gfdm/api.h>
+#include <gnuradio/block.h>
 #include <gfdm/preamble_generator.h>
-#include <gnuradio/tagged_stream_block.h>
 
 namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief <+description of block+>
+     * \brief Generate Frames for GFDM-Modulator 
      * \ingroup gfdm
      *
      */
-    class GFDM_API framer_cc : virtual public gr::tagged_stream_block
+    class GFDM_API framer_cc : virtual public gr::block
     {
      public:
       typedef boost::shared_ptr<framer_cc> sptr;
@@ -52,8 +52,7 @@ namespace gr {
           int ntimeslots,
           bool sync,
           std::vector<gr_complex> sync_symbols,
-          gr::gfdm::preamble_generator_sptr preamble_generator,
-          const std::string& len_tag_key = "frame_len");
+          gr::gfdm::preamble_generator_sptr preamble_generator);
     };
 
   } // namespace gfdm
