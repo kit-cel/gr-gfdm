@@ -61,6 +61,7 @@ namespace gr {
       d_preamble_generator(preamble_generator),
       d_sync(sync)
     {
+      gr::block::set_tag_propagation_policy(gr::block::TPP_DONT);
       if (d_sync)
       {
         if (d_preamble_generator){
@@ -133,6 +134,7 @@ namespace gr {
             
           }
         }
+        gr::block::consume_each(d_nsubcarrier*d_ntimeslots);
         int new_noutput_items = d_nsubcarrier*d_ntimeslots+sync_offset;
 
         return new_noutput_items;
