@@ -1,5 +1,5 @@
 <block>
-  <name>Remove prefix cc</name>
+  <name>GFDM Remove Prefix</name>
   <key>gfdm_remove_prefix_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
