@@ -94,7 +94,13 @@ namespace gr {
     void
     framer_cc_impl::forecast(int noutput_items, gr_vector_int &ninput_items_required)
     {
-      ninput_items_required[0] = d_nsubcarrier+d_ntimeslots;
+      if (d_sync)
+      {
+        ninput_items_required[0] = d_ntimeslots*d_nsubcarrier+d_sync_symbols.size();
+      }else
+      {
+        ninput_items_required[0] = d_ntimeslots*d_nsubcarrier;
+      }
     }
 
     int
