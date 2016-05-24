@@ -26,30 +26,32 @@
 namespace gr {
   namespace gfdm {
 
-    class framer_cc_impl : public framer_cc
-    {
-     private:
-       int d_ntimeslots;
-       int d_nsubcarrier;
-       bool d_sync;
-       std::vector<gr_complex> d_sync_symbols;
-       gr::gfdm::preamble_generator_sptr d_preamble_generator;
+    class framer_cc_impl : public framer_cc {
+    private:
+      int d_ntimeslots;
+      int d_nsubcarrier;
+      std::string d_len_tag_key;
+      bool d_sync;
+      std::vector<gr_complex> d_sync_symbols;
+      gr::gfdm::preamble_generator_sptr d_preamble_generator;
 
-     public:
+    public:
       framer_cc_impl(
-          int nsubcarrier,
-          int ntimeslots,
-          bool sync,
-          std::vector<gr_complex> sync_symbols,
-          gr::gfdm::preamble_generator_sptr preamble_generator);
+              int nsubcarrier,
+              int ntimeslots,
+              bool sync,
+              std::vector<gr_complex> sync_symbols,
+              gr::gfdm::preamble_generator_sptr preamble_generator);
+
       ~framer_cc_impl();
+
       void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 
       // Where all the action really happens
       int general_work(int noutput_items,
-		       gr_vector_int &ninput_items,
-		       gr_vector_const_void_star &input_items,
-		       gr_vector_void_star &output_items);
+                       gr_vector_int &ninput_items,
+                       gr_vector_const_void_star &input_items,
+                       gr_vector_void_star &output_items);
     };
 
   } // namespace gfdm

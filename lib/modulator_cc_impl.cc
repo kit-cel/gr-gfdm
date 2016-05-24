@@ -32,7 +32,7 @@ namespace gr {
     modulator_cc::make(
         int nsubcarrier,
         int ntimeslots,
-        double filter_alpha,
+    double filter_alpha,
         int fft_len,
         int sync_fft_len,
         const std::string& len_tag_key)
