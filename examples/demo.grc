@@ -504,33 +504,6 @@
     </param>
   </block>
   <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(32, 212)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>tx_length_key</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>"frame_len"</value>
-    </param>
-  </block>
-  <block>
     <key>analog_random_source_x</key>
     <param>
       <key>alias</key>
@@ -578,7 +551,7 @@
     </param>
     <param>
       <key>num_samps</key>
-      <value>2 ** 13</value>
+      <value>100*gfdm_var.fftlen</value>
     </param>
     <param>
       <key>type</key>
@@ -586,7 +559,7 @@
     </param>
     <param>
       <key>repeat</key>
-      <value>False</value>
+      <value>True</value>
     </param>
   </block>
   <block>
@@ -668,7 +641,7 @@
     </param>
     <param>
       <key>len_tag_key</key>
-      <value>tx_length_key</value>
+      <value>"frame_len"</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -685,116 +658,6 @@
     <param>
       <key>type</key>
       <value>complex</value>
-    </param>
-    <param>
-      <key>vlen</key>
-      <value>1</value>
-    </param>
-  </block>
-  <block>
-    <key>blocks_tag_debug</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>display</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(400, 212)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>blocks_tag_debug_0</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
-    </param>
-    <param>
-      <key>filter</key>
-      <value>""</value>
-    </param>
-    <param>
-      <key>name</key>
-      <value>Tagged Stream</value>
-    </param>
-    <param>
-      <key>num_inputs</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>vlen</key>
-      <value>1</value>
-    </param>
-  </block>
-  <block>
-    <key>blocks_tag_debug</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>display</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(648, 196)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>blocks_tag_debug_0_0</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
-    </param>
-    <param>
-      <key>filter</key>
-      <value>""</value>
-    </param>
-    <param>
-      <key>name</key>
-      <value>Framed</value>
-    </param>
-    <param>
-      <key>num_inputs</key>
-      <value>1</value>
     </param>
     <param>
       <key>vlen</key>
@@ -963,7 +826,7 @@
     </param>
     <param>
       <key>len_tag_key</key>
-      <value>"frame_len"</value>
+      <value>"gfdm_frame"</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -1081,7 +944,7 @@
     </param>
     <param>
       <key>len_tag_key</key>
-      <value>tx_length_key</value>
+      <value>"gfdm_frame"</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -2011,12 +1874,6 @@
   </connection>
   <connection>
     <source_block_id>blocks_stream_to_tagged_stream_0</source_block_id>
-    <sink_block_id>blocks_tag_debug_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_stream_to_tagged_stream_0</source_block_id>
     <sink_block_id>gfdm_framer_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
@@ -2036,12 +1893,6 @@
   <connection>
     <source_block_id>gfdm_advanced_receiver_cc_0</source_block_id>
     <sink_block_id>virtual_sink_2</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>gfdm_framer_cc_0</source_block_id>
-    <sink_block_id>blocks_tag_debug_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
