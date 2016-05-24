@@ -1109,7 +1109,7 @@
     </param>
     <param>
       <key>len_tag_key</key>
-      <value>"frame_len"</value>
+      <value>"gfdm_frame"</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -1149,10 +1149,6 @@
     <param>
       <key>id</key>
       <value>gfdm_framer_cc_0</value>
-    </param>
-    <param>
-      <key>len_tag_key</key>
-      <value> "frame_len"</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -1223,7 +1219,7 @@
     </param>
     <param>
       <key>len_tag_key</key>
-      <value>"frame_len"</value>
+      <value>"gfdm_frame"</value>
     </param>
     <param>
       <key>maxoutbuf</key>
