@@ -73,8 +73,8 @@ namespace gr {
     void
     rrc_filter_sparse::get_taps(std::vector<gr_complex> &out)
     {
+      out.resize(d_filter_taps.size());
       std::memcpy(&out[0],&d_filter_taps[0],sizeof(gr_complex)*d_filter_taps.size());
-
     };
 
   } /* namespace gfdm */

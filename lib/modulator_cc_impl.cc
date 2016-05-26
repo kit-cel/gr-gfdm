@@ -76,10 +76,13 @@ namespace gr {
       {
         throw std::invalid_argument("fft_len must be greater than or equal to nsubcarrier*ntimeslots");
       }
-      d_filter_taps.resize(d_ntimeslots*d_filter_width);
+
+      std::vector<gr_complex> filter_taps;
       rrc_filter_sparse *filter_gen = new rrc_filter_sparse(d_N,filter_alpha,d_filter_width,nsubcarrier,ntimeslots);
-      filter_gen->get_taps(d_filter_taps);
+      filter_gen->get_taps(filter_taps);
       delete filter_gen;
+      d_filter_taps = (gr_complex*) volk_malloc(filter_taps.size() * sizeof(gr_complex), volk_get_alignment());
+      std::memcpy(d_filter_taps, &filter_taps[0], sizeof(gr_complex) * filter_taps.size());
 
       //Initialize FFT per subcarrier
       d_sc_fft = new fft::fft_complex(d_ntimeslots,true,1);
@@ -96,6 +99,9 @@ namespace gr {
       d_out_ifft_in = d_out_ifft->get_inbuf();
       d_out_ifft_out = d_out_ifft->get_outbuf();
 
+      // holds intermediate data during frame modulation
+      d_sc_tmp = (gr_complex*) volk_malloc(d_filter_width * d_ntimeslots * sizeof(gr_complex), volk_get_alignment());
+
     }
 
     /*
@@ -106,6 +112,7 @@ namespace gr {
       delete d_sc_fft;
       delete d_sync_ifft;
       delete d_out_ifft;
+      volk_free(d_sc_tmp);
     }
 
     int
@@ -131,6 +138,37 @@ namespace gr {
       return ;
     }
 
+    void
+    modulator_cc_impl::modulate_gfdm_frame(gr_complex *out, const gr_complex *in)
+    {
+      std::memset(d_sc_tmp, 0x00, d_filter_width * d_ntimeslots * sizeof(gr_complex));
+      std::memset(d_out_ifft_in, 0x00, sizeof(gr_complex)*d_fft_len);
+      for (int k = 0; k < d_nsubcarrier; k++) {
+        // 1. FFT on subcarrier
+        std::memcpy(d_sc_fft_in, in + k * d_ntimeslots, sizeof(gr_complex) * d_ntimeslots);
+        d_sc_fft->execute();
+        // 2. Multiply  with filtertaps (times filter_width)
+        for (int l = 0; l < d_filter_width; l++) {
+          ::volk_32fc_x2_multiply_32fc(d_sc_tmp + l * d_ntimeslots, d_sc_fft_out,
+                                       d_filter_taps + l * d_ntimeslots, d_ntimeslots);
+        }
+
+        // 3. Add to ifft-vector
+        // Calculate ifft offset (not shifted, possibly longer than symbols, some outofband radiation, per subcarrier offset
+        int ifft_offset = (d_fft_len / 2 + (d_fft_len - d_N) / 2 - ((d_filter_width - 1) * (d_ntimeslots)) / 2 +
+                           k * d_ntimeslots) % d_fft_len;
+
+        // VOLKify me!
+        for (int n = 0; n < d_filter_width * d_ntimeslots; n++) {
+          d_out_ifft_in[((ifft_offset + n) % d_fft_len)] += d_sc_tmp[(n + (d_filter_width * d_ntimeslots) / 2) %
+                                                                   (d_filter_width * d_ntimeslots)];
+        }
+      }
+      d_out_ifft->execute();
+      // scale result
+      ::volk_32fc_s32fc_multiply_32fc(out, d_out_ifft_out, gr_complex(1.0 / d_N, 0), d_fft_len);
+    }
+
     int
     modulator_cc_impl::work (int noutput_items,
                        gr_vector_int &ninput_items,
@@ -140,7 +178,6 @@ namespace gr {
         const gr_complex *in = (const gr_complex *) input_items[0];
         gr_complex *out = (gr_complex *) output_items[0];
         std::vector <gr::tag_t> tags;
-        std::memset(d_out_ifft_in, 0x00, sizeof(gr_complex)*d_fft_len);
         
         get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0)+ninput_items[0]);
         bool sync = false;
@@ -171,28 +208,9 @@ namespace gr {
             pmt::string_to_symbol(d_len_tag_key),
             pmt::from_long(nsync_items));
         }
-        for (int k=0; k<d_nsubcarrier; k++)
-        {
-        // 1. FFT on subcarrier
-          std::vector<gr_complex> sc_tmp(d_filter_width*d_ntimeslots,0j);
-          std::memcpy(&d_sc_fft_in[0],&in[data_offset+k*d_ntimeslots],sizeof(gr_complex)*d_ntimeslots);
-          d_sc_fft->execute();
-        // 2. Multiply  with filtertaps (times filter_width)
-          for (int l=0; l<d_filter_width; l++)
-          {
-            ::volk_32fc_x2_multiply_32fc(&sc_tmp[l*d_ntimeslots],&d_sc_fft_out[0],
-                &d_filter_taps[l*d_ntimeslots],d_ntimeslots);
-          }
-        // 3. Add to ifft-vector
-        // Calculate ifft offset (not shifted, possibly longer than symbols, some outofband radiation, per subcarrier offset
-          int ifft_offset = ( d_fft_len/2 + (d_fft_len-d_N)/2 - ((d_filter_width-1)*(d_ntimeslots))/2 + k*d_ntimeslots ) % d_fft_len;
-          for (int n=0; n < d_filter_width*d_ntimeslots; n++)
-          {
-            d_out_ifft_in[((ifft_offset + n) % d_fft_len)] += sc_tmp[(n + (d_filter_width*d_ntimeslots)/2) % (d_filter_width*d_ntimeslots)];
-          }
-        }
-        d_out_ifft->execute();
-        ::volk_32fc_s32fc_multiply_32fc(&out[sync_length],&d_out_ifft_out[0],static_cast<gr_complex>(1.0/d_N),d_fft_len);
+
+        // This is where all the action really happens now!
+        modulate_gfdm_frame(out + sync_length, in + data_offset);
 
         add_item_tag(0, nitems_written(0)+sync_length,
             pmt::string_to_symbol(d_len_tag_key),
