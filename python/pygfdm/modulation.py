@@ -28,6 +28,18 @@ def gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor):
     return h
 
 
+def gfdm_freq_taps(h):
+    h = np.roll(h, h.shape[-1] / 2)
+    # print h == np.fft.fftshift(h)
+    H = np.fft.fft(h)
+    return H
+
+
+def gfdm_freq_taps_sparse(H, M, L):
+    H_sparse = np.concatenate((H[0:(M * L) / 2], H[-(M * L) / 2:]))
+    return H_sparse
+
+
 def transmitMatrix_core(filter_taps, M, K, N):
     '''
         FIXME: Apparently a BUG is killing this function.
@@ -86,7 +98,7 @@ def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, rearrange_i
     for m in range(M):
         g = np.roll(filter_taps, m * K * oversampling_factor)
         for k in range(K):
-            f_mod = np.exp(-1j * 2 * np.pi * (float(k) / (K * oversampling_factor)) * n)
+            f_mod = np.exp(1j * 2 * np.pi * (float(k) / (K * oversampling_factor)) * n)
             g = g * f_mod
             A[:, m * K + k] = g
 
@@ -233,10 +245,14 @@ def gfdm_tx_fft2(x, filtertype, alpha, M, K, L, N):
 
     Low-complexity transmitter implementation as proposed by G. Fettweis
     '''
+    print "gfdm_tx_fft2"
     h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
-    h = np.roll(h, h.shape[-1] / 2)
-    H = np.fft.fft(h)
-    H_sparse = np.concatenate((H[0:(M * L) / 2], H[-(M * L) / 2:]))
+    # h = np.roll(h, h.shape[-1] / 2)
+    # H = np.fft.fft(h)
+    H = gfdm_freq_taps(h)
+    # H_sparse = np.concatenate((H[0:(M * L) / 2], H[-(M * L) / 2:]))
+    H_sparse = gfdm_freq_taps_sparse(H, M, L)
+
     # Sort Input subcarrierwise
     x = reshape_input(x, M, K)
     x_out = np.zeros((M * K) + (L - 1) * M, dtype='complex')
@@ -262,9 +278,10 @@ def gfdm_tx_fft2(x, filtertype, alpha, M, K, L, N):
     x_out = x_out[(L - 1) * M / 2:-(L - 1) * M / 2]
     x_out[0:(L - 1) * M / 2] = x_out[0:(L - 1) * M / 2] + x_last
     x_out[-(L - 1) * M / 2:] = x_out[-(L - 1) * M / 2:] + x_first
+
     x_t = np.fft.ifft(np.fft.ifftshift(x_out))
-    x_t = (1.0 / K) * x_t
-    return x_t
+    x_t *= 1.0 / K
+    return x_t #, H, H_sparse
 
 
 def gfdm_rx_fft2(y, filtertype, alpha, M, K, L, N, QAM, J):
@@ -381,6 +398,7 @@ def reshape_input(x, M, K):
     2. Increase counter one time
     3. perform step 1.+2. M times
     '''
+    # would be equivalent: x_out = np.reshape(x, (-1, K)).T.flatten()
     x_out = np.array([])
     for k in xrange(K):
         for m in xrange(M):
@@ -388,37 +406,9 @@ def reshape_input(x, M, K):
     return x_out
 
 
-def accuracy_test():
-    print "sum error vector"
-    oversampling_factor = 2
-    alpha = 1.0
-    err_mag_vec = []
-
-    ticks = []
-    for M in range(4, 13):
-        for K in range(2, 9):
-            taps = gfdm_filter_taps('rrc', alpha, M, K, oversampling_factor)
-            A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor)
-            A1 = transmitMatrix_core(taps, M, K, oversampling_factor)
-            scaling_factor = abs(A0[0, 0]) / abs(A1[0, 0])
-            A1 *= scaling_factor
-
-            data = np.arange(M * K)
-            x0 = A0.dot(data)
-            x1 = A1.dot(data)
-            err_val = np.sum(abs(x0 - x1))
-            err_mag_vec = np.append(err_mag_vec, err_val)
-            ticks = np.append(ticks, K * M)
-    return err_mag_vec, ticks
-
-
 
 def main():
-    # from gfdm_plot_utils import plot_gfdm_matrix
 
-    # err_mag_vec, ticks = accuracy_test()
-    # plt.plot(ticks, err_mag_vec)
-    # plt.show()
     M = 8
     K = 2
     alpha = 1.0
