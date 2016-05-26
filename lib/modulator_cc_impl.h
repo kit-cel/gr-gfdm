@@ -41,7 +41,7 @@ namespace gr {
        int d_fft_len;
        int d_sync_fft_len;
        std::string d_len_tag_key;
-       std::vector<gr_complex> d_filter_taps;
+       gr_complex* d_filter_taps;
        fft::fft_complex *d_sc_fft;
        gr_complex * d_sc_fft_in;
        gr_complex * d_sc_fft_out;
@@ -51,7 +51,10 @@ namespace gr {
        fft::fft_complex *d_out_ifft;
        gr_complex * d_out_ifft_in;
        gr_complex * d_out_ifft_out;
+
+        gr_complex* d_sc_tmp;
       // Nothing to declare in this block.
+      void modulate_gfdm_frame(gr_complex *out, const gr_complex *in);
 
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
