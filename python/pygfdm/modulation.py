@@ -2,7 +2,9 @@
 
 import numpy as np
 import commpy as cp
+import matplotlib.pyplot as plt
 # from synchronization import *
+from gfdm_plot_utils import plot_gfdm_matrix
 
 
 __all__ = [
@@ -28,6 +30,7 @@ def gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor):
 
 def transmitMatrix_core(filter_taps, M, K, N):
     '''
+        FIXME: Apparently a BUG is killing this function.
         Create GFDM modulation matrix
 
         filter_taps: prototype filter taps. centered
@@ -35,7 +38,7 @@ def transmitMatrix_core(filter_taps, M, K, N):
         K : number of subcarriers
         N: oversampling factor
     '''
-
+    print M, K, N
     # Move filter cyclic
     G_tx = np.array([np.roll(filter_taps, m - (M * K * N / 2)) for m in xrange(M * K * N)])
     S_mn = samplingMatrix(M, K * N)
@@ -57,26 +60,39 @@ def transmitMatrix_core(filter_taps, M, K, N):
     return A
 
 
-def gfdm_modulation_matrix(p, M, K, oversampling_factor=1, rearrange_indices=True):
-    # generate GFDM modulation matrix from prototype filter taps p, M time slots and K subcarriers
-    # p must hold N = K * M taps!
+def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, rearrange_indices=True):
+    '''
+    This function returns a GFDM modulation matrix
+    :param filter_taps: M*K*N length filter tap array
+    :param M: number of time slots
+    :param K: number of subcarriers
+    :param oversampling_factor: factor for oversampling
+    :param rearrange_indices: if True group by time symbol not subcarrier
+    :return: modulation matrix
+    [0] Generalized Frequency Division Multiplexing for 5th Generation Cellular Networks
+    [1] Generalized frequency division multiplexing: Analysis of an alternative multi-carrier technique for next generation cellular systems
+
+    CAREFUL: It is tricky for a number of reasons.
+    First off, only in [1] oversampling is considered. Mostly it's undesirable.
+    Secondly, the definitions differ slightly. In [0] frequency modulation is defined by -1j * 2 * np.pi,
+    whereas in [1] it is 1j * 2 * np.pi. Notice the sign change!
+    '''
     N = M * K
 
-    p = np.roll(p, (N * oversampling_factor) // 2)
+    filter_taps = np.roll(filter_taps, (N * oversampling_factor) // 2)
     A = np.zeros((N * oversampling_factor, N), dtype=np.complex)
 
     n = np.arange(N * oversampling_factor, dtype=np.complex)
     for m in range(M):
-        g = np.roll(p, m * K * oversampling_factor)
+        g = np.roll(filter_taps, m * K * oversampling_factor)
         for k in range(K):
-            g = g * np.exp(1j * 2 * np.pi * (float(k) / (K * oversampling_factor)) * n)
+            f_mod = np.exp(-1j * 2 * np.pi * (float(k) / (K * oversampling_factor)) * n)
+            g = g * f_mod
             A[:, m * K + k] = g
 
     if rearrange_indices:
         indices = np.arange(M * K)
-        # print indices
         indices = np.reshape(indices, (-1, K)).T.flatten()
-        # print indices
         A = A[:, indices]
     return A
 
@@ -178,10 +194,8 @@ def gfdm_tx_fft(x, filtertype, alpha, M, K):
             x[n] = h (*) (IFFT(s_e[n]))
             x_gfdm = sum_M(circshift(x[n],nN))
     '''
-    if filtertype == "rrc":
-        time_h, h = cp.rrcosfilter(M * K, alpha, K, 1)
-    elif filtertype == "rc":
-        time_h, h = cp.rcosfilter(M * K, alpha, K, 1)
+
+    h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
     # Initialization of output vector
     x_out = np.zeros(M * K, dtype='complex')
     # circulary move filter window to symbol 0
@@ -219,10 +233,7 @@ def gfdm_tx_fft2(x, filtertype, alpha, M, K, L, N):
 
     Low-complexity transmitter implementation as proposed by G. Fettweis
     '''
-    if filtertype == "rrc":
-        time_h, h = cp.rrcosfilter(M * K, alpha, K, 1)
-    elif filtertype == "rc":
-        time_h, h = cp.rcosfilter(M * K, alpha, K, 1)
+    h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
     h = np.roll(h, h.shape[-1] / 2)
     H = np.fft.fft(h)
     H_sparse = np.concatenate((H[0:(M * L) / 2], H[-(M * L) / 2:]))
@@ -377,19 +388,48 @@ def reshape_input(x, M, K):
     return x_out
 
 
-def main():
-    from gfdm_plot_utils import *
-
-    M = 8
-    K = 3
-    alpha = 1.0
+def accuracy_test():
+    print "sum error vector"
     oversampling_factor = 2
+    alpha = 1.0
+    err_mag_vec = []
+
+    ticks = []
+    for M in range(4, 13):
+        for K in range(2, 9):
+            taps = gfdm_filter_taps('rrc', alpha, M, K, oversampling_factor)
+            A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor)
+            A1 = transmitMatrix_core(taps, M, K, oversampling_factor)
+            scaling_factor = abs(A0[0, 0]) / abs(A1[0, 0])
+            A1 *= scaling_factor
+
+            data = np.arange(M * K)
+            x0 = A0.dot(data)
+            x1 = A1.dot(data)
+            err_val = np.sum(abs(x0 - x1))
+            err_mag_vec = np.append(err_mag_vec, err_val)
+            ticks = np.append(ticks, K * M)
+    return err_mag_vec, ticks
+
+
+
+def main():
+    # from gfdm_plot_utils import plot_gfdm_matrix
+
+    # err_mag_vec, ticks = accuracy_test()
+    # plt.plot(ticks, err_mag_vec)
+    # plt.show()
+    M = 8
+    K = 2
+    alpha = 1.0
+    oversampling_factor = 1
     t_extract = 2
 
     taps = gfdm_filter_taps('rrc', alpha, M, K, oversampling_factor)
-    A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor)
+    print np.shape(taps)
+    A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor, rearrange_indices=True)
     print 'GFDM shape: ', np.shape(A0)
-    plot_gfdm_matrix(A0)
+    # plot_gfdm_matrix(A0)
 
     A1 = transmitMatrix_core(taps, M, K, oversampling_factor)
     scaling_factor = abs(A0[0, 0]) / abs(A1[0, 0])
@@ -405,14 +445,18 @@ def main():
     data = np.arange(M * K)
     x0 = A0.dot(data)
     plt.plot(x0)
-    x1 = A1.dot(data)
+    x1 = gfdm_tx_fft2(data, 'rrc', alpha, M, K, 2, 1)
+    # x1 = A1.dot(data)
     plt.plot(x1)
-
-    t0 = A0[:, t_extract]
-    t1 = A1[:, t_extract]
+    #
+    # t0 = A0[:, t_extract]
+    # t1 = A1[:, t_extract]
+    # for i in range(4, 8):
+    #     plt.plot(A0[:, i].real)
+    #     plt.plot(A0[:, i].imag, '--')
+    #     plt.plot(A1[:, i].real, '-.')
 
     plt.show()
-
 
 if __name__ == '__main__':
     main()

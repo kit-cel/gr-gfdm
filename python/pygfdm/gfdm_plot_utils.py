@@ -48,6 +48,8 @@ def plot_gfdm_matrix(A):
     ax.set_zlim(0.0, 1.0)
     ax.zaxis.set_major_locator(ticker.LinearLocator(10))
     ax.zaxis.set_major_formatter(ticker.FormatStrFormatter('%.02f'))
+    ax.set_xlabel('MxN samples')
+    ax.set_ylabel('MxK samples')
     ax.set_zlabel('abs(A)')
     plt.tight_layout()
     # plt.savefig('gfdm_matrix.png')
