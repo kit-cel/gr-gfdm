@@ -245,7 +245,6 @@ def gfdm_tx_fft2(x, filtertype, alpha, M, K, L, N):
 
     Low-complexity transmitter implementation as proposed by G. Fettweis
     '''
-    print "gfdm_tx_fft2"
     h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
     # h = np.roll(h, h.shape[-1] / 2)
     # H = np.fft.fft(h)
@@ -399,10 +398,12 @@ def reshape_input(x, M, K):
     3. perform step 1.+2. M times
     '''
     # would be equivalent: x_out = np.reshape(x, (-1, K)).T.flatten()
+    # Yields the correct data matrix: D = np.reshape(x, (-1, K))
     x_out = np.array([])
     for k in xrange(K):
         for m in xrange(M):
             x_out = np.append(x_out, x[(m * K) + k])
+
     return x_out
 
 
