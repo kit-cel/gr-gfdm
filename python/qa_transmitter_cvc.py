@@ -22,8 +22,8 @@
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import numpy as np
-import gfdm
-import gfdm_swig as gfdms
+import gfdm_swig as gfdm
+from pygfdm.modulation import gfdm_tx_fft2
 
 
 class qa_transmitter_cvc (gr_unittest.TestCase):
@@ -41,9 +41,9 @@ class qa_transmitter_cvc (gr_unittest.TestCase):
         filter_width = 2
         filter_alpha = 0.35
         src_data = np.array([np.complex(np.random.choice([-1, 1]), np.random.choice([-1, 1])) for i in xrange(nsubcarrier*ntimeslots)])
-        expected_result = gfdm.modulation.gfdm_tx_fft2(src_data,'rrc',filter_alpha,ntimeslots,nsubcarrier,filter_width,1)
+        expected_result = gfdm_tx_fft2(src_data,'rrc',filter_alpha,ntimeslots,nsubcarrier,filter_width,1)
         src = blocks.vector_source_c(src_data)
-        tm = gfdms.transmitter_cvc(nsubcarrier,ntimeslots,filter_width,filter_alpha)
+        tm = gfdm.transmitter_cvc(nsubcarrier,ntimeslots,filter_width,filter_alpha)
         dst = blocks.vector_sink_c(vlen=nsubcarrier*ntimeslots)
         self.tb.connect(src,tm)
         self.tb.connect(tm,dst)
@@ -59,9 +59,9 @@ class qa_transmitter_cvc (gr_unittest.TestCase):
         filter_width = 2
         filter_alpha = 0.35
         src_data = np.array([np.complex(np.random.choice([-1, 1]), np.random.choice([-1, 1])) for i in xrange(nsubcarrier*ntimeslots)])
-        expected_result = gfdm.modulation.gfdm_tx_fft2(src_data,'rrc',filter_alpha,ntimeslots,nsubcarrier,filter_width,1)
+        expected_result = gfdm_tx_fft2(src_data,'rrc',filter_alpha,ntimeslots,nsubcarrier,filter_width,1)
         src = blocks.vector_source_c(src_data)
-        tm = gfdms.transmitter_cvc(nsubcarrier,ntimeslots,filter_width,filter_alpha)
+        tm = gfdm.transmitter_cvc(nsubcarrier,ntimeslots,filter_width,filter_alpha)
         dst = blocks.vector_sink_c(vlen=nsubcarrier*ntimeslots)
         self.tb.connect(src,tm)
         self.tb.connect(tm,dst)
