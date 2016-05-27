@@ -5,6 +5,7 @@ import commpy as cp
 import matplotlib.pyplot as plt
 # from synchronization import *
 from gfdm_plot_utils import plot_gfdm_matrix
+from filters import gfdm_filter_taps, gfdm_freq_taps, gfdm_freq_taps_sparse
 
 
 __all__ = [
@@ -16,70 +17,14 @@ __all__ = [
     'gfdm_rx']
 
 
-# FIXME TransmitMatrix should group different subcarriers on timeslot-basis
-
-
-def gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor):
-    N = oversampling_factor
-    if filtertype == "rrc":
-        time_h, h = cp.rrcosfilter(M * K * N, alpha, N * K, 1)
-    elif filtertype == "rc":
-        time_h, h = cp.rcosfilter(M * K * N, alpha, N * K, 1)
-    return h
-
-
-def gfdm_freq_taps(h):
-    h = np.roll(h, h.shape[-1] / 2)
-    # print h == np.fft.fftshift(h)
-    H = np.fft.fft(h)
-    return H
-
-
-def gfdm_freq_taps_sparse(H, M, L):
-    H_sparse = np.concatenate((H[0:(M * L) / 2], H[-(M * L) / 2:]))
-    return H_sparse
-
-
-def transmitMatrix_core(filter_taps, M, K, N):
-    '''
-        FIXME: Apparently a BUG is killing this function.
-        Create GFDM modulation matrix
-
-        filter_taps: prototype filter taps. centered
-        M : number of symbol time slots
-        K : number of subcarriers
-        N: oversampling factor
-    '''
-    print M, K, N
-    # Move filter cyclic
-    G_tx = np.array([np.roll(filter_taps, m - (M * K * N / 2)) for m in xrange(M * K * N)])
-    S_mn = samplingMatrix(M, K * N)
-    S_nm = samplingMatrix(K, M)
-    if N > 1:
-        # if oversampling is specified add zeros to samplingMatrix
-        S_nm = np.insert(
-            S_nm, M * K / 2, np.zeros((M * K * (N - 1), K), dtype='complex'),
-            axis=0)
-    W_H = fourierMatrix(M * K * N).conj().transpose()
-    # Resample Filter
-    G_tx_s = np.dot(G_tx, S_mn)
-    # Resample FourierMatrix
-    W_s = np.dot(S_nm.transpose(), W_H)
-    # compute and use all elements of the main diagonal W_s.dot(G_tx_s)
-    A = np.array([(np.kron(W_s.transpose()[n], G_tx_s[n]))
-                  for n in xrange(K * M * N)])
-
-    return A
-
-
-def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, rearrange_indices=True):
+def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, group_by_subcarrier=False):
     '''
     This function returns a GFDM modulation matrix
     :param filter_taps: M*K*N length filter tap array
     :param M: number of time slots
     :param K: number of subcarriers
     :param oversampling_factor: factor for oversampling
-    :param rearrange_indices: if True group by time symbol not subcarrier
+    :param group_by_subcarrier: if True group by time symbol not subcarrier
     :return: modulation matrix
     [0] Generalized Frequency Division Multiplexing for 5th Generation Cellular Networks
     [1] Generalized frequency division multiplexing: Analysis of an alternative multi-carrier technique for next generation cellular systems
@@ -96,13 +41,13 @@ def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, rearrange_i
 
     n = np.arange(N * oversampling_factor, dtype=np.complex)
     for m in range(M):
-        g = np.roll(filter_taps, m * K * oversampling_factor)
         for k in range(K):
             f_mod = np.exp(1j * 2 * np.pi * (float(k) / (K * oversampling_factor)) * n)
-            g = g * f_mod
+            g = filter_taps * f_mod
+            g = np.roll(g, m * K * oversampling_factor)
             A[:, m * K + k] = g
 
-    if rearrange_indices:
+    if group_by_subcarrier:
         indices = np.arange(M * K)
         indices = np.reshape(indices, (-1, K)).T.flatten()
         A = A[:, indices]
@@ -110,36 +55,9 @@ def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, rearrange_i
 
 
 def transmitMatrix(filtertype, alpha, M, K, N):
-    '''
-        Create Convolution Matrix for pulse shaping
-
-        filtertype : (rrc,rc)
-        alpha : roll-off-factor
-        sampling_rate : sampling rate (in Hz)
-        symbol_period : symbol period (in s)
-        M : number of symbol time slots
-        K : number of subcarriers
-
-        h_matrix: array of impulse responses for time slot (0...M-1)
-    '''
-    h = gfdm_filter_taps(filtertype, alpha, M, K, N)
-    return transmitMatrix_core(h, M, K, N)
-
-
-def fourierMatrix(N):
-    i, j = np.meshgrid(np.arange(N), np.arange(N))
-    omega = np.exp(- 2 * np.pi * 1j / N)
-    W = np.power(omega, i * j) / np.sqrt(N)
-    return W
-
-
-def samplingMatrix(M, K):
-    output = np.zeros((M * K, M), dtype='complex')
-    for n in xrange(M * K):
-        for m in xrange(M):
-            if n == (m * K):
-                output[n][m] = 1
-    return output
+    # replaces old definition.
+    taps = gfdm_filter_taps(filtertype, alpha, M, K, N)
+    return gfdm_modulation_matrix(taps, M, K, N, False)
 
 
 def randomQAMSymbols(length, M):
@@ -166,10 +84,10 @@ def gfdm_tx(x, filtertype, alpha, M, K, L, N):
     alpha: rolloff-factor
     M: number of timeslots
     K: number of subcarrier
-    N: oversampling-factor
+    oversampling_factor: sometimes referred to as N
     '''
     A = transmitMatrix(filtertype, alpha, M, K, N)
-    A = A * M
+    A *= M
     tx = A.dot(x)
     return tx
 
@@ -185,53 +103,9 @@ def gfdm_rx(y, filtertype, alpha, M, K, L, N, QAM, J):
     N: oversampling-factor
     '''
     A = transmitMatrix(filtertype, alpha, M, K, N)
-    # if rx_strat == "zf":
-    #    A_rx = np.linalg.pinv(A)
-    # else:
-    # A_rx = np.linalg.pinv(A)/M
     A_rx = A.conj().transpose()
-    rx = np.array([])
     rx = A_rx.dot(y)
     return rx
-
-
-def gfdm_tx_fft(x, filtertype, alpha, M, K):
-    '''
-        Realization of GFDM-Transmitter in FFT:
-            Required input: x a np.array of length M*K
-            FFT is applied in shifted version (zero-frequency term is centered)
-            First symbol is on -freq_max and last symbol ist on freq_max
-            h: Prototype-filter impulse response
-            s_e[n]:[s_0[n] 0{M-1} s_1[n] .... s_N-1[n] 0{M-1}]
-            x[n] = h (*) (IFFT(s_e[n]))
-            x_gfdm = sum_M(circshift(x[n],nN))
-    '''
-
-    h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
-    # Initialization of output vector
-    x_out = np.zeros(M * K, dtype='complex')
-    # circulary move filter window to symbol 0
-    h = np.roll(h, -(M * K / 2))
-    # for each gfdm-block
-    # for each timeslot
-    for m in xrange(M):
-        # select the K next symbols
-        # symbols = np.fft.ifftshift(x[(m*K):(m+1)*K])
-        symbols = np.fft.ifftshift(np.array([x[k * M + m] for k in xrange(K)]))
-        # transform K symbols to K carriertones in time-domain
-        sym_t = np.fft.ifft(symbols)
-        sym_te = np.array([])
-        # Repeat result M-times in a vector
-        for m2 in xrange(M):
-            sym_te = np.concatenate((sym_te, sym_t))
-        # multipy with transmit filter -> better convolve?
-        sym_te = np.convolve(sym_te, h, mode='same')
-        # sym_te = np.multiply(sym_te,h)
-        # shift result m*K samples to the right and add it up to the result
-        # vector
-        x_out = np.add(x_out, np.roll(sym_te, m * K))
-
-    return x_out
 
 
 def gfdm_tx_fft2(x, filtertype, alpha, M, K, L, N):
@@ -246,10 +120,7 @@ def gfdm_tx_fft2(x, filtertype, alpha, M, K, L, N):
     Low-complexity transmitter implementation as proposed by G. Fettweis
     '''
     h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
-    # h = np.roll(h, h.shape[-1] / 2)
-    # H = np.fft.fft(h)
     H = gfdm_freq_taps(h)
-    # H_sparse = np.concatenate((H[0:(M * L) / 2], H[-(M * L) / 2:]))
     H_sparse = gfdm_freq_taps_sparse(H, M, L)
 
     # Sort Input subcarrierwise
@@ -280,7 +151,7 @@ def gfdm_tx_fft2(x, filtertype, alpha, M, K, L, N):
 
     x_t = np.fft.ifft(np.fft.ifftshift(x_out))
     x_t *= 1.0 / K
-    return x_t #, H, H_sparse
+    return x_t
 
 
 def gfdm_rx_fft2(y, filtertype, alpha, M, K, L, N, QAM, J):
@@ -391,63 +262,30 @@ def add_cp(x, n):
     return np.append(x[-n:], x)
 
 
-def reshape_input(x, M, K):
+# [2] "Bit Error Rate Performance of Generalized Frequency Division Multiplexing"
+def get_data_matrix(data, K, group_by_subcarrier=False):
+    # function yields data matrix according to [2]
+    if group_by_subcarrier:
+        # alternative grouping. Used in other papers.
+        return np.reshape(data, (-1, K))
+    else:
+        # data grouped as described in [2]
+        return np.reshape(data, (K, -1)).T
+
+
+def reshape_input(x, M, K, group_by_subcarrier=True):
     '''
     1. pick every m*Kth symbol and append to output.
     2. Increase counter one time
     3. perform step 1.+2. M times
     '''
-    # would be equivalent: x_out = np.reshape(x, (-1, K)).T.flatten()
-    # Yields the correct data matrix: D = np.reshape(x, (-1, K))
-    x_out = np.array([])
-    for k in xrange(K):
-        for m in xrange(M):
-            x_out = np.append(x_out, x[(m * K) + k])
-
-    return x_out
-
+    D = get_data_matrix(x, K, group_by_subcarrier=group_by_subcarrier)
+    return D.T.flatten()
 
 
 def main():
+    print 'This is main: currently nothing to do here.'
 
-    M = 8
-    K = 2
-    alpha = 1.0
-    oversampling_factor = 1
-    t_extract = 2
-
-    taps = gfdm_filter_taps('rrc', alpha, M, K, oversampling_factor)
-    print np.shape(taps)
-    A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor, rearrange_indices=True)
-    print 'GFDM shape: ', np.shape(A0)
-    # plot_gfdm_matrix(A0)
-
-    A1 = transmitMatrix_core(taps, M, K, oversampling_factor)
-    scaling_factor = abs(A0[0, 0]) / abs(A1[0, 0])
-    A1 *= scaling_factor
-    print 'GR shape: ', np.shape(A1)
-    print 'scaling factor:', scaling_factor
-    plot_gfdm_matrix(A1)
-
-    # plot_gfdm_matrix(abs(A0) - abs(A1))
-    plot_gfdm_matrix(A0 - A1)
-
-    fig = plt.figure()
-    data = np.arange(M * K)
-    x0 = A0.dot(data)
-    plt.plot(x0)
-    x1 = gfdm_tx_fft2(data, 'rrc', alpha, M, K, 2, 1)
-    # x1 = A1.dot(data)
-    plt.plot(x1)
-    #
-    # t0 = A0[:, t_extract]
-    # t1 = A1[:, t_extract]
-    # for i in range(4, 8):
-    #     plt.plot(A0[:, i].real)
-    #     plt.plot(A0[:, i].imag, '--')
-    #     plt.plot(A1[:, i].real, '-.')
-
-    plt.show()
 
 if __name__ == '__main__':
     main()

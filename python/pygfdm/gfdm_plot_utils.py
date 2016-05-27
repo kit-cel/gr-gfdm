@@ -54,3 +54,8 @@ def plot_gfdm_matrix(A):
     plt.tight_layout()
     # plt.savefig('gfdm_matrix.png')
     # plt.show()
+
+
+def plot_complex(data, lc):
+    plt.plot(np.real(data), lc)
+    plt.plot(np.imag(data), lc + '--')

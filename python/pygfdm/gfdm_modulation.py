@@ -19,111 +19,139 @@
 # Boston, MA 02110-1301, USA.
 #
 
+'''
+A few hints on used papers, consider them to be a good read.
+[0] Generalized frequency division multiplexing: Analysis of an alternative multi-carrier technique for next generation cellular systems
+[1] Generalized Frequency Division Multiplexing for 5th Generation Cellular Networks
+[2] "Bit Error Rate Performance of Generalized Frequency Division Multiplexing"
+
+'''
+
 import numpy as np
 import commpy as cp
 import scipy.signal as signal
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from gfdm_plot_utils import plot_gfdm_matrix
-from modulation import gfdm_filter_taps, gfdm_modulation_matrix, gfdm_tx_fft2, reshape_input, gfdm_freq_taps, gfdm_freq_taps_sparse
+from modulation import gfdm_modulation_matrix, gfdm_tx_fft2, reshape_input, get_data_matrix
+from filters import gfdm_filter_taps, gfdm_freq_taps, gfdm_freq_taps_sparse, get_frequency_domain_filter
 
 
-def get_data_matrix(data, K):
-    return np.reshape(data, (-1, K))
+def gfdm_transform_subcarriers_to_fd(D, M):
+    '''
+    compare [0] Section IIIA: M-point FFT on each vector dk, aka each column of D, use periodicity of circular convolution.
+    :param D: data matrix, each column of D represents the symbols located on one subcarrier.
+    :param M: number of symbols on a subcarrier and FFT size.
+    :return: data on subcarriers in frequency domain representation. DC on 0th bin.
+    '''
+    return np.fft.fft(D.astype(np.complex), M, axis=0)
 
 
-def gfdm_gr_modulator(x, filtertype, alpha, M, K, L):
-    h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
-    H = gfdm_freq_taps(h)
-    H_sparse = gfdm_freq_taps_sparse(H, M, L)
+def gfdm_upsample_subcarriers_in_fd(D, K, L):
+    '''
+    compare [0] Section IIIA: upsampling with with R(L). aka repeat each dk L-times. L is called overlap
+    :param D: matrix with FD representation of data.
+    :param K: number of subcarriers
+    :param L: overlapping factor. aka upsampling integer value.
+    :return: upsampled data in frequency domain.
+    '''
+    return np.reshape(np.tile(D.flatten(), L), (-1, K))
 
-    # Sort Input subcarrierwise
-    D = np.reshape(x, (-1, K))
 
-    W = np.fft.fft(D.astype(np.complex), M, axis=0)
+def gfdm_filter_subcarriers_in_fd(D, H, M, K, L):
+    '''
+    compare [0] Section IIIA: multiply with filter in freq domain. Denoted as capital gamma in paper.
+    :param D: matrix with upsampled data in FD
+    :param H: transfer function of filter. DC on 0-th bin.
+    :param M: number of time slots
+    :param K: number of subcarriers
+    :param L: overlap factor
+    :return: filtered subcarriers in FD
+    '''
+    F = D.T.flatten() * np.tile(H, K)
+    return np.reshape(F, (-1, L * M)).T
 
-    R = np.reshape(np.tile(W.flatten(), L), (-1, K))
 
-    F = R.T.flatten() * np.tile(H_sparse, K)
-    Fd = np.reshape(F, (-1, L * M)).T
+def gfdm_subcarrier_modulator_in_fd(D, H, M, K, L):
+    # function sums up portion of FFT-based modulation which is exactly as in 'gfdm_tx_fft2'.
+    W = gfdm_transform_subcarriers_to_fd(D, M)
+    R = gfdm_upsample_subcarriers_in_fd(W, K, L)
+    F = gfdm_filter_subcarriers_in_fd(R, H, M, K, L)
+    return F
 
-    #this seems important!
-    Fs = np.fft.fftshift(Fd, axes=0)
 
-    x_out = np.zeros((M * K) + (L - 1) * M, dtype='complex')
-    # print np.shape(x_out)
-
-    # FIXME: Correct overlap handling is key!
-    # Add data-vector to correct position -max neg frequency : 0 :
-    # max_pos_frequency
+def gfdm_combine_subcarriers_in_fd(F, M, K, L, compat_mode=True):
+    '''
+    compare [0] Section IIIA: shift samples to match desired frequency
+    :param F: matrix with k-th subcarrier in k-th column in FD.
+    :param M: number of time slots
+    :param K: number of subcarriers
+    :param L: overlap factor
+    :return: GFDM vector block in frequency domain.
+    '''
+    # FFT-shift necessary here.
+    F = np.fft.fftshift(F, axes=0)
+    tail_length = (L - 1) * M
+    X = np.zeros(M * K + tail_length, dtype=np.complex)
     for k in range(K):
-        x_out[k * M:(k + L) * M] += Fs[:, k]
-    # Add 'oversampled' parts of first subcarrier to end and 'oversampled' parts
-    # of last subcarrier to start
-    tail_length = (L - 1) * M / 2
-    x_first = x_out[0:tail_length]
-    x_last = x_out[-tail_length:]
+        X[k * M: k * M + L * M] += F[:, k]
+    X[0: tail_length] += X[-tail_length:]
+    X = X[0:-tail_length]
 
-    x_out = x_out[tail_length:-tail_length]
-    # print np.shape(x_out)
-    x_out[0:tail_length] += x_last
-    x_out[-tail_length:] += x_first
+    # This last step confuses things! put one on DC!
+    if compat_mode:
+        X = np.roll(X, -M / 2)
+    else:
+        X = np.roll(X, -M * L / 2)
+    return X
 
-    x_s = np.fft.ifftshift(x_out)
 
-    x_t = np.fft.ifft(x_s)
-    x_t *= 1.0 / K
+def gfdm_modulate_block(D, H, M, K, L, compat_mode=True):
+    '''
+    this function aims to reproduce [0] Section IIIA
+    It is a combination of all steps necessary for FFT based modulation.
+    :param D: data matrix. symbols for subcarrier on columns. different grouping in compat_mode
+    :param H: filter transfer function
+    :param M: number of time slots
+    :param K: number of subcarriers
+    :param L: overlap factor
+    :param compat_mode: define if function modulates in accordance with 'gfdm_tx_fft2' for tests.
+    :return:
+    '''
+    F = gfdm_subcarrier_modulator_in_fd(D, H, M, K, L)
+    x_out = gfdm_combine_subcarriers_in_fd(F, M, K, L, compat_mode=compat_mode)
+    x_t = x_out
+
+    if compat_mode:
+        x_t = np.fft.ifftshift(x_out)
+
+    x_t = np.fft.ifft(x_t)
+
+    if compat_mode:
+        x_t *= 1.0 / K
     return x_t
 
 
-# [0] Generalized frequency division multiplexing: Analysis of an alternative multi-carrier technique for next generation cellular systems
-def gfdm_modulate_fft(data, alpha, M, K, overlap, oversampling):
+def gfdm_gr_modulator(x, filtertype, alpha, M, K, L, compat_mode=True):
     # this function aims to reproduce [0] Section IIIA
-    print M, K, overlap, oversampling
-    print data
+    H = get_frequency_domain_filter(filtertype, alpha, M, K, L)
 
-    # compare [0]: D holds the data symbols with dk being the kth column holding M data symbols.
-    D = get_data_matrix(data, K)
-    print D
-    # plt.plot(D[:, 0])
-    # compare [0]: M-point FFT on each vector dk, aka each column of D, use periodicity of circular convolution.
-    W = np.fft.fft(D.astype(np.complex), M, axis=0) #* (1 / np.sqrt(M))
-    # plt.plot(abs(W[:, 0]))
+    # compare [0]: D holds symbols grouped by subcarrier in each column.
+    D = get_data_matrix(x, K, group_by_subcarrier=compat_mode)
 
-    # compare [0]: upsampling with with R(L). aka repeat each dk L-times. L is called overlap
-    R = np.reshape(np.tile(W.flatten(), overlap), (-1, K))
-    # plt.plot(abs(R[:, 0]))
+    return gfdm_modulate_block(D, H, M, K, L, compat_mode=compat_mode)
 
 
-    # compare [0]: multiply with filter in freq domain. Denoted as capital gamma in paper.
-    taps = gfdm_filter_taps('rrc', alpha, M, overlap, oversampling)
-    Gamma = np.fft.fft(taps, overlap * M) #* (1 / np.sqrt(overlap * M))
-    # plt.plot(abs(Gamma))
-    plt.plot(taps)
-    plt.show()
+def gfdm_modulate_fft(data, alpha, M, K, overlap):
+    # this function aims to reproduce [0] Section IIIA
 
-    F = R.T.flatten() * np.tile(Gamma, K)
-    Fd = np.reshape(F, (-1, overlap * M)).T
-    # Fd = np.fft.fftshift(Fd, axes=0)
-
-    # compare [0]: shift samples to match desired frequency
-    X = np.zeros(M * K, dtype=np.complex)
-    for k in range(K):
-        s = np.zeros(M * K, dtype=np.complex)
-        p = Fd[:, k]
-        s[0:len(p)] = p
-        s = np.roll(s, k * M)
-        X += s
-        # plt.plot(s)
-
-    # plt.plot(abs(Fd[:, 0]))
-    #
-    # plt.show()
-    # X = np.fft.fftshift(X)
-    x = np.fft.ifft(X)
-    return x, Gamma
+    H = get_frequency_domain_filter('rrc', alpha, M, K, overlap)
+    D = get_data_matrix(data, K, group_by_subcarrier=False)
+    return gfdm_modulate_block(D, H, M, K, overlap, False)
+    return x
 
 
-def my_compare_function():
+def gr_conformity_validation():
     M = 32
     K = 8
     alpha = .5
@@ -143,52 +171,101 @@ def my_compare_function():
             raise RuntimeError('Function results deviate')
 
 
+def get_zero_f_data(k, K, M):
+    data = np.zeros(K)
+    data[k] = 1.
+    # data = np.tile(data, M)
+    data = np.repeat(data, M)
+    return data
 
-def main():
-    my_compare_function()
+
+def validate_subcarrier_location(alpha, M, K, overlap, oversampling_factor):
+    goofy_ordering = False
+    taps = gfdm_filter_taps('rrc', alpha, M, K, oversampling_factor)
+    A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor, group_by_subcarrier=goofy_ordering)
+
+    n = np.arange(M * K * oversampling_factor, dtype=np.complex)
+    for k in range(K):
+        f = np.exp(1j * 2 * np.pi * (float(k) / (K * oversampling_factor)) * n)
+        F = abs(np.fft.fft(f))
+        fm = 1. * np.argmax(F) / M
+
+        data = get_zero_f_data(k, K, M)
+
+        x0 = gfdm_gr_modulator(data, 'rrc', alpha, M, K, overlap, compat_mode=goofy_ordering) * (2. / K)
+        f0 = 1. * np.argmax(abs(np.fft.fft(x0))) / M
+
+        xA = A0.dot(get_data_matrix(data, K, group_by_subcarrier=goofy_ordering).flatten()) * (1. / K)
+        fA = 1. * np.argmax(abs(np.fft.fft(xA))) / M
+        if not fm == fA == f0:
+            raise RuntimeError('ERROR: subcarriers are not located at the same bins!')
+
+
+def compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor):
+    goofy_ordering = False
+    taps = gfdm_filter_taps('rrc', alpha, M, K, oversampling_factor)
+    A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor, group_by_subcarrier=goofy_ordering)
+    n = np.arange(M * K * oversampling_factor, dtype=np.complex)
+    colors = iter(cm.rainbow(np.linspace(0, 1, K)))
+
+    for k in range(K):
+        color = next(colors)
+        f = np.exp(1j * 2 * np.pi * (float(k) / (K * oversampling_factor)) * n)
+        F = abs(np.fft.fft(f))
+        fm = np.argmax(F) / M
+        plt.plot(F, '-.', label=k, color=color)
+
+        data = get_zero_f_data(k, K, M)
+
+        x0 = gfdm_gr_modulator(data, 'rrc', alpha, M, K, overlap, compat_mode=goofy_ordering) * (2. / K)
+        f0 = 1. * np.argmax(abs(np.fft.fft(x0))) / M
+        plt.plot(abs(np.fft.fft(x0)), label='FFT' + str(k), color=color)
+
+        xA = A0.dot(get_data_matrix(data, K, group_by_subcarrier=goofy_ordering).flatten()) * (1. / K)
+        fA = np.argmax(abs(np.fft.fft(xA))) / M
+        plt.plot(abs(np.fft.fft(xA)), '-', label='matrix' + str(k), color=color)
+        print fm, fA, f0
+
+
+def compare_subcarrier_combination():
     M = 8
     K = 4
+    overlap = 2
+    data = get_zero_f_data(0, K, M)
+    data += 2 * get_zero_f_data(3, K, M)
+    print data
+    F = get_data_matrix(data, K, False)
+    print F
+    F = np.reshape(np.tile(F.flatten(), overlap), (-1, K))
+
+    X0 = np.real(gfdm_combine_subcarriers_in_fd(F, M, K, overlap))
+    print X0
+    X = np.zeros(M * K, dtype=np.complex)
+    for k in range(K):
+        s = np.zeros(M * K, dtype=np.complex)
+        s[0:M * overlap] = F[:, k]
+        s = np.roll(s, k * M - M / 2)
+        X += s
+
+    print np.real(np.roll(X, -M / 2))
+    print np.all(np.roll(X, -M / 2) == X0)
+    print np.all(X == X0)
+    print np.real(X)
+
+
+def main():
+    gr_conformity_validation()
+    compare_subcarrier_combination()
+    M = 8
+    K = 16
     alpha = .5
     oversampling_factor = 1
-    overlap = 4
+    overlap = 2
+    validate_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
+    compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
 
-
-    # taps = gfdm_filter_taps('rrc', alpha, M, K, oversampling_factor)
-    # A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor, rearrange_indices=False)
-    # print 'GFDM shape: ', np.shape(A0), 'tap length:', len(taps)
-    # # plot_gfdm_matrix(A0)
-    #
-    #
-    # fig = plt.figure()
-    # # data = signal.gaussian(K, 1.0)
-    # data = np.arange(0, K / 4, 1. / K) + 1
-    # data = np.tile(data, M)
-    # print data
-    # xA = A0.dot(data)
-    #
-    # xA *= (1. / K)
-    # x1 = gfdm_tx_fft2(data, 'rrc', alpha, M, K, overlap, oversampling_factor)
-    #
-    # x0, Gamma = gfdm_modulate_fft(data, alpha, M, K, overlap, oversampling_factor)
-    # x0 *= (1. / K)
-    #
-    #
-    # plt.plot(np.real(x0), 'b')
-    # plt.plot(np.real(x1), 'g')
-    # plt.plot(np.real(xA), 'r')
-    # plt.plot(np.imag(x0), 'b--')
-    # plt.plot(np.imag(x1), 'g--')
-    # plt.plot(np.imag(xA), 'r--')
-    # # plt.show()
-    # #
-    # # H = np.arange(M * K)
-    # # print H
-    # # L = overlap
-    # # print (H[0:(M * L) / 2], H[-(M * L) / 2:])
-    # # plt.plot(Gamma)
-    # # plt.plot(H)
-    # # plt.plot(H_sparse)
-    # plt.show()
+    plt.legend()
+    plt.show()
 
 
 if __name__ == '__main__':
