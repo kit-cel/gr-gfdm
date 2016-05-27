@@ -53,22 +53,24 @@ def gfdm_gr_modulator(x, filtertype, alpha, M, K, L):
     # print np.shape(x_out)
 
     # FIXME: Correct overlap handling is key!
+    # Add data-vector to correct position -max neg frequency : 0 :
+    # max_pos_frequency
     for k in range(K):
-        # Add data-vector to correct position -max neg frequency : 0 :
-        # max_pos_frequency
-        x_s = Fs[:, k]
-        x_out[k * M:(k + L) * M] += x_s
+        x_out[k * M:(k + L) * M] += Fs[:, k]
     # Add 'oversampled' parts of first subcarrier to end and 'oversampled' parts
     # of last subcarrier to start
-    x_first = x_out[0:(L - 1) * M / 2]
-    x_last = x_out[-(L - 1) * M / 2:]
+    tail_length = (L - 1) * M / 2
+    x_first = x_out[0:tail_length]
+    x_last = x_out[-tail_length:]
 
-    x_out = x_out[(L - 1) * M / 2:-(L - 1) * M / 2]
+    x_out = x_out[tail_length:-tail_length]
     # print np.shape(x_out)
-    x_out[0:(L - 1) * M / 2] = x_out[0:(L - 1) * M / 2] + x_last
-    x_out[-(L - 1) * M / 2:] = x_out[-(L - 1) * M / 2:] + x_first
+    x_out[0:tail_length] += x_last
+    x_out[-tail_length:] += x_first
 
-    x_t = np.fft.ifft(np.fft.ifftshift(x_out))
+    x_s = np.fft.ifftshift(x_out)
+
+    x_t = np.fft.ifft(x_s)
     x_t *= 1.0 / K
     return x_t
 
