@@ -27,5 +27,7 @@ install(FILES
     gfdm_sync_cc.xml
     gfdm_cyclic_prefixer_cc.xml
     gfdm_preamble_generator.xml
-    gfdm_remove_prefix_cc.xml DESTINATION share/gnuradio/grc/blocks
+    gfdm_remove_prefix_cc.xml
+    gfdm_simple_modulator_cc.xml
+    gfdm_modulator_kernel_cc.xml DESTINATION share/gnuradio/grc/blocks
 )

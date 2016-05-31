@@ -44,7 +44,8 @@ def gfdm_transform_subcarriers_to_fd(D, M):
     :param M: number of symbols on a subcarrier and FFT size.
     :return: data on subcarriers in frequency domain representation. DC on 0th bin.
     '''
-    return np.fft.fft(D.astype(np.complex), M, axis=0)
+    F = np.fft.fft(D.astype(np.complex), M, axis=0)
+    return F
 
 
 def gfdm_upsample_subcarriers_in_fd(D, K, L):
@@ -55,7 +56,9 @@ def gfdm_upsample_subcarriers_in_fd(D, K, L):
     :param L: overlapping factor. aka upsampling integer value.
     :return: upsampled data in frequency domain.
     '''
-    return np.reshape(np.tile(D.flatten(), L), (-1, K))
+    F = np.reshape(np.tile(D.flatten(), L), (-1, K))
+    # F = np.fft.fftshift(F, axes=0)
+    return F
 
 
 def gfdm_filter_subcarriers_in_fd(D, H, M, K, L):
@@ -68,6 +71,7 @@ def gfdm_filter_subcarriers_in_fd(D, H, M, K, L):
     :param L: overlap factor
     :return: filtered subcarriers in FD
     '''
+    # H = np.fft.fftshift(H)
     F = D.T.flatten() * np.tile(H, K)
     return np.reshape(F, (-1, L * M)).T
 

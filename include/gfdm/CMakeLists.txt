@@ -32,5 +32,7 @@ install(FILES
     sync_cc.h
     cyclic_prefixer_cc.h
     preamble_generator.h
-    remove_prefix_cc.h DESTINATION include/gfdm
+    remove_prefix_cc.h
+    simple_modulator_cc.h
+    modulator_kernel_cc.h DESTINATION include/gfdm
 )
