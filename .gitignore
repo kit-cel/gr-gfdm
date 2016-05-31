@@ -2,3 +2,5 @@ build/*
 .ycm_extra_conf.*
 *.swp
 *.pyc
+.idea/
+.unittests/

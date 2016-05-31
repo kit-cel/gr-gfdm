@@ -30,120 +30,104 @@ namespace gr {
 
     framer_cc::sptr
     framer_cc::make(
-        int nsubcarrier,
-        int ntimeslots,
-        bool sync,
-        std::vector<gr_complex> sync_symbols,
-        gr::gfdm::preamble_generator_sptr preamble_generator)
-    {
+            int nsubcarrier,
+            int ntimeslots,
+            bool sync,
+            std::vector<gr_complex> sync_symbols,
+            gr::gfdm::preamble_generator_sptr preamble_generator) {
       return gnuradio::get_initial_sptr
-        (new framer_cc_impl(nsubcarrier,
-                            ntimeslots,
-                            sync,
-                            sync_symbols,
-                            preamble_generator));
+              (new framer_cc_impl(nsubcarrier,
+                                  ntimeslots,
+                                  sync,
+                                  sync_symbols,
+                                  preamble_generator));
     }
 
     /*
      * The private constructor
      */
     framer_cc_impl::framer_cc_impl(
-        int nsubcarrier,
-        int ntimeslots,
-        bool sync,
-        std::vector<gr_complex> sync_symbols,
-        gr::gfdm::preamble_generator_sptr preamble_generator)
-      : gr::block("framer_cc",
-              gr::io_signature::make(1,1, sizeof(gr_complex)),
-              gr::io_signature::make(1,1, sizeof(gr_complex))),
-      d_nsubcarrier(nsubcarrier),
-      d_ntimeslots(ntimeslots),
-      d_preamble_generator(preamble_generator),
-      d_sync(sync)
-    {
+            int nsubcarrier,
+            int ntimeslots,
+            bool sync,
+            std::vector<gr_complex> sync_symbols,
+            gr::gfdm::preamble_generator_sptr preamble_generator)
+            : gr::block("framer_cc",
+                        gr::io_signature::make(1, 1, sizeof(gr_complex)),
+                        gr::io_signature::make(1, 1, sizeof(gr_complex))),
+              d_nsubcarrier(nsubcarrier),
+              d_ntimeslots(ntimeslots),
+              d_preamble_generator(preamble_generator),
+              d_sync(sync) {
       gr::block::set_tag_propagation_policy(gr::block::TPP_DONT);
-      if (d_sync)
-      {
-        if (d_preamble_generator){
-          //d_sync_symbols.resize(d_preamble_generator->get_preamble_len());
+      d_len_tag_key = "gfdm_frame";
+
+      if (d_sync) {
+        if (d_preamble_generator) {
           d_sync_symbols = d_preamble_generator->get_preamble();
-          //std::memcpy(&d_sync_symbols[0],&d_preamble_generator->get_preamble()[0],sizeof(gr_complex)*d_preamble_generator->get_preamble_len());
-        //}
-        //else if (sync_symbols.size() < d_nsubcarrier)
-        //{
-        //  throw std::invalid_argument("number of sync symbols must be equal to or greater than nsubcarrier");
-        }else
-        {
-          d_sync_symbols.resize(2*d_nsubcarrier);
-          std::memcpy(&d_sync_symbols[0],&sync_symbols[0],sizeof(gr_complex)*2*nsubcarrier);
+        } else {
+          d_sync_symbols.resize(2 * d_nsubcarrier);
+          std::memcpy(&d_sync_symbols[0], &sync_symbols[0], sizeof(gr_complex) * 2 * nsubcarrier);
         }
-        gr::block::set_output_multiple(d_nsubcarrier*d_ntimeslots+d_sync_symbols.size());
-      }else{
-        gr::block::set_output_multiple(d_nsubcarrier*d_ntimeslots);
+        gr::block::set_output_multiple(d_nsubcarrier * d_ntimeslots + d_sync_symbols.size());
+      } else {
+        gr::block::set_output_multiple(d_nsubcarrier * d_ntimeslots);
       }
-    
+
     }
 
     /*
      * Our virtual destructor.
      */
-    framer_cc_impl::~framer_cc_impl()
-    {
+    framer_cc_impl::~framer_cc_impl() {
     }
 
     void
-    framer_cc_impl::forecast(int noutput_items, gr_vector_int &ninput_items_required)
-    {
-      if (d_sync)
-      {
-        ninput_items_required[0] = d_ntimeslots*d_nsubcarrier+d_sync_symbols.size();
-      }else
-      {
-        ninput_items_required[0] = d_ntimeslots*d_nsubcarrier;
+    framer_cc_impl::forecast(int noutput_items, gr_vector_int &ninput_items_required) {
+      if (d_sync) {
+        ninput_items_required[0] = d_ntimeslots * d_nsubcarrier + d_sync_symbols.size();
+      } else {
+        ninput_items_required[0] = d_ntimeslots * d_nsubcarrier;
       }
     }
 
     int
-    framer_cc_impl::general_work (int noutput_items,
-                       gr_vector_int &ninput_items,
-                       gr_vector_const_void_star &input_items,
-                       gr_vector_void_star &output_items)
-    {
-        const gr_complex *in = (const gr_complex *) input_items[0];
-        gr_complex *out = (gr_complex *) output_items[0]; 
-        
-        int sync_offset = 0;
-        if (d_sync)
-        {
-          sync_offset = d_sync_symbols.size();
+    framer_cc_impl::general_work(int noutput_items,
+                                 gr_vector_int &ninput_items,
+                                 gr_vector_const_void_star &input_items,
+                                 gr_vector_void_star &output_items) {
+      const gr_complex *in = (const gr_complex *) input_items[0];
+      gr_complex *out = (gr_complex *) output_items[0];
+
+      int sync_offset = 0;
+      if (d_sync) {
+        sync_offset = d_sync_symbols.size();
 //          for (int i=0; i<d_nsubcarrier; i++)
 //          {
 //            out[2*i+1] = d_sync_symbols[i];
 //            out[2*i] = d_sync_symbols[i];
 //          }
-          std::memcpy(&out[0],&d_sync_symbols[0],sizeof(gr_complex)*d_sync_symbols.size());
-          add_item_tag(0, nitems_written(0),
-              pmt::string_to_symbol("gfdm_sync"),
-              pmt::from_uint64(d_sync_symbols.size()));
-        }
-        add_item_tag(0, nitems_written(0)+sync_offset,
-              pmt::string_to_symbol("gfdm_data"),
-              pmt::from_uint64(d_ntimeslots*d_nsubcarrier));
-        add_item_tag(0,nitems_written(0),
-              pmt::string_to_symbol("gfdm_frame"),
-              pmt::from_long(d_ntimeslots*d_nsubcarrier+sync_offset));
-        for (int k=0; k<d_nsubcarrier; k++)
-        {
-          for(int m=0; m<d_ntimeslots; m++)
-          {
-            out[(k*d_ntimeslots)+m+sync_offset] = in[(m*d_nsubcarrier+k)];
-            
-          }
-        }
-        gr::block::consume_each(d_nsubcarrier*d_ntimeslots);
-        int new_noutput_items = d_nsubcarrier*d_ntimeslots+sync_offset;
+        std::memcpy(&out[0], &d_sync_symbols[0], sizeof(gr_complex) * d_sync_symbols.size());
+        add_item_tag(0, nitems_written(0),
+                     pmt::string_to_symbol("gfdm_sync"),
+                     pmt::from_uint64(d_sync_symbols.size()));
+      }
+      add_item_tag(0, nitems_written(0) + sync_offset,
+                   pmt::string_to_symbol("gfdm_data"),
+                   pmt::from_uint64(d_ntimeslots * d_nsubcarrier));
+      add_item_tag(0, nitems_written(0),
+                   pmt::string_to_symbol("gfdm_frame"),
+                   pmt::from_long(d_ntimeslots * d_nsubcarrier + sync_offset));
+      for (int k = 0; k < d_nsubcarrier; k++) {
+        for (int m = 0; m < d_ntimeslots; m++) {
+          out[(k * d_ntimeslots) + m + sync_offset] = in[(m * d_nsubcarrier + k)];
 
-        return new_noutput_items;
+        }
+      }
+      gr::block::consume_each(d_nsubcarrier * d_ntimeslots);
+      int new_noutput_items = d_nsubcarrier * d_ntimeslots + sync_offset;
+
+      return new_noutput_items;
     }
 
   } /* namespace gfdm */
