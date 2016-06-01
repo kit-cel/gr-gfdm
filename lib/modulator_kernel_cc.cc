@@ -69,16 +69,18 @@ namespace gr {
 
     modulator_kernel_cc::~modulator_kernel_cc()
     {
+      volk_free(d_filter_taps);
+      fftwf_destroy_plan ((fftwf_plan) d_sub_fft_plan);
       volk_free(d_sub_fft_in);
       volk_free(d_sub_fft_out);
-      fftwf_destroy_plan ((fftwf_plan) d_sub_fft_plan);
+//
       volk_free(d_fd_data);
       volk_free(d_upfilter);
       volk_free(d_filtered);
-      volk_free(d_fd_out);
-      volk_free(d_ifft_in);
-      volk_free(d_ifft_out);
+//      volk_free(d_fd_out);
       fftwf_destroy_plan((fftwf_plan) d_ifft_plan);
+//      volk_free(d_ifft_in);
+//      volk_free(d_ifft_out);
     }
 
     void
@@ -119,44 +121,41 @@ namespace gr {
       }
     }
 
-    void modulator_kernel_cc::combine_subcarriers(gfdm_complex* p_out, const gfdm_complex* p_in)
+    const void
+    modulator_kernel_cc::print_vector(const gfdm_complex* v, const int size)
+    {
+      for (int i = 0; i < size; ++i) {
+        std::cout << v[i] << ", ";
+        if(i % 8 == 0 && i > 0){
+          std::cout << std::endl;
+        }
+      }
+      std::cout << std::endl;
+    }
+
+    void
+    modulator_kernel_cc::combine_subcarriers(gfdm_complex* p_out, const gfdm_complex* p_in)
     {
       const int tail_length = (d_overlap - 1) * d_n_timeslots;
       memset(d_fd_out, 0x00, sizeof (gfdm_complex) * d_n_subcarriers * d_n_timeslots + (d_overlap - 1) * d_n_timeslots);
       gfdm_complex* temp = d_fd_out;
       const int fft_len = d_n_timeslots * d_overlap;
       const int fft_half = fft_len / 2;
-      std::cout << "fft_len: " << fft_len << ", fft_half: " << fft_half << std::endl;
+//      std::cout << "fft_len: " << fft_len << ", fft_half: " << fft_half << std::endl;
       for(int k = 0; k < d_n_subcarriers; ++k){
-//        gfdm_fftshift(d_upfilter, p_in, d_n_timeslots * d_overlap);
-//        memcpy(d_upfilter, p_in, sizeof(gfdm_complex) * d_n_timeslots * d_overlap);
+//        std::cout << "subcarrier = " << k << std::endl;
 
-//        for(int m = 0; m < d_n_timeslots; ++m){
-//          gfdm_complex val = *(d_upfilter + m);
-//          gfdm_complex upd = *(d_fd_out + k * d_n_timeslots + m);
-//          gfdm_complex res = upd + val;
-//          std::cout << val << ", " << upd << ", " << res << std::endl;
-//          *(d_fd_out + k * d_n_timeslots + m) = val;
-//        }
-
-//        memcpy(d_fd_out + k * d_n_timeslots, d_upfilter, sizeof(gfdm_complex) * d_n_timeslots * d_overlap);
-//        volk_32f_x2_add_32f((float*) (d_fd_out + k * d_n_timeslots), (float*) (d_fd_out + k * d_n_timeslots), (float*) d_upfilter, 2 * d_n_timeslots * d_overlap);
-//        volk_32f_x2_add_32f((float*) temp, (float*) temp, (float*) d_upfilter, 2 * d_n_timeslots * d_overlap);
+//        print_vector(p_in, fft_len);
 
         volk_32f_x2_add_32f((float*) temp, (float*) temp, (float*) (p_in + fft_half), fft_len);
         volk_32f_x2_add_32f((float*) (temp + fft_half), (float*) (temp + fft_half), (float*) p_in, fft_len);
+//        print_vector(temp, fft_len);
 
         p_in += d_n_timeslots * d_overlap;
         temp += d_n_timeslots;
       }
-//      volk_32f_x2_add_32f((float*) d_fd_out, (float*) d_fd_out, (float*) (d_fd_out + d_n_timeslots * d_n_subcarriers), 2 * tail_length);
-//      std::rotate_copy(d_fd_out, d_fd_out + (d_n_subcarriers * d_overlap / 2), d_fd_out + d_n_subcarriers * d_n_timeslots, p_out);
-      memcpy(p_out, d_fd_out, sizeof(gfdm_complex) * d_n_subcarriers * d_n_timeslots);
-//      for k in range(K):
-//          X[k * M: k * M + L * M] += F[:, k]
-//      X[0: tail_length] += X[-tail_length:]
-//      X = X[0:-tail_length]
-//      X = np.roll(X, -M * L / 2)
+      volk_32f_x2_add_32f((float*) d_fd_out, (float*) d_fd_out, (float*) (d_fd_out + d_n_timeslots * d_n_subcarriers), 2 * tail_length);
+      std::rotate_copy(d_fd_out, d_fd_out + (d_n_timeslots * d_overlap / 2), d_fd_out + d_n_subcarriers * d_n_timeslots, p_out);
 
     }
 
@@ -170,9 +169,9 @@ namespace gr {
       upsample_and_filter(d_filtered, d_fd_data);
 
       combine_subcarriers(d_ifft_in, d_filtered);
-//      fftwf_execute((fftwf_plan) d_ifft_plan);
+      fftwf_execute((fftwf_plan) d_ifft_plan);
 //      std::cout << "*d_fd_data: " << d_fd_data << std::endl;
-      memcpy(p_out, d_ifft_in, sizeof(gfdm_complex) * d_n_timeslots * d_n_subcarriers);
+      memcpy(p_out, d_ifft_out, sizeof(gfdm_complex) * d_n_timeslots * d_n_subcarriers);
     }
 
 

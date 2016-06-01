@@ -155,6 +155,11 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
     return x
 
 
+def get_random_samples(nsamples):
+    d = np.random.standard_normal(2 * nsamples)
+    d = np.reshape(d, (2, -1))
+    return d[0] + 1j * d[1]
+
 def gr_conformity_validation():
     M = 32
     K = 8
@@ -164,9 +169,10 @@ def gr_conformity_validation():
 
     tests = 100
     for t in range(tests):
-        d = np.random.standard_normal(2 * M * K)
-        d = np.reshape(d, (2, -1))
-        d = d[0] + 1j * d[1]
+        # d = np.random.standard_normal(2 * M * K)
+        # d = np.reshape(d, (2, -1))
+        # d = d[0] + 1j * d[1]
+        d = get_random_samples(M * K)
 
         xo = gfdm_tx_fft2(d, 'rrc', alpha, M, K, overlap, oversampling_factor)
         xn = gfdm_gr_modulator(d, 'rrc', alpha, M, K, overlap)

@@ -24,7 +24,7 @@ from gnuradio import blocks
 import gfdm_swig as gfdm
 from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.gfdm_modulation import gfdm_modulate_block, gfdm_transform_subcarriers_to_fd,\
-    gfdm_upsample_subcarriers_in_fd, gfdm_filter_subcarriers_in_fd, gfdm_combine_subcarriers_in_fd
+    gfdm_upsample_subcarriers_in_fd, gfdm_filter_subcarriers_in_fd, gfdm_combine_subcarriers_in_fd, get_random_samples
 from pygfdm.modulation import get_data_matrix
 import numpy as np
 
@@ -42,7 +42,8 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         K = 4
         L = 2
         taps = get_frequency_domain_filter('rrc', alpha, M, K, L)
-        data = np.repeat(np.arange(1, K + 1), M)
+        # data = np.repeat(np.arange(1, K + 1), M)
+        data = get_random_samples(M * K)
         D = get_data_matrix(data, K, group_by_subcarrier=False)
         print data
         print D
@@ -64,17 +65,23 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         print F[:, 0:2]
         # print np.reshape(res, (-1, M * L)).T
 
-        X = gfdm_combine_subcarriers_in_fd(F, M, K, L)
-        print X[0:M]
-        print res[0:M]
+        X = gfdm_combine_subcarriers_in_fd(F, M, K, L, False)
+        # print
+        # print X[0:M]
+        # print res[0:M]
         print
-        print X
-        print res
+        # print X
+        # print res
         # print np.reshape(res, (-1, M)).T
 
-        # ref = gfdm_modulate_block(D, taps, M, K, L)
+        ref = gfdm_modulate_block(D, taps, M, K, L, False) * M * K
+        print ref
+        print res
+
         # print np.reshape(ref, (-1, M)).T
         # self.assertComplexTuplesAlmostEqual(F[:, 0:2].T.flatten(), res, 5)
+        self.assertComplexTuplesAlmostEqual(ref, res, 4)
+        print "finished test, DTOR's follow!"
 
 if __name__ == '__main__':
     # gr_unittest.run(qa_simple_modulator_cc, "qa_simple_modulator_cc.xml")

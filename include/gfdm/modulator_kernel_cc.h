@@ -62,7 +62,9 @@ namespace gr {
       gfdm_complex* d_ifft_in;
       gfdm_complex* d_ifft_out;
       void* d_ifft_plan;
-//      void circular
+
+      // DEBUG function
+      const void print_vector(const gfdm_complex* v, const int size);
     };
 
   } // namespace gfdm
