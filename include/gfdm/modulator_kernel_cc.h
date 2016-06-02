@@ -71,11 +71,12 @@ namespace gr {
       gfdm_complex* d_ifft_in;
       gfdm_complex* d_ifft_out;
       void* d_ifft_plan;
+      void modulate_block(gfdm_complex* p_out, const gfdm_complex* p_in);
 
-      static bool complex_compare(gfdm_complex i, gfdm_complex j) { return std::abs(i) < std::abs(j); };
 
       // DEBUG function
       const void print_vector(const gfdm_complex* v, const int size);
+      static bool complex_compare(gfdm_complex i, gfdm_complex j) { return std::abs(i) < std::abs(j); };
     };
 
   } // namespace gfdm

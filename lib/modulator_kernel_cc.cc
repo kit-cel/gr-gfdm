@@ -65,12 +65,11 @@ namespace gr {
                                        reinterpret_cast<fftwf_complex *>(d_ifft_out),
                                        FFTW_BACKWARD,
                                        FFTW_MEASURE);
-
+      std::cout << "CTOR kernel finished!\n";
     }
 
     modulator_kernel_cc::~modulator_kernel_cc()
     {
-      // It would be awesome to clean up. RIGHT? The unittest thinks otherwise. It SEGFAULTS! Feels like a Heisenbug as well.
       volk_free(d_filter_taps);
       fftwf_destroy_plan ((fftwf_plan) d_sub_fft_plan);
       volk_free(d_sub_fft_in);
@@ -114,12 +113,19 @@ namespace gr {
     void
     modulator_kernel_cc::upsample_and_filter(gfdm_complex* p_out, const gfdm_complex* p_in)
     {
-      gfdm_complex* upfilter = d_upfilter;
+//      gfdm_complex* upfilter = d_upfilter;
+//      for(int p = 0; p < d_overlap; ++p){
+//        memcpy(upfilter, p_in, sizeof(gfdm_complex) * d_n_timeslots);
+//        upfilter += d_n_timeslots;
+//      }
+//      volk_32fc_x2_multiply_32fc(p_out, d_upfilter, d_filter_taps, d_n_timeslots * d_overlap);
+
+      gfdm_complex* taps = d_filter_taps;
       for(int p = 0; p < d_overlap; ++p){
-        memcpy(upfilter, p_in, sizeof(gfdm_complex) * d_n_timeslots);
-        upfilter += d_n_timeslots;
+        volk_32fc_x2_multiply_32fc(p_out, p_in, taps, d_n_timeslots);
+        p_out += d_n_timeslots;
+        taps += d_n_timeslots;
       }
-      volk_32fc_x2_multiply_32fc(p_out, d_upfilter, d_filter_taps, d_n_timeslots * d_overlap);
     }
 
     void
@@ -161,16 +167,39 @@ namespace gr {
         temp += d_n_timeslots;
       }
       volk_32f_x2_add_32f((float*) d_fd_out, (float*) d_fd_out, (float*) (d_fd_out + d_n_timeslots * d_n_subcarriers), 2 * tail_length);
-      std::rotate_copy(d_fd_out, d_fd_out + (d_n_timeslots * d_overlap / 2), d_fd_out + d_n_subcarriers * d_n_timeslots, p_out);
+//      std::rotate_copy(d_fd_out, d_fd_out + (d_n_timeslots * d_overlap / 2), d_fd_out + d_n_subcarriers * d_n_timeslots, p_out);
+      std::rotate_copy(d_fd_out, d_fd_out + fft_half, d_fd_out + d_n_subcarriers * d_n_timeslots, p_out);
+    }
+
+    void
+    modulator_kernel_cc::modulate_block(gfdm_complex* p_out, const gfdm_complex* p_in)
+    {
+      const int part_len = std::min(d_n_timeslots * d_overlap / 2, d_n_timeslots);
+      memset(p_out, 0x00, sizeof (gfdm_complex) * d_n_subcarriers * d_n_timeslots);
+
+      for(int k = 0; k < d_n_subcarriers; ++k){
+        memcpy(d_sub_fft_in, p_in, sizeof(gfdm_complex) * d_n_timeslots);
+        fftwf_execute((fftwf_plan) d_sub_fft_plan);
+        upsample_and_filter(d_filtered, d_sub_fft_out);
+
+        for (int i = 0; i < d_overlap; ++i) {
+          int src_part_pos = ((i + d_overlap / 2) % d_overlap) * d_n_timeslots;
+          int target_part_pos = ((k + i + d_n_subcarriers - (d_overlap / 2)) % d_n_subcarriers) * d_n_timeslots;
+          volk_32f_x2_add_32f((float*) (p_out + target_part_pos), (float*) (p_out + target_part_pos), (float*) (d_filtered + src_part_pos), 2 * part_len);
+        }
+
+        p_in += d_n_timeslots;
+      }
     }
 
     void
     modulator_kernel_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in)
     {
       // assume data symbols are stacked subcarrier-wise in 'in'.
-      block_subcarrier_fft(d_fd_data, p_in);
-      block_upsample_and_filter(d_filtered, d_fd_data);
-      combine_subcarriers(d_ifft_in, d_filtered);
+//      block_subcarrier_fft(d_fd_data, p_in);
+//      block_upsample_and_filter(d_filtered, d_fd_data);
+//      combine_subcarriers(d_ifft_in, d_filtered);
+      modulate_block(d_ifft_in, p_in);
       fftwf_execute((fftwf_plan) d_ifft_plan);
       memcpy(p_out, d_ifft_out, sizeof(gfdm_complex) * d_n_timeslots * d_n_subcarriers);
     }

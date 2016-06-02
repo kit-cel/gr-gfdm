@@ -69,7 +69,7 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
 
     def test_002_big_data(self):
         print "big data test"
-        reps = 10
+        reps = 5
         alpha = .5
         M = 128
         K = 16

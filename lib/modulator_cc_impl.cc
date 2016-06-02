@@ -209,6 +209,7 @@ namespace gr {
             pmt::from_long(nsync_items));
         }
 
+//        std::cout << "sync_length = " << sync_length << ", offset = " << data_offset << std::endl;
         // This is where all the action really happens now!
         modulate_gfdm_frame(out + sync_length, in + data_offset);
 
