@@ -47,4 +47,4 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, cyclic_prefixer_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, remove_prefix_cc);
 %include "gfdm/simple_modulator_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, simple_modulator_cc);
-%include "gfdm/modulator_kernel_cc.h"
+//%include "gfdm/modulator_kernel_cc.h"

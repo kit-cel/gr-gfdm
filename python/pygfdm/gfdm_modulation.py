@@ -155,10 +155,18 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
     return x
 
 
+def get_random_qpsk(nsamples):
+    d = np.random.randint(0, 2, 2 * nsamples)
+    d = np.reshape(d, (2, -1))
+    d = d.astype(dtype=np.complex)
+    return d[0] + 1j * d[1]
+
+
 def get_random_samples(nsamples):
     d = np.random.standard_normal(2 * nsamples)
     d = np.reshape(d, (2, -1))
     return d[0] + 1j * d[1]
+
 
 def gr_conformity_validation():
     M = 32

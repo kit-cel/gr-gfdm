@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <block>
-  <name>simple_modulator_cc</name>
+  <name>simple GFDM Modulator</name>
   <key>gfdm_simple_modulator_cc</key>
-  <category>gfdm</category>
+  <category>GFDM</category>
   <import>import gfdm</import>
   <make>gfdm.simple_modulator_cc($n_timeslots, $n_subcarriers, $overlap, $frequency_taps)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
@@ -11,28 +11,36 @@
        * key (makes the value accessible as $keyname, e.g. in the make node)
        * type -->
   <param>
-    <name>...</name>
-    <key>...</key>
-    <type>...</type>
+    <name>M time slots</name>
+    <key>n_timeslots</key>
+    <type>int</type>
   </param>
 
-  <!-- Make one 'sink' node per input. Sub-nodes:
-       * name (an identifier for the GUI)
-       * type
-       * vlen
-       * optional (set to 1 for optional inputs) -->
+  <param>
+    <name>K subcarriers</name>
+    <key>n_subcarriers</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>L overlap</name>
+    <key>overlap</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>Frequency domain taps</name>
+    <key>frequency_taps</key>
+    <type>raw</type>
+  </param>
+
   <sink>
     <name>in</name>
-    <type><!-- e.g. int, float, complex, byte, short, xxx_vector, ...--></type>
+    <type>complex</type>
   </sink>
 
-  <!-- Make one 'source' node per output. Sub-nodes:
-       * name (an identifier for the GUI)
-       * type
-       * vlen
-       * optional (set to 1 for optional inputs) -->
   <source>
     <name>out</name>
-    <type><!-- e.g. int, float, complex, byte, short, xxx_vector, ...--></type>
+    <type>complex</type>
   </source>
 </block>

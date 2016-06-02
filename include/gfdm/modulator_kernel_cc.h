@@ -22,7 +22,13 @@
 #ifndef INCLUDED_GFDM_MODULATOR_KERNEL_CC_H
 #define INCLUDED_GFDM_MODULATOR_KERNEL_CC_H
 
-#include <gfdm/api.h>
+// GR related includes
+//#include <gfdm/api.h>
+
+// Kernel really only depends on these libraries. PLUS the ones in _impl.
+#include <complex>
+#include <vector>
+#include <boost/shared_ptr.hpp>
 
 namespace gr {
   namespace gfdm {
@@ -32,7 +38,8 @@ namespace gr {
      * \brief modulate a GFDM block.
      *
      */
-    class GFDM_API modulator_kernel_cc
+    class modulator_kernel_cc
+//    class GFDM_API modulator_kernel_cc  // important for SWIG. But the kernel does not get swigged.
     {
     public:
       typedef std::complex<float> gfdm_complex;
@@ -52,9 +59,11 @@ namespace gr {
       gfdm_complex* d_sub_fft_out;
       void* d_sub_fft_plan;
       void subcarrier_fft(gfdm_complex* p_out, const gfdm_complex* p_in);
+      void block_subcarrier_fft(gfdm_complex* p_out, const gfdm_complex* p_in);
       void gfdm_fftshift(gfdm_complex* p_out, const gfdm_complex* p_in, const int size);
       gfdm_complex* d_fd_data;
       void upsample_and_filter(gfdm_complex* p_out, const gfdm_complex* p_in);
+      void block_upsample_and_filter(gfdm_complex* p_out, const gfdm_complex* p_in);
       gfdm_complex* d_upfilter;
       gfdm_complex* d_filtered;
       void combine_subcarriers(gfdm_complex* p_out, const gfdm_complex* p_in);
@@ -62,6 +71,8 @@ namespace gr {
       gfdm_complex* d_ifft_in;
       gfdm_complex* d_ifft_out;
       void* d_ifft_plan;
+
+      static bool complex_compare(gfdm_complex i, gfdm_complex j) { return std::abs(i) < std::abs(j); };
 
       // DEBUG function
       const void print_vector(const gfdm_complex* v, const int size);

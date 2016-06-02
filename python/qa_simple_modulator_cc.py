@@ -18,13 +18,14 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 #
-from gi.overrides.Gtk import Label
+
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
 from pygfdm.filters import get_frequency_domain_filter
-from pygfdm.gfdm_modulation import gfdm_modulate_block, gfdm_transform_subcarriers_to_fd,\
-    gfdm_upsample_subcarriers_in_fd, gfdm_filter_subcarriers_in_fd, gfdm_combine_subcarriers_in_fd, get_random_samples
+from pygfdm.gfdm_modulation import gfdm_modulate_block, get_random_qpsk
+# from pygfdm.gfdm_modulation import gfdm_transform_subcarriers_to_fd,\
+#     gfdm_upsample_subcarriers_in_fd, gfdm_filter_subcarriers_in_fd, gfdm_combine_subcarriers_in_fd, get_random_samples
 from pygfdm.modulation import get_data_matrix
 import numpy as np
 
@@ -43,11 +44,10 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         L = 2
         taps = get_frequency_domain_filter('rrc', alpha, M, K, L)
         # data = np.repeat(np.arange(1, K + 1), M)
-        data = get_random_samples(M * K)
+        data = get_random_qpsk(M * K)
         D = get_data_matrix(data, K, group_by_subcarrier=False)
-        print data
-        print D
-        print np.reshape(data, (-1, M)).T
+        # print data
+        # print D
         src = blocks.vector_source_c(data)
         mod = gfdm.simple_modulator_cc(M, K, L, taps)
         dst = blocks.vector_sink_c()
@@ -56,32 +56,50 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         # set up fg
         self.tb.run()
         # check data
-        print 'NOW: Check results!'
         res = np.array(dst.data())
+        res /= M * K
 
-        F = gfdm_transform_subcarriers_to_fd(D, M)
-        F = gfdm_upsample_subcarriers_in_fd(F, K, L)
-        F = gfdm_filter_subcarriers_in_fd(F, taps, M, K, L)
-        print F[:, 0:2]
-        # print np.reshape(res, (-1, M * L)).T
+        # F = gfdm_transform_subcarriers_to_fd(D, M)
+        # F = gfdm_upsample_subcarriers_in_fd(F, K, L)
+        # F = gfdm_filter_subcarriers_in_fd(F, taps, M, K, L)
 
-        X = gfdm_combine_subcarriers_in_fd(F, M, K, L, False)
-        # print
-        # print X[0:M]
-        # print res[0:M]
-        print
-        # print X
-        # print res
-        # print np.reshape(res, (-1, M)).T
+        ref = gfdm_modulate_block(D, taps, M, K, L, False)
 
-        ref = gfdm_modulate_block(D, taps, M, K, L, False) * M * K
-        print ref
-        print res
+        self.assertComplexTuplesAlmostEqual(ref, res, 5)
 
-        # print np.reshape(ref, (-1, M)).T
-        # self.assertComplexTuplesAlmostEqual(F[:, 0:2].T.flatten(), res, 5)
-        self.assertComplexTuplesAlmostEqual(ref, res, 4)
-        print "finished test, DTOR's follow!"
+    def test_002_big_data(self):
+        print "big data test"
+        reps = 10
+        alpha = .5
+        M = 128
+        K = 16
+        L = 4
+        taps = get_frequency_domain_filter('rrc', alpha, M, K, L)
+        data = np.array([], dtype=np.complex)
+        ref = np.array([], dtype=np.complex)
+        for i in range(reps):
+            d = get_random_qpsk(M * K)
+            D = get_data_matrix(d, K, group_by_subcarrier=False)
+            ref = np.append(ref, gfdm_modulate_block(D, taps, M, K, L, False))
+            data = np.append(data, d)
+        # print data
+        # print ref
+        # print "MAXIMUM ref value: ", np.max(abs(ref))
+
+        src = blocks.vector_source_c(data)
+        mod = gfdm.simple_modulator_cc(M, K, L, taps)
+        dst = blocks.vector_sink_c()
+
+        self.tb.connect(src, mod, dst)
+        # set up fg
+        self.tb.run()
+        # check data
+        res = np.array(dst.data())
+        res /= M * K
+        # print "MAXIMUM result value: ", np.max(abs(res))
+
+        self.assertComplexTuplesAlmostEqual(ref, res, 2)
+
 
 if __name__ == '__main__':
     # gr_unittest.run(qa_simple_modulator_cc, "qa_simple_modulator_cc.xml")

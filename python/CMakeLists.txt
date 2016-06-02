@@ -39,6 +39,8 @@ GR_PYTHON_INSTALL(
 ########################################################################
 include(GrTest)
 
+add_subdirectory(pygfdm)
+
 set(GR_TEST_TARGET_DEPS gnuradio-gfdm)
 set(GR_TEST_PYTHON_DIRS ${CMAKE_BINARY_DIR}/swig)
 GR_ADD_TEST(qa_transmitter_cvc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_transmitter_cvc.py)
