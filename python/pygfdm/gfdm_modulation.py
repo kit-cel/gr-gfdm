@@ -156,7 +156,7 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
 
 
 def get_random_qpsk(nsamples):
-    d = np.random.randint(0, 2, 2 * nsamples)
+    d = np.random.randint(0, 2, 2 * nsamples) * -2. + 1.
     d = np.reshape(d, (2, -1))
     d = d.astype(dtype=np.complex)
     return d[0] + 1j * d[1]

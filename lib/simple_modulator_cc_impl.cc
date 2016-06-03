@@ -69,7 +69,7 @@ namespace gr {
         in += d_kernel->block_size();
         out += d_kernel->block_size();
       }
-//      std::cout << "WORK produced = " << noutput_items << std::endl;
+
       // Tell runtime system how many output items we produced.
       return noutput_items;
     }

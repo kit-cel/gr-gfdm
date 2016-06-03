@@ -52,27 +52,17 @@ namespace gr {
     private:
       int d_n_timeslots;
       int d_n_subcarriers;
+      int d_ifft_len;
       int d_overlap;
       gfdm_complex* d_filter_taps;
 
       gfdm_complex* d_sub_fft_in;
       gfdm_complex* d_sub_fft_out;
       void* d_sub_fft_plan;
-      void subcarrier_fft(gfdm_complex* p_out, const gfdm_complex* p_in);
-      void block_subcarrier_fft(gfdm_complex* p_out, const gfdm_complex* p_in);
-      void gfdm_fftshift(gfdm_complex* p_out, const gfdm_complex* p_in, const int size);
-      gfdm_complex* d_fd_data;
-      void upsample_and_filter(gfdm_complex* p_out, const gfdm_complex* p_in);
-      void block_upsample_and_filter(gfdm_complex* p_out, const gfdm_complex* p_in);
-      gfdm_complex* d_upfilter;
       gfdm_complex* d_filtered;
-      void combine_subcarriers(gfdm_complex* p_out, const gfdm_complex* p_in);
-      gfdm_complex* d_fd_out;
       gfdm_complex* d_ifft_in;
       gfdm_complex* d_ifft_out;
       void* d_ifft_plan;
-      void modulate_block(gfdm_complex* p_out, const gfdm_complex* p_in);
-
 
       // DEBUG function
       const void print_vector(const gfdm_complex* v, const int size);

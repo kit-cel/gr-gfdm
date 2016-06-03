@@ -57,7 +57,7 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         self.tb.run()
         # check data
         res = np.array(dst.data())
-        res /= M * K
+        # res /= M * K
 
         # F = gfdm_transform_subcarriers_to_fd(D, M)
         # F = gfdm_upsample_subcarriers_in_fd(F, K, L)
@@ -95,7 +95,7 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         self.tb.run()
         # check data
         res = np.array(dst.data())
-        res /= M * K
+        # res /= M * K
         # print "MAXIMUM result value: ", np.max(abs(res))
 
         self.assertComplexTuplesAlmostEqual(ref, res, 2)

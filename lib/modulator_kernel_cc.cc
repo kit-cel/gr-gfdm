@@ -37,7 +37,7 @@ namespace gr {
   namespace gfdm {
 
     modulator_kernel_cc::modulator_kernel_cc(int n_timeslots, int n_subcarriers, int overlap, std::vector<gfdm_complex> frequency_taps):
-      d_n_timeslots(n_timeslots), d_n_subcarriers(n_subcarriers), d_overlap(overlap)
+      d_n_timeslots(n_timeslots), d_n_subcarriers(n_subcarriers), d_overlap(overlap), d_ifft_len(n_timeslots * n_subcarriers)
     {
       if (int(frequency_taps.size()) != n_timeslots * overlap){
         throw std::invalid_argument("number of frequency taps MUST be equal to n_timeslots * overlap!");
@@ -53,13 +53,11 @@ namespace gr {
                                   reinterpret_cast<fftwf_complex *>(d_sub_fft_out),
                                   FFTW_FORWARD,
                                   FFTW_MEASURE);
-      d_fd_data = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_timeslots * n_subcarriers, volk_get_alignment ());
-      d_upfilter = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_timeslots * overlap, volk_get_alignment ());
-      d_filtered = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_subcarriers * n_timeslots * overlap, volk_get_alignment ());
-      d_fd_out = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * (n_subcarriers * n_timeslots + (overlap - 1) * n_timeslots), volk_get_alignment ());
 
-      d_ifft_in = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_timeslots * n_subcarriers, volk_get_alignment ());
-      d_ifft_out = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_timeslots * n_subcarriers, volk_get_alignment ());
+      d_filtered = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_timeslots, volk_get_alignment ());
+
+      d_ifft_in = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_ifft_len, volk_get_alignment ());
+      d_ifft_out = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_ifft_len, volk_get_alignment ());
       d_ifft_plan = fftwf_plan_dft_1d (n_timeslots * n_subcarriers,
                                        reinterpret_cast<fftwf_complex *>(d_ifft_in),
                                        reinterpret_cast<fftwf_complex *>(d_ifft_out),
@@ -75,67 +73,47 @@ namespace gr {
       volk_free(d_sub_fft_in);
       volk_free(d_sub_fft_out);
 
-      volk_free(d_fd_data);
-      volk_free(d_upfilter);
       volk_free(d_filtered);
-      volk_free(d_fd_out);
+
       fftwf_destroy_plan((fftwf_plan) d_ifft_plan);
       volk_free(d_ifft_in);
       volk_free(d_ifft_out);
     }
 
-    void
-    modulator_kernel_cc::gfdm_fftshift(gfdm_complex* p_out, const gfdm_complex* p_in, const int size)
-    {
-      const unsigned int len = (unsigned int)(ceil(size/2.0));
-      memcpy(p_out, p_in + len, sizeof(gfdm_complex) * (size - len));
-      memcpy(p_out + (size - len), p_in, sizeof(gfdm_complex) * len);
-    }
 
     void
-    modulator_kernel_cc::subcarrier_fft(gfdm_complex* p_out, const gfdm_complex* p_in)
+    modulator_kernel_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in)
     {
-      memcpy(d_sub_fft_in, p_in, sizeof(gfdm_complex) * d_n_timeslots);
-      fftwf_execute((fftwf_plan) d_sub_fft_plan);
-      memcpy(p_out, d_sub_fft_out, sizeof(gfdm_complex) * d_n_timeslots);
-    }
+      // assume data symbols are stacked subcarrier-wise in 'in'.
+      const int part_len = std::min(d_n_timeslots * d_overlap / 2, d_n_timeslots);
 
-    void
-    modulator_kernel_cc::block_subcarrier_fft(gfdm_complex* p_out, const gfdm_complex* p_in)
-    {
+      // make sure we don't sum up old results.
+      memset(d_ifft_in, 0x00, sizeof (gfdm_complex) * d_ifft_len);
+
+      // perform modulation for each subcarrier separately
       for(int k = 0; k < d_n_subcarriers; ++k){
-        subcarrier_fft(p_out, p_in);
+        // get items into subcarrier FFT
+        memcpy(d_sub_fft_in, p_in, sizeof(gfdm_complex) * d_n_timeslots);
+        fftwf_execute((fftwf_plan) d_sub_fft_plan);
+
+        // handle each part separately. The length of a part should always be d_n_timeslots.
+        // FIXME: Assumption and algorithm will probably fail for d_overlap = 1 (Should never be used though).
+        for (int i = 0; i < d_overlap; ++i) {
+          // calculate positions for next part to handle
+          int src_part_pos = ((i + d_overlap / 2) % d_overlap) * d_n_timeslots;
+          int target_part_pos = ((k + i + d_n_subcarriers - (d_overlap / 2)) % d_n_subcarriers) * d_n_timeslots;
+          // perform filtering operation!
+          volk_32fc_x2_multiply_32fc(d_filtered, d_sub_fft_out, d_filter_taps + src_part_pos, d_n_timeslots);
+          // add generated part at correct position.
+          volk_32f_x2_add_32f((float*) (d_ifft_in + target_part_pos), (float*) (d_ifft_in + target_part_pos), (float*) d_filtered, 2 * part_len);
+        }
         p_in += d_n_timeslots;
-        p_out += d_n_timeslots;
       }
-    }
 
-    void
-    modulator_kernel_cc::upsample_and_filter(gfdm_complex* p_out, const gfdm_complex* p_in)
-    {
-//      gfdm_complex* upfilter = d_upfilter;
-//      for(int p = 0; p < d_overlap; ++p){
-//        memcpy(upfilter, p_in, sizeof(gfdm_complex) * d_n_timeslots);
-//        upfilter += d_n_timeslots;
-//      }
-//      volk_32fc_x2_multiply_32fc(p_out, d_upfilter, d_filter_taps, d_n_timeslots * d_overlap);
-
-      gfdm_complex* taps = d_filter_taps;
-      for(int p = 0; p < d_overlap; ++p){
-        volk_32fc_x2_multiply_32fc(p_out, p_in, taps, d_n_timeslots);
-        p_out += d_n_timeslots;
-        taps += d_n_timeslots;
-      }
-    }
-
-    void
-    modulator_kernel_cc::block_upsample_and_filter(gfdm_complex* p_out, const gfdm_complex* p_in)
-    {
-      for(int k = 0; k < d_n_subcarriers; ++k){
-        upsample_and_filter(p_out, p_in);
-        p_in += d_n_timeslots;
-        p_out += d_n_timeslots * d_overlap;
-      }
+      // Back to time domain!
+      fftwf_execute((fftwf_plan) d_ifft_plan);
+//      memcpy(p_out, d_ifft_out, sizeof(gfdm_complex) * d_ifft_len);
+      volk_32fc_s32fc_multiply_32fc(p_out, d_ifft_out, gfdm_complex(1.0 / d_ifft_len, 0), d_ifft_len);
     }
 
     const void
@@ -148,60 +126,6 @@ namespace gr {
         }
       }
       std::cout << std::endl;
-    }
-
-    void
-    modulator_kernel_cc::combine_subcarriers(gfdm_complex* p_out, const gfdm_complex* p_in)
-    {
-      const int tail_length = (d_overlap - 1) * d_n_timeslots;
-      const int fft_len = d_n_timeslots * d_overlap;
-      const int fft_half = fft_len / 2;
-      memset(d_fd_out, 0x00, sizeof (gfdm_complex) * (d_n_subcarriers * d_n_timeslots + (d_overlap - 1) * d_n_timeslots));
-
-      gfdm_complex* temp = d_fd_out;
-      for(int k = 0; k < d_n_subcarriers; ++k){
-        volk_32f_x2_add_32f((float*) temp, (float*) temp, (float*) (p_in + fft_half), fft_len);
-        volk_32f_x2_add_32f((float*) (temp + fft_half), (float*) (temp + fft_half), (float*) p_in, fft_len);
-
-        p_in += d_n_timeslots * d_overlap;
-        temp += d_n_timeslots;
-      }
-      volk_32f_x2_add_32f((float*) d_fd_out, (float*) d_fd_out, (float*) (d_fd_out + d_n_timeslots * d_n_subcarriers), 2 * tail_length);
-//      std::rotate_copy(d_fd_out, d_fd_out + (d_n_timeslots * d_overlap / 2), d_fd_out + d_n_subcarriers * d_n_timeslots, p_out);
-      std::rotate_copy(d_fd_out, d_fd_out + fft_half, d_fd_out + d_n_subcarriers * d_n_timeslots, p_out);
-    }
-
-    void
-    modulator_kernel_cc::modulate_block(gfdm_complex* p_out, const gfdm_complex* p_in)
-    {
-      const int part_len = std::min(d_n_timeslots * d_overlap / 2, d_n_timeslots);
-      memset(p_out, 0x00, sizeof (gfdm_complex) * d_n_subcarriers * d_n_timeslots);
-
-      for(int k = 0; k < d_n_subcarriers; ++k){
-        memcpy(d_sub_fft_in, p_in, sizeof(gfdm_complex) * d_n_timeslots);
-        fftwf_execute((fftwf_plan) d_sub_fft_plan);
-        upsample_and_filter(d_filtered, d_sub_fft_out);
-
-        for (int i = 0; i < d_overlap; ++i) {
-          int src_part_pos = ((i + d_overlap / 2) % d_overlap) * d_n_timeslots;
-          int target_part_pos = ((k + i + d_n_subcarriers - (d_overlap / 2)) % d_n_subcarriers) * d_n_timeslots;
-          volk_32f_x2_add_32f((float*) (p_out + target_part_pos), (float*) (p_out + target_part_pos), (float*) (d_filtered + src_part_pos), 2 * part_len);
-        }
-
-        p_in += d_n_timeslots;
-      }
-    }
-
-    void
-    modulator_kernel_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in)
-    {
-      // assume data symbols are stacked subcarrier-wise in 'in'.
-//      block_subcarrier_fft(d_fd_data, p_in);
-//      block_upsample_and_filter(d_filtered, d_fd_data);
-//      combine_subcarriers(d_ifft_in, d_filtered);
-      modulate_block(d_ifft_in, p_in);
-      fftwf_execute((fftwf_plan) d_ifft_plan);
-      memcpy(p_out, d_ifft_out, sizeof(gfdm_complex) * d_n_timeslots * d_n_subcarriers);
     }
 
   } /* namespace gfdm */
