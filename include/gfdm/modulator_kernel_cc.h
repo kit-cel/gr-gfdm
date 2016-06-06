@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Johannes Demel.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,6 @@
 #ifndef INCLUDED_GFDM_MODULATOR_KERNEL_CC_H
 #define INCLUDED_GFDM_MODULATOR_KERNEL_CC_H
 
-// GR related includes
-//#include <gfdm/api.h>
-
-// Kernel really only depends on these libraries. PLUS the ones in _impl.
 #include <complex>
 #include <vector>
 #include <boost/shared_ptr.hpp>
@@ -37,10 +33,10 @@ namespace gr {
 
     /*!
      * \brief modulate a GFDM block.
+     *  This class initializes and performs all operations necessary to modulate a GFDM block.
      *
      */
     class modulator_kernel_cc
-//    class GFDM_API modulator_kernel_cc  // important for SWIG. But the kernel does not get swigged.
     {
     public:
       typedef std::complex<float> gfdm_complex;

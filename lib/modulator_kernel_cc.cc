@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Johannes Demel.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,18 +18,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-// These imports are GR related. Removed them to be able to compile a stand-alone kernel.
-//#ifdef HAVE_CONFIG_H
-//#include "config.h"
-//#endif
-//#include <gnuradio/io_signature.h>
-
-// These are the important includes
 #include <gfdm/modulator_kernel_cc.h>
 #include <iostream>
 #include <volk/volk.h>
 #include <string.h>
-#include <algorithm>
 
 
 namespace gr {
