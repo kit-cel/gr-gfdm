@@ -29,6 +29,7 @@
 #include <complex>
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <fftw3.h>
 
 namespace gr {
   namespace gfdm {
@@ -56,13 +57,15 @@ namespace gr {
       int d_overlap;
       gfdm_complex* d_filter_taps;
 
+      fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
+
       gfdm_complex* d_sub_fft_in;
       gfdm_complex* d_sub_fft_out;
-      void* d_sub_fft_plan;
+      fftwf_plan d_sub_fft_plan;
       gfdm_complex* d_filtered;
       gfdm_complex* d_ifft_in;
       gfdm_complex* d_ifft_out;
-      void* d_ifft_plan;
+      fftwf_plan d_ifft_plan;
 
       // DEBUG function
       const void print_vector(const gfdm_complex* v, const int size);

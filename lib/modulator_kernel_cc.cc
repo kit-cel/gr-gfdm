@@ -28,7 +28,6 @@
 #include <gfdm/modulator_kernel_cc.h>
 #include <iostream>
 #include <volk/volk.h>
-#include <fftw3.h>
 #include <string.h>
 #include <algorithm>
 
@@ -37,7 +36,7 @@ namespace gr {
   namespace gfdm {
 
     modulator_kernel_cc::modulator_kernel_cc(int n_timeslots, int n_subcarriers, int overlap, std::vector<gfdm_complex> frequency_taps):
-      d_n_timeslots(n_timeslots), d_n_subcarriers(n_subcarriers), d_overlap(overlap), d_ifft_len(n_timeslots * n_subcarriers)
+      d_n_timeslots(n_timeslots), d_n_subcarriers(n_subcarriers), d_ifft_len(n_timeslots * n_subcarriers), d_overlap(overlap)
     {
       if (int(frequency_taps.size()) != n_timeslots * overlap){
         throw std::invalid_argument("number of frequency taps MUST be equal to n_timeslots * overlap!");
@@ -48,36 +47,55 @@ namespace gr {
       // first create input and output buffers for a new FFTW plan.
       d_sub_fft_in = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_timeslots, volk_get_alignment ());
       d_sub_fft_out = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_timeslots, volk_get_alignment ());
-      d_sub_fft_plan = fftwf_plan_dft_1d (n_timeslots,
-                                  reinterpret_cast<fftwf_complex *>(d_sub_fft_in),
-                                  reinterpret_cast<fftwf_complex *>(d_sub_fft_out),
-                                  FFTW_FORWARD,
-                                  FFTW_MEASURE);
+      d_sub_fft_plan = initialize_fft(d_sub_fft_out, d_sub_fft_in, n_timeslots, true);
 
       d_filtered = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * n_timeslots, volk_get_alignment ());
 
       d_ifft_in = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_ifft_len, volk_get_alignment ());
       d_ifft_out = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_ifft_len, volk_get_alignment ());
-      d_ifft_plan = fftwf_plan_dft_1d (n_timeslots * n_subcarriers,
-                                       reinterpret_cast<fftwf_complex *>(d_ifft_in),
-                                       reinterpret_cast<fftwf_complex *>(d_ifft_out),
-                                       FFTW_BACKWARD,
-                                       FFTW_MEASURE);
+      d_ifft_plan = initialize_fft(d_ifft_out, d_ifft_in, n_timeslots * n_subcarriers, false);
+
       std::cout << "CTOR kernel finished!\n";
     }
 
     modulator_kernel_cc::~modulator_kernel_cc()
     {
       volk_free(d_filter_taps);
-      fftwf_destroy_plan ((fftwf_plan) d_sub_fft_plan);
+      fftwf_destroy_plan (d_sub_fft_plan);
       volk_free(d_sub_fft_in);
       volk_free(d_sub_fft_out);
 
       volk_free(d_filtered);
 
-      fftwf_destroy_plan((fftwf_plan) d_ifft_plan);
+      fftwf_destroy_plan(d_ifft_plan);
       volk_free(d_ifft_in);
       volk_free(d_ifft_out);
+    }
+
+
+    fftwf_plan
+    modulator_kernel_cc::initialize_fft(gfdm_complex *out_buf, gfdm_complex *in_buf, const int fft_size, bool forward)
+    {
+      std::string filename(getenv("HOME"));
+      filename += "/.gr_fftw_wisdom";
+      FILE *fpr = fopen (filename.c_str(), "r");
+      if (fpr != 0){
+        int r = fftwf_import_wisdom_from_file (fpr);
+        fclose (fpr);
+      }
+
+      fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
+                                      reinterpret_cast<fftwf_complex *>(in_buf),
+                                      reinterpret_cast<fftwf_complex *>(out_buf),
+                                      forward ? FFTW_FORWARD : FFTW_BACKWARD,
+                                      FFTW_MEASURE);
+
+      FILE *fpw = fopen (filename.c_str(), "w");
+      if (fpw != 0){
+        fftwf_export_wisdom_to_file (fpw);
+        fclose (fpw);
+      }
+      return plan;
     }
 
 
@@ -94,7 +112,7 @@ namespace gr {
       for(int k = 0; k < d_n_subcarriers; ++k){
         // get items into subcarrier FFT
         memcpy(d_sub_fft_in, p_in, sizeof(gfdm_complex) * d_n_timeslots);
-        fftwf_execute((fftwf_plan) d_sub_fft_plan);
+        fftwf_execute(d_sub_fft_plan);
 
         // handle each part separately. The length of a part should always be d_n_timeslots.
         // FIXME: Assumption and algorithm will probably fail for d_overlap = 1 (Should never be used though).
@@ -111,7 +129,7 @@ namespace gr {
       }
 
       // Back to time domain!
-      fftwf_execute((fftwf_plan) d_ifft_plan);
+      fftwf_execute(d_ifft_plan);
 //      memcpy(p_out, d_ifft_out, sizeof(gfdm_complex) * d_ifft_len);
       volk_32fc_s32fc_multiply_32fc(p_out, d_ifft_out, gfdm_complex(1.0 / d_ifft_len, 0), d_ifft_len);
     }
