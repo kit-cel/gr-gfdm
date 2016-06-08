@@ -22,20 +22,53 @@
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
+import numpy as np
 
-class qa_cyclic_prefixer_cc (gr_unittest.TestCase):
 
-    def setUp (self):
-        self.tb = gr.top_block ()
+class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
+    def setUp(self):
+        self.tb = gr.top_block()
 
-    def tearDown (self):
+    def tearDown(self):
         self.tb = None
 
-    def test_001_t (self):
-        # set up fg
-        self.tb.run ()
-        # check data
+    def test_001_init(self):
+        # check if prefixer is properly ctor'ed / dtor'ed
+        prefixer = gfdm.cyclic_prefixer_cc(4, 'gfdm_frame')
+        prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(4 * 2), 'gfdm_frame')
+        prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(16 * 8 + 4), 'gfdm_frame')
+        try:
+            prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(16 * 8), 'gfdm_frame')
+            raise ValueError('invalid parameter set, but passed anyway!')
+        except:
+            # expected behavior!
+            pass
+
+    def test_002_simple_cp(self):
+        # check if prefixer is properly ctor'ed / dtor'ed
+        tag_key = 'gfdm_block'
+        frame_len = 48
+        cp_len = 8
+        data = np.arange(frame_len, dtype=np.complex) + 1
+        ref = np.concatenate((data[-cp_len:], data))
+
+        prefixer = gfdm.cyclic_prefixer_cc(cp_len, tag_key)
+        tagger = blocks.stream_to_tagged_stream(gr.sizeof_gr_complex, 1, frame_len, tag_key)
+        src = blocks.vector_source_c(data)
+        dst = blocks.vector_sink_c()
+        self.tb.connect(src, tagger, prefixer, dst)
+        self.tb.run()
+
+        res = np.array(dst.data())
+        print ref
+        print res
+
+        self.assertComplexTuplesAlmostEqual(res, ref)
+
+
+
 
 
 if __name__ == '__main__':
-    gr_unittest.run(qa_cyclic_prefixer_cc, "qa_cyclic_prefixer_cc.xml")
+    # gr_unittest.run(qa_cyclic_prefixer_cc, "qa_cyclic_prefixer_cc.xml")
+    gr_unittest.run(qa_cyclic_prefixer_cc)

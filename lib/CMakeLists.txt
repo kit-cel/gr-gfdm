@@ -39,7 +39,8 @@ list(APPEND gfdm_sources
     preamble_generator.cc
     remove_prefix_cc_impl.cc
     simple_modulator_cc_impl.cc
-    modulator_kernel_cc.cc)
+    modulator_kernel_cc.cc
+    add_cyclic_prefix_cc.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)

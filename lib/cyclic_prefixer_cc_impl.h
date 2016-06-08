@@ -22,28 +22,35 @@
 #define INCLUDED_GFDM_CYCLIC_PREFIXER_CC_IMPL_H
 
 #include <gfdm/cyclic_prefixer_cc.h>
+#include <gfdm/add_cyclic_prefix_cc.h>
 
-namespace gr {
-  namespace gfdm {
+namespace gr
+{
+  namespace gfdm
+  {
 
     class cyclic_prefixer_cc_impl : public cyclic_prefixer_cc
     {
-     private:
-       int d_cp_length;
+    private:
+      int d_cp_length;
+      add_cyclic_prefix_cc::sptr d_kernel;
 
 
-     protected:
+    protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
-     public:
-      cyclic_prefixer_cc_impl(int cp_length, const std::string& len_tag_key);
+    public:
+      cyclic_prefixer_cc_impl(int ramp_len, int cp_length, int block_len,
+                              std::vector<gr_complex> window_taps,
+                              const std::string &len_tag_key);
+
       ~cyclic_prefixer_cc_impl();
 
       // Where all the action really happens
       int work(int noutput_items,
-           gr_vector_int &ninput_items,
-           gr_vector_const_void_star &input_items,
-           gr_vector_void_star &output_items);
+               gr_vector_int &ninput_items,
+               gr_vector_const_void_star &input_items,
+               gr_vector_void_star &output_items);
     };
 
   } // namespace gfdm

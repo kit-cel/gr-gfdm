@@ -21,6 +21,7 @@
 #include "gfdm/remove_prefix_cc.h"
 #include "gfdm/simple_modulator_cc.h"
 #include "gfdm/modulator_kernel_cc.h"
+#include "gfdm/add_cyclic_prefix_cc.h"
 %}
 
 %include "gfdm/transmitter_cvc.h"

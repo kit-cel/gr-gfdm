@@ -47,6 +47,8 @@ namespace gr {
        * creating new instances.
        */
       static sptr make(int cp_length, const std::string& len_tag_key = "gfdm_block");
+      static sptr make(int cp_length, int ramp_len, int block_len, std::vector<gr_complex> window_taps,
+                                       const std::string &len_tag_key = "gfdm_block");
     };
 
   } // namespace gfdm
