@@ -32,22 +32,33 @@ namespace gr {
       set_block_size(block_len);
       int window_len = block_len + cp_len;
       if(window_taps.size() != window_len && window_taps.size() != 2 * ramp_len){
-        std::cout << "window_len: " << window_len << ", ramp_len: " << ramp_len << ", taps.size: " << window_taps.size() << std::endl;
         throw std::invalid_argument("ERROR: number of window_taps elements MUST be equal to 2*ramp_len OR n_timeslots*n_subcarriers+cp_len!");
       }
+
+      d_front_ramp = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * ramp_len, volk_get_alignment());
+      d_back_ramp = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * ramp_len, volk_get_alignment());
+      memcpy(d_front_ramp, &window_taps[0], sizeof(gfdm_complex) * ramp_len);
+      memcpy(d_back_ramp, &window_taps[block_len + cp_len - ramp_len], sizeof(gfdm_complex) * ramp_len);
     }
 
     add_cyclic_prefix_cc::~add_cyclic_prefix_cc()
     {
+      volk_free(d_front_ramp);
+      volk_free(d_back_ramp);
     }
 
     void
     add_cyclic_prefix_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in)
     {
-      int cp_start = block_size() - d_cp_len;
-      std::cout << "block_len: " << block_size() << ", cp_start: " << cp_start << ", cp_len: " << d_cp_len << std::endl;
-      memcpy(p_out, p_in + block_size() - d_cp_len, sizeof(gfdm_complex) * d_cp_len);
+      const int cp_start = block_size() - d_cp_len;
+      memcpy(p_out, p_in + cp_start, sizeof(gfdm_complex) * d_cp_len);
       memcpy(p_out + d_cp_len, p_in, sizeof(gfdm_complex) * block_size());
+
+      if(d_ramp_len > 0){
+        const int tail_start = block_size() + d_cp_len - d_ramp_len;
+        volk_32fc_x2_multiply_32fc(p_out, p_out, d_front_ramp, d_ramp_len);
+        volk_32fc_x2_multiply_32fc(p_out + tail_start, p_out + tail_start, d_back_ramp, d_ramp_len);
+      }
     }
 
   } /* namespace gfdm */

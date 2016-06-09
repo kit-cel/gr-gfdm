@@ -32,7 +32,10 @@ namespace gr {
     cyclic_prefixer_cc::make(int cp_length,const std::string& len_tag_key)
     {
       // function kept for purpose of backwards compatiblity!
-      return cyclic_prefixer_cc::make(cp_length, cp_length, 16 * 8, std::vector<gr_complex>(16 * 8 + cp_length, 0), len_tag_key);
+      int block_len = 16 * 8;
+      int ramp_len = 0;
+      std::vector<gr_complex> pseudo_window(block_len + cp_length, 0);
+      return cyclic_prefixer_cc::make(cp_length, ramp_len, block_len, pseudo_window, len_tag_key);
     }
 
     cyclic_prefixer_cc::sptr
@@ -81,10 +84,8 @@ namespace gr {
     {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
-      d_kernel->set_block_size(ninput_items[0]);
 
-//      std::memcpy(&out[d_cp_length], &in[0], ninput_items[0]*sizeof(gr_complex));
-//      std::memcpy(&out[0], in+ninput_items[0]-d_cp_length, d_cp_length*sizeof(gr_complex));
+      d_kernel->set_block_size(ninput_items[0]);
       d_kernel->generic_work(out, in);
 
       return d_cp_length+ninput_items[0];

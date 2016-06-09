@@ -46,8 +46,6 @@ namespace gr {
       d_ifft_in = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_ifft_len, volk_get_alignment ());
       d_ifft_out = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_ifft_len, volk_get_alignment ());
       d_ifft_plan = initialize_fft(d_ifft_out, d_ifft_in, n_timeslots * n_subcarriers, false);
-
-      std::cout << "CTOR kernel finished!\n";
     }
 
     modulator_kernel_cc::~modulator_kernel_cc()

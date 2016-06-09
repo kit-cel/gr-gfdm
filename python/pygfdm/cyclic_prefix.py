@@ -45,8 +45,8 @@ def window_ramp(ramp_len, cp_len, n_timeslots, n_subcarriers, cut_zeros=True):
     else:
         f = np.linspace(-w, w, window_len, dtype=np.float)
     r = truncated_lin(f, alpha)
-    print ramp_len
-    print r
+    # print ramp_len
+    # print r
     return f, r
 
 

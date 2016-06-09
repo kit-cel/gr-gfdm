@@ -23,6 +23,7 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
 import numpy as np
+from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp
 
 
 class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
@@ -45,25 +46,43 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
             pass
 
     def test_002_simple_cp(self):
-        # check if prefixer is properly ctor'ed / dtor'ed
         tag_key = 'gfdm_block'
-        frame_len = 48
+        block_len = 48
         cp_len = 8
-        data = np.arange(frame_len, dtype=np.complex) + 1
-        ref = np.concatenate((data[-cp_len:], data))
+        data = np.arange(block_len, dtype=np.complex) + 1
+        ref = add_cyclic_prefix(data, cp_len)
 
         prefixer = gfdm.cyclic_prefixer_cc(cp_len, tag_key)
-        tagger = blocks.stream_to_tagged_stream(gr.sizeof_gr_complex, 1, frame_len, tag_key)
+        tagger = blocks.stream_to_tagged_stream(gr.sizeof_gr_complex, 1, block_len, tag_key)
+        src = blocks.vector_source_c(data)
+        dst = blocks.vector_sink_c()
+        self.tb.connect(src, tagger, prefixer, dst)
+        self.tb.run()
+        res = np.array(dst.data())
+        self.assertComplexTuplesAlmostEqual(res, ref)
+
+    def test_003_block_pinching(self):
+        tag_key = 'gfdm_block'
+        n_subcarriers = 8
+        n_timeslots = 8
+        block_len = n_subcarriers * n_timeslots
+        cp_len = 8
+        ramp_len = 4
+        f, window_taps = get_raised_cosine_ramp(ramp_len, cp_len, n_timeslots, n_subcarriers)
+        data = np.arange(block_len, dtype=np.complex) + 1
+        ref = add_cyclic_prefix(data, cp_len)
+        ref = pinch_block(ref, window_taps)
+
+        prefixer = gfdm.cyclic_prefixer_cc(cp_len, ramp_len, block_len, window_taps, tag_key)
+        tagger = blocks.stream_to_tagged_stream(gr.sizeof_gr_complex, 1, block_len, tag_key)
         src = blocks.vector_source_c(data)
         dst = blocks.vector_sink_c()
         self.tb.connect(src, tagger, prefixer, dst)
         self.tb.run()
 
         res = np.array(dst.data())
-        print ref
-        print res
 
-        self.assertComplexTuplesAlmostEqual(res, ref)
+        self.assertComplexTuplesAlmostEqual(res, ref, 4)
 
 
 

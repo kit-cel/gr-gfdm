@@ -337,7 +337,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(992, 240)</value>
+      <value>(1040, 240)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -427,7 +427,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(376, 308)</value>
+      <value>(360, 348)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -574,6 +574,53 @@
     <param>
       <key>vector</key>
       <value>range(2, 4, timeslots * subcarriers)</value>
+    </param>
+  </block>
+  <block>
+    <key>gfdm_cyclic_prefixer_cc</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>cp_length</key>
+      <value>8</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(848, 148)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>gfdm_cyclic_prefixer_cc_0</value>
+    </param>
+    <param>
+      <key>len_tag_key</key>
+      <value>"gfdm_frame"</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
     </param>
   </block>
   <block>
@@ -1179,11 +1226,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(376, 144)</value>
+      <value>(392, 120)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -1518,6 +1565,12 @@
   </connection>
   <connection>
     <source_block_id>blocks_stream_to_tagged_stream_0</source_block_id>
+    <sink_block_id>gfdm_simple_modulator_cc_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>blocks_stream_to_tagged_stream_0</source_block_id>
     <sink_block_id>qtgui_time_sink_x_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
@@ -1547,8 +1600,8 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>blocks_vector_source_x_0</source_block_id>
-    <sink_block_id>gfdm_simple_modulator_cc_0</sink_block_id>
+    <source_block_id>gfdm_cyclic_prefixer_cc_0</source_block_id>
+    <sink_block_id>blocks_null_sink_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -1572,7 +1625,7 @@
   </connection>
   <connection>
     <source_block_id>gfdm_simple_modulator_cc_0</source_block_id>
-    <sink_block_id>blocks_null_sink_0</sink_block_id>
+    <sink_block_id>gfdm_cyclic_prefixer_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
