@@ -274,7 +274,7 @@ def compare_subcarrier_combination():
 def main():
     gr_conformity_validation()
     compare_subcarrier_combination()
-    M = 8
+    M = 15
     K = 16
     alpha = .5
     oversampling_factor = 1

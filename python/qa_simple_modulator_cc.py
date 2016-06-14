@@ -71,7 +71,7 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         print "big data test"
         reps = 5
         alpha = .5
-        M = 128
+        M = 127
         K = 16
         L = 4
         taps = get_frequency_domain_filter('rrc', alpha, M, K, L)

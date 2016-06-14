@@ -21,7 +21,12 @@
 
 import numpy as np
 import commpy as cp
-from modulation import gfdm_tx, gfdm_tx_fft2
+import matplotlib.pyplot as plt
+import scipy.signal as signal
+from modulation import gfdm_tx, gfdm_tx_fft2, get_data_matrix
+from filters import get_frequency_domain_filter
+from gfdm_modulation import gfdm_modulate_block, get_random_qpsk
+from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -127,3 +132,45 @@ def sync_CFO(P_d, P_di):
     print("P_d:{},df:{})".format(P_d[d], d_f))
 
     return (d, d_f)
+
+
+def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
+    M = 2  # fixed for preamble
+    compat_mode = False
+    pn_symbols = np.concatenate((pn_symbols, pn_symbols))
+    D = get_data_matrix(pn_symbols, K, group_by_subcarrier=compat_mode)
+    symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=compat_mode)
+    print np.shape(symbol)
+    symbol = add_cyclic_prefix(symbol, cp_len)
+    print 'prefixed', np.shape(symbol)
+    f, window_ramp = get_raised_cosine_ramp(ramp_len, cp_len, M, K)
+    print 'ramp', np.shape(window_ramp)
+    symbol = pinch_block(symbol, window_ramp)
+    print np.shape(symbol)
+    return symbol
+
+
+def main():
+    print 'Hello World'
+    alpha = .5
+    M = 2
+    K = 32
+    L = 2
+    cp_len = 4
+    ramp_len = 4
+    pn_symbols = get_random_qpsk(K)
+    H = get_frequency_domain_filter('rrc', alpha, M, K, L)
+    symbol = get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
+    symbol *= 1. / np.sqrt(np.sum(symbol ** 2))
+    print np.shape(symbol)
+    c = signal.correlate(symbol, symbol)
+    # c *= 1. / len(symbol)
+    print np.shape(np.abs(c))
+    nc = c[np.argmax(np.abs(c))]
+    print nc
+    plt.plot(np.abs(c))
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
