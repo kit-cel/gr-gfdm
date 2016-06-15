@@ -23,7 +23,7 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
 import numpy as np
-from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp
+from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len
 
 
 class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
@@ -68,7 +68,8 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
         block_len = n_subcarriers * n_timeslots
         cp_len = 8
         ramp_len = 4
-        f, window_taps = get_raised_cosine_ramp(ramp_len, cp_len, n_timeslots, n_subcarriers)
+        window_len = get_window_len(cp_len, n_timeslots, n_subcarriers)
+        window_taps = get_raised_cosine_ramp(ramp_len, window_len)
         data = np.arange(block_len, dtype=np.complex) + 1
         ref = add_cyclic_prefix(data, cp_len)
         ref = pinch_block(ref, window_taps)
@@ -83,9 +84,6 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
         res = np.array(dst.data())
 
         self.assertComplexTuplesAlmostEqual(res, ref, 4)
-
-
-
 
 
 if __name__ == '__main__':

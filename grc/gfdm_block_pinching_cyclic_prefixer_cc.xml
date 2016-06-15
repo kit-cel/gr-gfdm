@@ -1,0 +1,45 @@
+<block>
+    <name>GFDM Block Pinching Cyclic Prefixer</name>
+    <key>gfdm_block_pinching_cyclic_prefixer_cc</key>
+    <category>GFDM</category>
+    <import>import gfdm</import>
+    <make>gfdm.cyclic_prefixer_cc($cp_length, $ramp_len, $block_len, $window_taps, $len_tag_key)</make>
+
+    <param>
+        <name>CP length</name>
+        <key>cp_length</key>
+        <value>0</value>
+        <type>int</type>
+    </param>
+    <param>
+        <name>Ramp length</name>
+        <key>ramp_len</key>
+        <value>0</value>
+        <type>int</type>
+    </param>
+    <param>
+        <name>Block length</name>
+        <key>block_len</key>
+        <value>0</value>
+        <type>int</type>
+    </param>
+    <param>
+        <name>Window taps</name>
+        <key>window_taps</key>
+        <type>raw</type>
+    </param>
+    <param>
+        <name>length tag key</name>
+        <key>len_tag_key</key>
+        <value>"gfdm_block"</value>
+        <type>string</type>
+    </param>
+    <sink>
+        <name>in</name>
+        <type>complex</type>
+    </sink>
+    <source>
+        <name>out</name>
+        <type>complex</type>
+    </source>
+</block>

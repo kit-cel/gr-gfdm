@@ -34,7 +34,7 @@ namespace gr {
       // function kept for purpose of backwards compatiblity!
       int block_len = 16 * 8;
       int ramp_len = 0;
-      std::vector<gr_complex> pseudo_window(block_len + cp_length, 0);
+      std::vector<gr_complex> pseudo_window(block_len + cp_length, 0);  // will not be used with ramp_len == 0
       return cyclic_prefixer_cc::make(cp_length, ramp_len, block_len, pseudo_window, len_tag_key);
     }
 
@@ -72,8 +72,7 @@ namespace gr {
     int
     cyclic_prefixer_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
     {
-      int noutput_items = ninput_items[0] + d_cp_length;
-      return noutput_items ;
+      return ninput_items[0] + d_cp_length;
     }
 
     int

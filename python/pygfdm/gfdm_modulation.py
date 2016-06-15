@@ -24,17 +24,16 @@ A few hints on used papers, consider them to be a good read.
 [0] Generalized frequency division multiplexing: Analysis of an alternative multi-carrier technique for next generation cellular systems
 [1] Generalized Frequency Division Multiplexing for 5th Generation Cellular Networks
 [2] "Bit Error Rate Performance of Generalized Frequency Division Multiplexing"
-
 '''
 
 import numpy as np
-import commpy as cp
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from gfdm_plot_utils import plot_gfdm_matrix
-from modulation import gfdm_modulation_matrix, gfdm_tx_fft2, reshape_input, get_data_matrix
-from filters import gfdm_filter_taps, gfdm_freq_taps, gfdm_freq_taps_sparse, get_frequency_domain_filter
+from modulation import gfdm_modulation_matrix, gfdm_tx_fft2
+from filters import gfdm_filter_taps, get_frequency_domain_filter
+from mapping import get_random_samples, get_data_matrix, get_zero_f_data
 
 
 def gfdm_transform_subcarriers_to_fd(D, M):
@@ -155,19 +154,6 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
     return x
 
 
-def get_random_qpsk(nsamples):
-    d = np.random.randint(0, 2, 2 * nsamples) * -2. + 1.
-    d = np.reshape(d, (2, -1))
-    d = d.astype(dtype=np.complex)
-    return d[0] + 1j * d[1]
-
-
-def get_random_samples(nsamples):
-    d = np.random.standard_normal(2 * nsamples)
-    d = np.reshape(d, (2, -1))
-    return d[0] + 1j * d[1]
-
-
 def gr_conformity_validation():
     M = 32
     K = 8
@@ -187,14 +173,6 @@ def gr_conformity_validation():
 
         if not np.all(xo == xn):
             raise RuntimeError('Function results deviate')
-
-
-def get_zero_f_data(k, K, M):
-    data = np.zeros(K)
-    data[k] = 1.
-    # data = np.tile(data, M)
-    data = np.repeat(data, M)
-    return data
 
 
 def validate_subcarrier_location(alpha, M, K, overlap, oversampling_factor):

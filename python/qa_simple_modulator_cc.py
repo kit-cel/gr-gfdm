@@ -23,10 +23,8 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
 from pygfdm.filters import get_frequency_domain_filter
-from pygfdm.gfdm_modulation import gfdm_modulate_block, get_random_qpsk
-# from pygfdm.gfdm_modulation import gfdm_transform_subcarriers_to_fd,\
-#     gfdm_upsample_subcarriers_in_fd, gfdm_filter_subcarriers_in_fd, gfdm_combine_subcarriers_in_fd, get_random_samples
-from pygfdm.modulation import get_data_matrix
+from pygfdm.gfdm_modulation import gfdm_modulate_block
+from pygfdm.mapping import get_data_matrix, get_random_qpsk
 import numpy as np
 
 

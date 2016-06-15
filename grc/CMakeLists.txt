@@ -25,6 +25,7 @@ install(FILES
     gfdm_receiver_cc.xml
     gfdm_advanced_receiver_cc.xml
     gfdm_sync_cc.xml
+    gfdm_block_pinching_cyclic_prefixer_cc.xml
     gfdm_cyclic_prefixer_cc.xml
     gfdm_preamble_generator.xml
     gfdm_remove_prefix_cc.xml

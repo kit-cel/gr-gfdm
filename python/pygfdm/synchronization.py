@@ -23,10 +23,11 @@ import numpy as np
 import commpy as cp
 import matplotlib.pyplot as plt
 import scipy.signal as signal
-from modulation import gfdm_tx, gfdm_tx_fft2, get_data_matrix
+from modulation import gfdm_tx, gfdm_tx_fft2
 from filters import get_frequency_domain_filter
-from gfdm_modulation import gfdm_modulate_block, get_random_qpsk
-from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp
+from gfdm_modulation import gfdm_modulate_block
+from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len
+from mapping import get_data_matrix, get_random_qpsk
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -143,7 +144,7 @@ def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
     print np.shape(symbol)
     symbol = add_cyclic_prefix(symbol, cp_len)
     print 'prefixed', np.shape(symbol)
-    f, window_ramp = get_raised_cosine_ramp(ramp_len, cp_len, M, K)
+    window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K))
     print 'ramp', np.shape(window_ramp)
     symbol = pinch_block(symbol, window_ramp)
     print np.shape(symbol)
