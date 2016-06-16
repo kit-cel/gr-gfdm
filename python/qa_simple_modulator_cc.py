@@ -24,7 +24,8 @@ from gnuradio import blocks
 import gfdm_swig as gfdm
 from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.gfdm_modulation import gfdm_modulate_block
-from pygfdm.mapping import get_data_matrix, get_random_qpsk
+from pygfdm.mapping import get_data_matrix
+from pygfdm.utils import get_random_qpsk
 import numpy as np
 
 

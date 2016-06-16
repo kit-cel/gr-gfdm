@@ -19,17 +19,9 @@
 # Boston, MA 02110-1301, USA.
 #
 
-'''
-A few hints on used papers, consider them to be a good read. So far, nothing to declare here.
-
-'''
 
 import numpy as np
 import commpy as cp
-# import scipy.signal as signal
-# import matplotlib.pyplot as plt
-# import matplotlib.cm as cm
-# from gfdm_plot_utils import plot_gfdm_matrix
 
 
 def gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor):

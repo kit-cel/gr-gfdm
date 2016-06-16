@@ -27,13 +27,12 @@ A few hints on used papers, consider them to be a good read.
 '''
 
 import numpy as np
-import scipy.signal as signal
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from gfdm_plot_utils import plot_gfdm_matrix
 from modulation import gfdm_modulation_matrix, gfdm_tx_fft2
 from filters import gfdm_filter_taps, get_frequency_domain_filter
-from mapping import get_random_samples, get_data_matrix, get_zero_f_data
+from mapping import get_data_matrix
+from utils import get_random_samples, get_random_qpsk
 
 
 def gfdm_transform_subcarriers_to_fd(D, M):

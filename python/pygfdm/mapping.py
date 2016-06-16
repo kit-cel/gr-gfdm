@@ -22,44 +22,6 @@
 import numpy as np
 
 
-def get_random_qpsk(nsamples):
-    d = np.random.randint(0, 2, 2 * nsamples) * -2. + 1.
-    d = np.reshape(d, (2, -1))
-    d = d.astype(dtype=np.complex)
-    return d[0] + 1j * d[1]
-
-
-def get_random_samples(nsamples):
-    d = np.random.standard_normal(2 * nsamples)
-    d = np.reshape(d, (2, -1))
-    return d[0] + 1j * d[1]
-
-
-def randomQAMSymbols(length, M):
-    '''
-     length: number of symbols to generate
-     M: M-QAM - Order (4,16,64,...)
-    '''
-    n = np.sqrt(M / 4)
-    if np.around(n) - n > 1e-10:
-        raise Exception('M must be power of 4')
-    n = int(n)
-    n_M_pos = np.array([1 + 2 * i for i in xrange(n)])
-    n_M_neg = np.array([-1 - 2 * i for i in xrange(n)])
-    choices = np.concatenate((n_M_pos, n_M_neg))
-    return np.array(
-        [np.random.choice(choices) + 1j * np.random.choice
-        (choices) for i in xrange(length)])
-
-
-def get_zero_f_data(k, K, M):
-    data = np.zeros(K)
-    data[k] = 1.
-    # data = np.tile(data, M)
-    data = np.repeat(data, M)
-    return data
-
-
 # [2] "Bit Error Rate Performance of Generalized Frequency Division Multiplexing"
 def get_data_matrix(data, K, group_by_subcarrier=False):
     # function yields data matrix according to [2]
