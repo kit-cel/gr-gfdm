@@ -402,7 +402,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -531,7 +531,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(960, 376)</value>
+      <value>(904, 376)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -727,7 +727,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -767,7 +767,7 @@
     </param>
     <param>
       <key>vector</key>
-      <value>[0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0]</value>
+      <value>np.concatenate((np.ones(subcarriers/4), np.zeros(subcarriers/2), np.ones(subcarriers/4)))</value>
     </param>
   </block>
   <block>
@@ -790,7 +790,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -830,7 +830,7 @@
     </param>
   </block>
   <block>
-    <key>gfdm_block_pinching_cyclic_prefixer_cc</key>
+    <key>gfdm_cyclic_prefixer_cc</key>
     <param>
       <key>alias</key>
       <value></value>
@@ -853,11 +853,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>True</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(816, 192)</value>
+      <value>(888, 240)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -865,7 +865,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>gfdm_block_pinching_cyclic_prefixer_cc_0</value>
+      <value>gfdm_cyclic_prefixer_cc_0</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -882,10 +882,6 @@
     <param>
       <key>window_taps</key>
       <value>window_taps</value>
-    </param>
-    <param>
-      <key>len_tag_key</key>
-      <value>"gfdm_frame"</value>
     </param>
   </block>
   <block>
@@ -1094,6 +1090,37 @@
     <param>
       <key>import</key>
       <value>from gfdm.pygfdm import  cyclic_prefix</value>
+    </param>
+  </block>
+  <block>
+    <key>import</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(360, 184)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_np</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>import numpy as np</value>
     </param>
   </block>
   <block>
@@ -2758,7 +2785,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>fbw</key>
@@ -2852,13 +2879,25 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_block_pinching_cyclic_prefixer_cc_0</source_block_id>
-    <sink_block_id>blocks_null_sink_0</sink_block_id>
+    <source_block_id>gfdm_cyclic_prefixer_cc_0</source_block_id>
+    <sink_block_id>qtgui_freq_sink_x_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_block_pinching_cyclic_prefixer_cc_0</source_block_id>
+    <source_block_id>gfdm_cyclic_prefixer_cc_0</source_block_id>
+    <sink_block_id>qtgui_time_sink_x_1</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gfdm_cyclic_prefixer_cc_0</source_block_id>
+    <sink_block_id>qtgui_waterfall_sink_x_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gfdm_cyclic_prefixer_cc_0</source_block_id>
     <sink_block_id>rational_resampler_xxx_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
@@ -2883,7 +2922,13 @@
   </connection>
   <connection>
     <source_block_id>gfdm_simple_modulator_cc_0</source_block_id>
-    <sink_block_id>gfdm_block_pinching_cyclic_prefixer_cc_0</sink_block_id>
+    <sink_block_id>blocks_null_sink_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gfdm_simple_modulator_cc_0</source_block_id>
+    <sink_block_id>gfdm_cyclic_prefixer_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

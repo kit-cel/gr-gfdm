@@ -29,7 +29,6 @@ namespace gr {
     add_cyclic_prefix_cc::add_cyclic_prefix_cc(int ramp_len, int cp_len, int block_len, std::vector<gfdm_complex> window_taps)
             : d_ramp_len(ramp_len), d_cp_len(cp_len), d_block_len(block_len)
     {
-      set_block_size(block_len);
       int window_len = block_len + cp_len;
       if(window_taps.size() != window_len && window_taps.size() != 2 * ramp_len){
         throw std::invalid_argument("ERROR: number of window_taps elements MUST be equal to 2*ramp_len OR n_timeslots*n_subcarriers+cp_len!");

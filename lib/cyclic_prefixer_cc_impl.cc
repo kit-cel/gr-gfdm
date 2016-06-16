@@ -29,37 +29,30 @@ namespace gr {
   namespace gfdm {
 
     cyclic_prefixer_cc::sptr
-    cyclic_prefixer_cc::make(int cp_length,const std::string& len_tag_key)
-    {
-      // function kept for purpose of backwards compatiblity!
-      int block_len = 16 * 8;
-      int ramp_len = 0;
-      std::vector<gr_complex> pseudo_window(block_len + cp_length, 0);  // will not be used with ramp_len == 0
-      return cyclic_prefixer_cc::make(cp_length, ramp_len, block_len, pseudo_window, len_tag_key);
-    }
-
-    cyclic_prefixer_cc::sptr
-    cyclic_prefixer_cc::make(int cp_length, int ramp_len, int block_len, std::vector<gr_complex> window_taps,
-                             const std::string &len_tag_key)
+    cyclic_prefixer_cc::make(int cp_length, int ramp_len, int block_len, std::vector<gr_complex> window_taps)
     {
       return gnuradio::get_initial_sptr
-              (new cyclic_prefixer_cc_impl(ramp_len, cp_length, block_len, window_taps, len_tag_key));
+              (new cyclic_prefixer_cc_impl(ramp_len, cp_length, block_len, window_taps));
     }
 
     /*
      * The private constructor
      */
     cyclic_prefixer_cc_impl::cyclic_prefixer_cc_impl(int ramp_len, int cp_length, int block_len,
-                                                     std::vector<gr_complex> window_taps,
-                                                     const std::string &len_tag_key)
-            : gr::tagged_stream_block("cyclic_prefixer_cc",
+                                                     std::vector<gr_complex> window_taps)
+            : gr::block("cyclic_prefixer_cc",
                                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                                      gr::io_signature::make(1, 1, sizeof(gr_complex)), len_tag_key),
+                                      gr::io_signature::make(1, 1, sizeof(gr_complex))),
               d_cp_length(cp_length)
     {
-      set_tag_propagation_policy(TPP_DONT);
+      // all the work is done in the kernel!
       d_kernel = add_cyclic_prefix_cc::sptr(
               new add_cyclic_prefix_cc(ramp_len, cp_length, block_len, window_taps));
+
+      // set block properties!
+      set_relative_rate(1.0 * d_kernel->frame_size() / d_kernel->block_size());
+      set_fixed_rate(true);
+      set_output_multiple(d_kernel->frame_size());
     }
 
     /*
@@ -69,25 +62,44 @@ namespace gr {
     {
     }
 
-    int
-    cyclic_prefixer_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
+    void
+    cyclic_prefixer_cc_impl::forecast(int noutput_items, gr_vector_int &ninput_items_required)
     {
-      return ninput_items[0] + d_cp_length;
+      for (int i = 0; i < ninput_items_required.size(); ++i) {
+        ninput_items_required[i] = fixed_rate_noutput_to_ninput(noutput_items);
+      }
     }
 
     int
-    cyclic_prefixer_cc_impl::work (int noutput_items,
+    cyclic_prefixer_cc_impl::fixed_rate_ninput_to_noutput(int ninput)
+    {
+      return (ninput / d_kernel->block_size()) * d_kernel->frame_size();;
+    }
+
+    int
+    cyclic_prefixer_cc_impl::fixed_rate_noutput_to_ninput(int noutput)
+    {
+      return (noutput / d_kernel->frame_size()) * d_kernel->block_size();;
+    }
+
+    int
+    cyclic_prefixer_cc_impl::general_work (int noutput_items,
                        gr_vector_int &ninput_items,
                        gr_vector_const_void_star &input_items,
                        gr_vector_void_star &output_items)
     {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
+      const int n_frames = noutput_items / d_kernel->frame_size();
 
-      d_kernel->set_block_size(ninput_items[0]);
-      d_kernel->generic_work(out, in);
+      for (int i = 0; i < n_frames; ++i) {
+        d_kernel->generic_work(out, in);
+        in += d_kernel->block_size();
+        out += d_kernel->frame_size();
+      }
 
-      return d_cp_length+ninput_items[0];
+      consume_each(n_frames * d_kernel->block_size());
+      return n_frames * d_kernel->frame_size();
     }
 
   } /* namespace gfdm */

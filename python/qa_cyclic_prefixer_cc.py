@@ -35,34 +35,34 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
 
     def test_001_init(self):
         # check if prefixer is properly ctor'ed / dtor'ed
-        prefixer = gfdm.cyclic_prefixer_cc(4, 'gfdm_frame')
-        prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(4 * 2), 'gfdm_frame')
-        prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(16 * 8 + 4), 'gfdm_frame')
+        prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(4 * 2))
+        prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(16 * 8 + 4))
         try:
-            prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(16 * 8), 'gfdm_frame')
+            prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(16 * 8))
             raise ValueError('invalid parameter set, but passed anyway!')
         except:
             # expected behavior!
             pass
 
     def test_002_simple_cp(self):
-        tag_key = 'gfdm_block'
+        print 'simple_cp test'
         block_len = 48
         cp_len = 8
         data = np.arange(block_len, dtype=np.complex) + 1
         ref = add_cyclic_prefix(data, cp_len)
 
-        prefixer = gfdm.cyclic_prefixer_cc(cp_len, tag_key)
-        tagger = blocks.stream_to_tagged_stream(gr.sizeof_gr_complex, 1, block_len, tag_key)
+        prefixer = gfdm.cyclic_prefixer_cc(cp_len, 0, block_len, np.ones(block_len + cp_len))
         src = blocks.vector_source_c(data)
         dst = blocks.vector_sink_c()
-        self.tb.connect(src, tagger, prefixer, dst)
+        self.tb.connect(src, prefixer, dst)
         self.tb.run()
         res = np.array(dst.data())
         self.assertComplexTuplesAlmostEqual(res, ref)
+        print
+        print
 
     def test_003_block_pinching(self):
-        tag_key = 'gfdm_block'
+        n_reps = 1000
         n_subcarriers = 8
         n_timeslots = 8
         block_len = n_subcarriers * n_timeslots
@@ -73,12 +73,13 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
         data = np.arange(block_len, dtype=np.complex) + 1
         ref = add_cyclic_prefix(data, cp_len)
         ref = pinch_block(ref, window_taps)
-
-        prefixer = gfdm.cyclic_prefixer_cc(cp_len, ramp_len, block_len, window_taps, tag_key)
-        tagger = blocks.stream_to_tagged_stream(gr.sizeof_gr_complex, 1, block_len, tag_key)
+        data = np.tile(data, n_reps)
+        ref = np.tile(ref, n_reps)
+        print "input is: ", len(data), " -> " , len(ref)
+        prefixer = gfdm.cyclic_prefixer_cc(cp_len, ramp_len, block_len, window_taps)
         src = blocks.vector_source_c(data)
         dst = blocks.vector_sink_c()
-        self.tb.connect(src, tagger, prefixer, dst)
+        self.tb.connect(src, prefixer, dst)
         self.tb.run()
 
         res = np.array(dst.data())

@@ -23,17 +23,17 @@
 #define INCLUDED_GFDM_CYCLIC_PREFIXER_CC_H
 
 #include <gfdm/api.h>
-#include <gnuradio/tagged_stream_block.h>
+#include <gnuradio/block.h>
 
 namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief <+description of block+>
+     * \brief Add Cyclic Prefix to GFDM block and apply block pinching (W-GFDM).
      * \ingroup gfdm
      *
      */
-    class GFDM_API cyclic_prefixer_cc : virtual public gr::tagged_stream_block
+    class GFDM_API cyclic_prefixer_cc : virtual public gr::block
     {
      public:
       typedef boost::shared_ptr<cyclic_prefixer_cc> sptr;
@@ -46,9 +46,7 @@ namespace gr {
        * class. gfdm::cyclic_prefixer_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int cp_length, const std::string& len_tag_key = "gfdm_block");
-      static sptr make(int cp_length, int ramp_len, int block_len, std::vector<gr_complex> window_taps,
-                                       const std::string &len_tag_key = "gfdm_block");
+      static sptr make(int cp_length, int ramp_len, int block_len, std::vector<gr_complex> window_taps);
     };
 
   } // namespace gfdm

@@ -44,7 +44,6 @@ namespace gr {
       ~add_cyclic_prefix_cc();
       void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
       int block_size(){ return d_block_len;};
-      void set_block_size(int block_size){d_block_len = block_size;};
       int frame_size(){ return block_size() + d_cp_len;};
     private:
       int d_ramp_len;

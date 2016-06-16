@@ -35,22 +35,21 @@ namespace gr
       int d_cp_length;
       add_cyclic_prefix_cc::sptr d_kernel;
 
-
-    protected:
-      int calculate_output_stream_length(const gr_vector_int &ninput_items);
-
     public:
       cyclic_prefixer_cc_impl(int ramp_len, int cp_length, int block_len,
-                              std::vector<gr_complex> window_taps,
-                              const std::string &len_tag_key);
+                              std::vector<gr_complex> window_taps);
 
       ~cyclic_prefixer_cc_impl();
 
       // Where all the action really happens
-      int work(int noutput_items,
+      int general_work(int noutput_items,
                gr_vector_int &ninput_items,
                gr_vector_const_void_star &input_items,
                gr_vector_void_star &output_items);
+
+      void forecast(int noutput_items, gr_vector_int &ninput_items_required);
+      int fixed_rate_ninput_to_noutput(int ninput);
+      int fixed_rate_noutput_to_ninput(int noutput);
     };
 
   } // namespace gfdm
