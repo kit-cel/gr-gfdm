@@ -1080,6 +1080,14 @@
       <value></value>
     </param>
     <param>
+      <key>block_len</key>
+      <value>gfdm_var.fftlen</value>
+    </param>
+    <param>
+      <key>cp_length</key>
+      <value>gfdm_var.cplen</value>
+    </param>
+    <param>
       <key>comment</key>
       <value></value>
     </param>
@@ -1088,16 +1096,12 @@
       <value></value>
     </param>
     <param>
-      <key>cp_length</key>
-      <value>gfdm_var.cplen</value>
-    </param>
-    <param>
       <key>_enabled</key>
       <value>True</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(208, 413)</value>
+      <value>(208, 400)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1108,16 +1112,20 @@
       <value>gfdm_cyclic_prefixer_cc_0</value>
     </param>
     <param>
-      <key>len_tag_key</key>
-      <value>"gfdm_frame"</value>
-    </param>
-    <param>
       <key>maxoutbuf</key>
       <value>0</value>
     </param>
     <param>
       <key>minoutbuf</key>
       <value>0</value>
+    </param>
+    <param>
+      <key>ramp_len</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>window_taps</key>
+      <value>[0, ] * (gfdm_var.fftlen + gfdm_var.cplen)</value>
     </param>
   </block>
   <block>

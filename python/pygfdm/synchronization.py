@@ -27,7 +27,8 @@ from modulation import gfdm_tx, gfdm_tx_fft2
 from filters import get_frequency_domain_filter
 from gfdm_modulation import gfdm_modulate_block
 from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len
-from mapping import get_data_matrix, get_random_qpsk
+from mapping import get_data_matrix
+from utils import get_random_qpsk
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -141,15 +142,15 @@ def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
     pn_symbols = np.concatenate((pn_symbols, pn_symbols))
     D = get_data_matrix(pn_symbols, K, group_by_subcarrier=compat_mode)
     symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=compat_mode)
-    print np.shape(symbol)
     symbol = add_cyclic_prefix(symbol, cp_len)
-    print 'prefixed', np.shape(symbol)
     window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K))
-    print 'ramp', np.shape(window_ramp)
     symbol = pinch_block(symbol, window_ramp)
-    print np.shape(symbol)
     return symbol
 
+
+def generate_sync_symbol(pn_symbols, filtertype, alpha, K, L, cp_len, ramp_len):
+    H = get_frequency_domain_filter(filtertype, alpha, 2, K, L)
+    return get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
 
 def main():
     print 'Hello World'

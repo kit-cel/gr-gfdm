@@ -24,6 +24,11 @@ GR_PYTHON_INSTALL(
     FILES
     filters.py
     cyclic_prefix.py
+    synchronization.py
+    modulation.py
+    gfdm_modulation.py
+    mapping.py
+    utils.py
     __init__.py
     DESTINATION ${GR_PYTHON_DIR}/gfdm/pygfdm
 )
