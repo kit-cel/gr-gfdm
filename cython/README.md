@@ -15,3 +15,7 @@ It is assumed that the classes wrapped via Cython are NOT depending on GNU Radio
 Functionality
 =====
 after compilation a *gfdm_wrapper* module is available in Python. Just load it like any other Python module. It provides the interface for several blocks. See *gfdm_wrapper.pyx* for exposed objects and functions.
+
+Installation
+=====
+It is yet undecided where to install *gfdm_wrapper*. Suggestions are welcome. Installation simply implies copying the *.so file into a install directory.
