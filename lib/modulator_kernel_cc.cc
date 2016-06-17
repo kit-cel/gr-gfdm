@@ -22,6 +22,7 @@
 #include <iostream>
 #include <volk/volk.h>
 #include <string.h>
+//#include <sstream>
 
 
 namespace gr {
@@ -31,7 +32,12 @@ namespace gr {
       d_n_timeslots(n_timeslots), d_n_subcarriers(n_subcarriers), d_ifft_len(n_timeslots * n_subcarriers), d_overlap(overlap)
     {
       if (int(frequency_taps.size()) != n_timeslots * overlap){
-        throw std::invalid_argument("number of frequency taps MUST be equal to n_timeslots * overlap!");
+        std::stringstream sstm;
+        sstm << "number of frequency taps(" << frequency_taps.size() << ") MUST be equal to n_timeslots(";
+        sstm << n_timeslots << ") * overlap(" << overlap << ") = " << n_timeslots * overlap << "!";
+        std::string err_str = sstm.str();
+                //" MUST be equal to n_timeslots * overlap!";
+        throw std::invalid_argument(err_str.c_str());
       }
       d_filter_taps = (gfdm_complex *) volk_malloc (sizeof (gfdm_complex) * n_timeslots * overlap, volk_get_alignment ());
       memcpy(d_filter_taps, &frequency_taps[0], sizeof(gfdm_complex) * n_timeslots * overlap);

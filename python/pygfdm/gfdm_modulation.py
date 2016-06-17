@@ -32,7 +32,7 @@ import matplotlib.cm as cm
 from modulation import gfdm_modulation_matrix, gfdm_tx_fft2
 from filters import gfdm_filter_taps, get_frequency_domain_filter
 from mapping import get_data_matrix
-from utils import get_random_samples, get_random_qpsk
+from utils import get_random_samples, get_random_qpsk, get_zero_f_data
 
 
 def gfdm_transform_subcarriers_to_fd(D, M):
@@ -257,10 +257,11 @@ def main():
     oversampling_factor = 1
     overlap = 2
     validate_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
-    compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
 
-    plt.legend()
-    plt.show()
+    # compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
+    # plt.legend()
+    # plt.show()
+
 
 
 if __name__ == '__main__':
