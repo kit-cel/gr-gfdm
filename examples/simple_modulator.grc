@@ -356,7 +356,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>128</value>
+      <value>16</value>
     </param>
   </block>
   <block>
@@ -383,7 +383,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>5</value>
+      <value>75</value>
     </param>
   </block>
   <block>
