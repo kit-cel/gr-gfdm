@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2016 Andrej Rode.
+# Copyright 2016 Andrej Rode, Johannes Demel.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,14 +19,24 @@
 # Boston, MA 02110-1301, USA.
 #
 
+'''
+Relevant paper section
+[0] A synchronization technique for generalized frequency division multiplexing
+[1] Improved Preamble-Aided Timing Estimation for OFDM Systems
+
+COMMENT
+[1] describes the algorithm while [0] additionally explains GFDM preamble generation.
+
+'''
+
 import numpy as np
 import commpy as cp
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 from modulation import gfdm_tx, gfdm_tx_fft2
 from filters import get_frequency_domain_filter
-from gfdm_modulation import gfdm_modulate_block
-from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len
+from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
+from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, get_root_raised_cosine_ramp
 from mapping import get_data_matrix
 from utils import get_random_qpsk
 
@@ -141,37 +151,130 @@ def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
     compat_mode = False
     pn_symbols = np.concatenate((pn_symbols, pn_symbols))
     D = get_data_matrix(pn_symbols, K, group_by_subcarrier=compat_mode)
-    symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=compat_mode)
+    symbol = x_symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=compat_mode)
     symbol = add_cyclic_prefix(symbol, cp_len)
     window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K))
     symbol = pinch_block(symbol, window_ramp)
-    return symbol
+    return symbol, x_symbol
 
 
 def generate_sync_symbol(pn_symbols, filtertype, alpha, K, L, cp_len, ramp_len):
     H = get_frequency_domain_filter(filtertype, alpha, 2, K, L)
     return get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
 
-def main():
-    print 'Hello World'
+
+def auto_correlation_sync(s, K, cp_len, preample_len):
+    slen = len(s)
+    ac = np.zeros(slen, dtype=np.complex)
+    nc = np.zeros(slen, dtype=float)
+    plen = K * 2
+    for i in range(slen - preample_len):
+        # calc auto-correlation
+        ac[i] = np.sum(np.conjugate(s[i:i+plen/2]) * s[i+plen/2:i+plen])
+        #normalize value
+        p = np.sum(np.abs(s[i:i + cp_len]) ** 2)
+        if p < 1e-4:
+            p = 1.0
+        nc[i] = 2 * (np.abs(ac[i]) ** 2) / p
+
+    ic = np.zeros(slen, dtype=float)
+    for i in range(slen - preample_len):
+        n = i + cp_len
+        ic[n] = (1. / (cp_len + 1.)) * np.sum(nc[n-cp_len:n])
+    nm = np.argmax(ic)
+    cfo = np.angle(ac[nm]) / np.pi
+    print nm, ac[nm], cfo
+    # plt.plot(ic)
+    # plt.plot(nc)
+    # plt.show()
+    return nm, cfo
+
+
+def cross_correlation_paper_def(s, preamble):
+    cc = np.zeros(len(s), dtype=np.complex)
+    s = np.conjugate(s)
+    for i in range(len(s) - len(preamble)):
+        cc[i] = (1. / len(preamble)) * np.sum(s[i:i + len(preamble)] * preamble)
+    return cc
+
+
+def calculate_awgn_noise_variance(input_signal, snr_dB, rate=1.0):
+    avg_energy = np.sum(input_signal * input_signal) / len(input_signal)
+    snr_linear = 10. ** (snr_dB / 10.0)
+    noise_variance = avg_energy/(2*rate*snr_linear)
+    return noise_variance
+
+
+def get_complex_noise_vector(nsamples, noise_variance):
+    return (np.sqrt(noise_variance) * np.random.randn(nsamples)) + (np.sqrt(noise_variance) * np.random.randn(nsamples) * 1j)
+
+
+def awgn(input_signal, snr_dB, rate=1.0):
+    noise_variance = calculate_awgn_noise_variance(input_signal, snr_dB, rate)
+    noise = get_complex_noise_vector(len(input_signal), noise_variance)
+    output_signal = input_signal + noise
+    return output_signal
+
+
+def sync_test():
     alpha = .5
-    M = 2
+    M = 33
     K = 32
+    block_len = M * K
     L = 2
-    cp_len = 4
-    ramp_len = 4
-    pn_symbols = get_random_qpsk(K)
-    H = get_frequency_domain_filter('rrc', alpha, M, K, L)
-    symbol = get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
-    symbol *= 1. / np.sqrt(np.sum(symbol ** 2))
-    print np.shape(symbol)
-    c = signal.correlate(symbol, symbol)
-    # c *= 1. / len(symbol)
-    print np.shape(np.abs(c))
-    nc = c[np.argmax(np.abs(c))]
-    print nc
-    plt.plot(np.abs(c))
+    cp_len = K
+    ramp_len = cp_len / 2
+    window_len = get_window_len(cp_len, M, K)
+    print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
+    data = get_random_qpsk(block_len)
+    # data = np.zeros(block_len, dtype=np.complex)
+    b = gfdm_modulate_fft(data, alpha, M, K, L)
+    b = add_cyclic_prefix(b, cp_len)
+    window_ramp = get_root_raised_cosine_ramp(ramp_len, window_len)
+    x = pinch_block(b, window_ramp)
+    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
+    print 'preamble shape: ', np.shape(preamble)
+    frame = np.concatenate((preamble, x))
+    s = np.concatenate((np.zeros(block_len), frame, np.zeros(block_len)))
+    # s = np.concatenate((np.zeros(block_len / 4), frame))
+    # s = np.tile(s, 5)
+    s = cp.awgn(s, -20)
+    # plt.plot(*signal.welch(s))
+    print 'frame start: ', block_len + len(preamble)
+    nm, cfo = auto_correlation_sync(s, K, cp_len, len(preamble) - cp_len)
+
+    cc = signal.correlate(s, x_preamble)
+    acc = np.abs(cc)
+    fs = np.argmax(acc)
+    print fs
+    plt.plot(acc / len(preamble))
+    plt.plot(np.abs(signal.correlate(s, preamble)) / len(preamble))
+    plt.plot(np.abs(cross_correlation_paper_def(s, preamble)))
     plt.show()
+
+
+def main():
+    np.set_printoptions(precision=4)
+    sync_test()
+    # alpha = .5
+    # M = 2
+    # K = 32
+    # L = 2
+    # cp_len = K
+    # ramp_len = cp_len / 2
+    # pn_symbols = get_random_qpsk(K)
+    # H = get_frequency_domain_filter('rrc', alpha, M, K, L)
+    # symbol = get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
+    # symbol *= 1. / np.sqrt(np.sum(symbol ** 2))
+    # symbol = symbol[cp_len:]
+    # print np.shape(symbol)
+    # c = signal.correlate(symbol, symbol)
+    # # c *= 1. / len(symbol)
+    # print np.shape(np.abs(c))
+    # nc = c[np.argmax(np.abs(c))]
+    # print nc
+    # plt.plot(np.abs(c))
+    # plt.show()
 
 
 if __name__ == '__main__':
