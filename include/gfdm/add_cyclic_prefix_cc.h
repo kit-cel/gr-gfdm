@@ -22,6 +22,7 @@
 #ifndef INCLUDED_GFDM_ADD_CYCLIC_PREFIX_CC_H
 #define INCLUDED_GFDM_ADD_CYCLIC_PREFIX_CC_H
 
+#include <stdexcept>
 #include <complex>
 #include <vector>
 #include <boost/shared_ptr.hpp>

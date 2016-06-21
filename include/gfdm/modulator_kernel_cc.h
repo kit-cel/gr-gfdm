@@ -26,6 +26,7 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <fftw3.h>
+#include <stdexcept>
 
 namespace gr {
   namespace gfdm {
