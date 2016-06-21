@@ -22,7 +22,6 @@
 ########################################################################
 install(FILES
     api.h
-    transmitter_cvc.h
     framer_cc.h
     modulator_cc.h
     gfdm_utils.h
