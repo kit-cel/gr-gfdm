@@ -38,7 +38,7 @@ from filters import get_frequency_domain_filter
 from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
 from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, get_root_raised_cosine_ramp
 from mapping import get_data_matrix
-from utils import get_random_qpsk
+from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -191,29 +191,17 @@ def auto_correlation_sync(s, K, cp_len, preample_len):
 
 
 def cross_correlation_paper_def(s, preamble):
-    cc = np.zeros(len(s), dtype=np.complex)
-    s = np.conjugate(s)
-    for i in range(len(s) - len(preamble)):
-        cc[i] = (1. / len(preamble)) * np.sum(s[i:i + len(preamble)] * preamble)
+    # naive implementation of the algorithm described in [0]
+    # cc = np.zeros(len(s) - len(preamble), dtype=np.complex)
+    # s = np.conjugate(s)
+    # for i in range(len(s) - len(preamble)):
+    #     cc[i] = np.sum(s[i:i + len(preamble)] * preamble)
+
+    # scipy.signal.correlate way of doing things!
+    cc = signal.correlate(s, preamble, 'valid')
+    # normalize correlation
+    cc /= len(preamble)
     return cc
-
-
-def calculate_awgn_noise_variance(input_signal, snr_dB, rate=1.0):
-    avg_energy = np.sum(input_signal * input_signal) / len(input_signal)
-    snr_linear = 10. ** (snr_dB / 10.0)
-    noise_variance = avg_energy/(2*rate*snr_linear)
-    return noise_variance
-
-
-def get_complex_noise_vector(nsamples, noise_variance):
-    return (np.sqrt(noise_variance) * np.random.randn(nsamples)) + (np.sqrt(noise_variance) * np.random.randn(nsamples) * 1j)
-
-
-def awgn(input_signal, snr_dB, rate=1.0):
-    noise_variance = calculate_awgn_noise_variance(input_signal, snr_dB, rate)
-    noise = get_complex_noise_vector(len(input_signal), noise_variance)
-    output_signal = input_signal + noise
-    return output_signal
 
 
 def sync_test():
@@ -235,21 +223,27 @@ def sync_test():
     preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
     print 'preamble shape: ', np.shape(preamble)
     frame = np.concatenate((preamble, x))
-    s = np.concatenate((np.zeros(block_len), frame, np.zeros(block_len)))
+    noise_variance = calculate_awgn_noise_variance(frame, 0)
+    s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
+    s[block_len:block_len + len(frame)] += frame
+    # s = np.concatenate((np.zeros(block_len), frame, np.zeros(block_len)))
     # s = np.concatenate((np.zeros(block_len / 4), frame))
     # s = np.tile(s, 5)
-    s = cp.awgn(s, -20)
+    # s = cp.awgn(s, -20)
     # plt.plot(*signal.welch(s))
-    print 'frame start: ', block_len + len(preamble)
+    print 'prepended zeros + preamble length: ', block_len + len(preamble)
     nm, cfo = auto_correlation_sync(s, K, cp_len, len(preamble) - cp_len)
 
-    cc = signal.correlate(s, x_preamble)
-    acc = np.abs(cc)
-    fs = np.argmax(acc)
-    print fs
-    plt.plot(acc / len(preamble))
-    plt.plot(np.abs(signal.correlate(s, preamble)) / len(preamble))
-    plt.plot(np.abs(cross_correlation_paper_def(s, preamble)))
+    xcc = cross_correlation_paper_def(s, x_preamble)
+    xacc = np.abs(xcc)
+    fs = np.argmax(xacc)
+    print 'x_preamble: signal.correlate detection peak: ', fs
+    plt.plot(xacc)
+
+    pcc = cross_correlation_paper_def(s, preamble)
+    apcc = np.abs(pcc)
+    print 'paper detection peak: ', np.argmax(apcc)
+    plt.plot(np.abs(apcc))
     plt.show()
 
 
