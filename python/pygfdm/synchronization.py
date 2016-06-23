@@ -194,8 +194,7 @@ def auto_correlation_sync(s, K, cp_len):
         nc[i] = 2 * np.abs(ac[i]) / p
     print 'low energy detected:', le_catched
     ic = np.zeros(slen - plen + cp_len, dtype=float)
-    for i in range(slen - plen):
-        n = i + cp_len
+    for n in range(cp_len, slen - plen):
         p_int = nc[n-cp_len:n + 1]
         ic[n] = (1. / len(p_int)) * np.sum(p_int)
     nm = np.argmax(ic)
@@ -218,24 +217,33 @@ def cross_correlation_paper_def(s, preamble):
     return cc
 
 
+def improved_cross_correlation_peak(s, preamble, abs_auto_corr_vals):
+    apcc = np.abs(cross_correlation_paper_def(s, preamble))
+    # Find peak and suppress minor peaks at +-N/2
+    napcc = apcc * abs_auto_corr_vals[0:len(apcc)]
+    nc = np.argmax(napcc)
+    return nc, napcc, apcc
+
+
 def correct_frequency_offset(signal, cfo):
     n = np.arange(len(signal))
     return signal * np.exp(-2j * np.pi * cfo * n)
 
 
 def find_frame_start(s, preamble, K, cp_len):
-    # avg_signal_ampl = np.sqrt(calculate_average_signal_energy(s))
-    # s /= avg_signal_ampl
+    # initialization part
     if not len(preamble) == 2 * K:
         raise ValueError('Preamble length must be equal to 2K!')
-    if calculate_average_signal_energy(preamble) < .99:
-        print 'This preamble is not suited'
 
     # normalize preamble, maybe it helps
     avg_preamble_ampl = np.sqrt(calculate_average_signal_energy(preamble))
     preamble /= avg_preamble_ampl
+    if np.abs(calculate_average_signal_energy(preamble) - 1.0) > 1e-6:
+        raise ValueError('preamble not properly normalized!')
+
     print 'average preamble amplitude:', avg_preamble_ampl, 'normalized preamble:', calculate_average_signal_energy(preamble)
 
+    # THIS PARTS represents the live algorithm!
     # first part of the algorithm. rough STO sync and CFO estimation!
     nm, cfo, auto_corr_vals = auto_correlation_sync(s, K, cp_len)
     print 'auto correlation nm:', nm, ', cfo:', cfo, ', val:', auto_corr_vals[nm]
@@ -243,16 +251,13 @@ def find_frame_start(s, preamble, K, cp_len):
     # Fix CFO!
     s = correct_frequency_offset(s, cfo / (2. * K))
 
-    # Now search for exact preamble position!
-    pcc = cross_correlation_paper_def(s, preamble)
+    # find exact peak over fine STO estimation
+    # ONLY nc required, everything else only used for evaluation!
+    nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, auto_corr_vals)
+    # ALGORITHM FINISHED! Now for some plotting
 
-    # Find peak and suppress minor peaks at +-N/2
-    apcc = np.abs(pcc)
-
-    napcc = apcc * auto_corr_vals[0:len(apcc)]
-    nc = np.argmax(napcc)
+    # evaluate results!
     print 'cross correlation nc:', nc, np.abs(napcc[nc])
-
     # norm vectors for plotting
     plt.plot(np.abs(apcc) * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
     plt.plot(np.abs(napcc))
@@ -260,6 +265,7 @@ def find_frame_start(s, preamble, K, cp_len):
     peak = auto_corr_vals > 0.5
     plt.plot(peak)
     print 'peak width:', np.sum(peak)
+    print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
 
     plt.show()
 
@@ -275,7 +281,7 @@ def sync_test():
     ramp_len = cp_len / 2
 
     test_cfo = -.2
-    snr_dB = 0.0
+    snr_dB = 5.0
 
     print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
     print 'assumed samp_rate:', samp_rate, ' with sc_bw:', samp_rate / K
@@ -291,7 +297,7 @@ def sync_test():
     print 'frame duration: ', 1e6 * len(frame) / samp_rate, 'us'
 
     # simulate Noise and frequency offset!
-    # frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
+    frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
     noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
     # noise_variance = 0.0
     s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
