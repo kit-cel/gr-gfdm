@@ -53,7 +53,7 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         window_taps = get_raised_cosine_ramp(ramp_len, window_len)
         pn_symbols = get_random_qpsk(K)
         H_preamble = get_frequency_domain_filter('rrc', alpha, 2, K, L)
-        preamble = get_sync_symbol(pn_symbols, H_preamble, K, L, cp_len, ramp_len)
+        preamble = get_sync_symbol(pn_symbols, H_preamble, K, L, cp_len, ramp_len)[0]
 
         ref = np.array([], dtype=np.complex)
         data = np.array([], dtype=np.complex)

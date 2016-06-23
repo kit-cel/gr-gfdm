@@ -46,7 +46,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>top_block</value>
+      <value>simple_modulator</value>
     </param>
     <param>
       <key>max_nouts</key>
@@ -197,7 +197,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>filter_alpha</key>
@@ -275,7 +275,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>synchronization.generate_sync_symbol(utils.get_random_qpsk(subcarriers), 'rrc', .5, subcarriers, overlap, cp_len, ramp_len)</value>
+      <value>synchronization.generate_sync_symbol(utils.get_random_qpsk(subcarriers), 'rrc', .5, subcarriers, overlap, cp_len, ramp_len)[0]</value>
     </param>
   </block>
   <block>
@@ -585,7 +585,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(896, 384)</value>
+      <value>(936, 440)</value>
     </param>
     <param>
       <key>_rotation</key>
