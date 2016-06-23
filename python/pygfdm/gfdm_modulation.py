@@ -152,6 +152,30 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
     return gfdm_modulate_block(D, H, M, K, overlap, False)
 
 
+def implementation_validation():
+    M = 33
+    K = 32
+    alpha = .5
+    overlap = 2
+    H = get_frequency_domain_filter('rrc', alpha, M, K, overlap)
+    taps = gfdm_filter_taps('rrc', alpha, M, K, 1)
+    A = gfdm_modulation_matrix(taps, M, K)
+
+    tests = 100
+    max_rel_error = 0.0
+    for t in range(tests):
+        d = get_random_samples(M * K)
+        xmat = A.dot(d) / np.sqrt(len(d))
+        D = get_data_matrix(d, K, group_by_subcarrier=True)
+        xfft = gfdm_modulate_block(D, H, M, K, overlap, False) / np.sqrt(len(d))
+        rel_err = np.linalg.norm(xmat - xfft) / np.linalg.norm(xmat)
+        if rel_err > max_rel_error:
+            max_rel_error = rel_err
+        if rel_err > 1e-3:
+            raise RuntimeError('Relative error between FFT and Matrix implementation is above 1e-3!')
+    print 'maximum relative error is:', max_rel_error
+
+
 def gr_conformity_validation():
     M = 32
     K = 8
@@ -248,6 +272,7 @@ def compare_subcarrier_combination():
 
 
 def main():
+    implementation_validation()
     gr_conformity_validation()
     compare_subcarrier_combination()
     M = 15
@@ -260,7 +285,6 @@ def main():
     # compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
     # plt.legend()
     # plt.show()
-
 
 
 if __name__ == '__main__':
