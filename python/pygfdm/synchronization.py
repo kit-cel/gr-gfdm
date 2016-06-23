@@ -33,12 +33,12 @@ import numpy as np
 import commpy as cp
 import matplotlib.pyplot as plt
 import scipy.signal as signal
-from modulation import gfdm_tx, gfdm_tx_fft2
-from filters import get_frequency_domain_filter
+from modulation import gfdm_tx, gfdm_tx_fft2, gfdm_modulation_matrix
+from filters import get_frequency_domain_filter, gfdm_filter_taps
 from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
 from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, get_root_raised_cosine_ramp
 from mapping import get_data_matrix
-from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance
+from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance, calculate_average_signal_energy, calculate_signal_energy
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -148,10 +148,9 @@ def sync_CFO(P_d, P_di):
 
 def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
     M = 2  # fixed for preamble
-    compat_mode = False
     pn_symbols = np.concatenate((pn_symbols, pn_symbols))
-    D = get_data_matrix(pn_symbols, K, group_by_subcarrier=compat_mode)
-    symbol = x_symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=compat_mode)
+    D = get_data_matrix(pn_symbols, K, group_by_subcarrier=True) # careful here! group by subcarrier is correct!
+    symbol = x_symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=False)
     symbol = add_cyclic_prefix(symbol, cp_len)
     window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K))
     symbol = pinch_block(symbol, window_ramp)
@@ -163,31 +162,46 @@ def generate_sync_symbol(pn_symbols, filtertype, alpha, K, L, cp_len, ramp_len):
     return get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
 
 
-def auto_correlation_sync(s, K, cp_len, preample_len):
+def get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len):
+    window_len = get_window_len(cp_len, M, K)
+    b = gfdm_modulate_fft(data, alpha, M, K, L)
+    b = add_cyclic_prefix(b, cp_len)
+    window_ramp = get_root_raised_cosine_ramp(ramp_len, window_len)
+    return pinch_block(b, window_ramp)
+
+
+def auto_correlate_halfs(s):
     slen = len(s)
-    ac = np.zeros(slen, dtype=np.complex)
-    nc = np.zeros(slen, dtype=float)
+    return np.sum(np.conjugate(s[0:slen/2]) * s[slen/2:])
+
+
+def auto_correlation_sync(s, K, cp_len):
     plen = K * 2
-    for i in range(slen - preample_len):
+    slen = len(s)
+    ac = np.zeros(slen - plen, dtype=np.complex)
+    nc = np.zeros(slen - plen, dtype=float)
+
+    le_catched = 0
+    for i in range(slen - plen):
         # calc auto-correlation
-        ac[i] = np.sum(np.conjugate(s[i:i+plen/2]) * s[i+plen/2:i+plen])
+        c = s[i:i+plen]
         #normalize value
-        p = np.sum(np.abs(s[i:i + cp_len]) ** 2)
+        p = calculate_signal_energy(c)
         if p < 1e-4:
             p = 1.0
-        nc[i] = 2 * (np.abs(ac[i]) ** 2) / p
-
-    ic = np.zeros(slen, dtype=float)
-    for i in range(slen - preample_len):
+            le_catched += 1
+        ac[i] = auto_correlate_halfs(c)
+        nc[i] = 2 * np.abs(ac[i]) / p
+    print 'low energy detected:', le_catched
+    ic = np.zeros(slen - plen + cp_len, dtype=float)
+    for i in range(slen - plen):
         n = i + cp_len
-        ic[n] = (1. / (cp_len + 1.)) * np.sum(nc[n-cp_len:n])
+        p_int = nc[n-cp_len:n + 1]
+        ic[n] = (1. / len(p_int)) * np.sum(p_int)
     nm = np.argmax(ic)
     cfo = np.angle(ac[nm]) / np.pi
-    print nm, ac[nm], cfo
-    # plt.plot(ic)
-    # plt.plot(nc)
-    # plt.show()
-    return nm, cfo
+    print 'max corr val', ic[nm], 'with energy:', calculate_average_signal_energy(s[nm: nm + plen])
+    return nm, cfo, ic
 
 
 def cross_correlation_paper_def(s, preamble):
@@ -204,7 +218,54 @@ def cross_correlation_paper_def(s, preamble):
     return cc
 
 
+def correct_frequency_offset(signal, cfo):
+    n = np.arange(len(signal))
+    return signal * np.exp(-2j * np.pi * cfo * n)
+
+
+def find_frame_start(s, preamble, K, cp_len):
+    # avg_signal_ampl = np.sqrt(calculate_average_signal_energy(s))
+    # s /= avg_signal_ampl
+    if not len(preamble) == 2 * K:
+        raise ValueError('Preamble length must be equal to 2K!')
+    if calculate_average_signal_energy(preamble) < .99:
+        print 'This preamble is not suited'
+
+    # normalize preamble, maybe it helps
+    avg_preamble_ampl = np.sqrt(calculate_average_signal_energy(preamble))
+    preamble /= avg_preamble_ampl
+    print 'average preamble amplitude:', avg_preamble_ampl, 'normalized preamble:', calculate_average_signal_energy(preamble)
+
+    # first part of the algorithm. rough STO sync and CFO estimation!
+    nm, cfo, auto_corr_vals = auto_correlation_sync(s, K, cp_len)
+    print 'auto correlation nm:', nm, ', cfo:', cfo, ', val:', auto_corr_vals[nm]
+
+    # Fix CFO!
+    s = correct_frequency_offset(s, cfo / (2. * K))
+
+    # Now search for exact preamble position!
+    pcc = cross_correlation_paper_def(s, preamble)
+
+    # Find peak and suppress minor peaks at +-N/2
+    apcc = np.abs(pcc)
+
+    napcc = apcc * auto_corr_vals[0:len(apcc)]
+    nc = np.argmax(napcc)
+    print 'cross correlation nc:', nc, np.abs(napcc[nc])
+
+    # norm vectors for plotting
+    plt.plot(np.abs(apcc) * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
+    plt.plot(np.abs(napcc))
+    plt.plot(auto_corr_vals)
+    peak = auto_corr_vals > 0.5
+    plt.plot(peak)
+    print 'peak width:', np.sum(peak)
+
+    plt.show()
+
+
 def sync_test():
+    samp_rate = 10e6  # an assumption to work with
     alpha = .5
     M = 33
     K = 32
@@ -212,63 +273,71 @@ def sync_test():
     L = 2
     cp_len = K
     ramp_len = cp_len / 2
-    window_len = get_window_len(cp_len, M, K)
+
+    test_cfo = -.2
+    snr_dB = 0.0
+
     print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
+    print 'assumed samp_rate:', samp_rate, ' with sc_bw:', samp_rate / K
+    print 'relative subcarrier CFO:', test_cfo
+
     data = get_random_qpsk(block_len)
-    # data = np.zeros(block_len, dtype=np.complex)
-    b = gfdm_modulate_fft(data, alpha, M, K, L)
-    b = add_cyclic_prefix(b, cp_len)
-    window_ramp = get_root_raised_cosine_ramp(ramp_len, window_len)
-    x = pinch_block(b, window_ramp)
+    x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
+
     preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
-    print 'preamble shape: ', np.shape(preamble)
     frame = np.concatenate((preamble, x))
-    noise_variance = calculate_awgn_noise_variance(frame, 0)
+    avg_frame_ampl = np.sqrt(calculate_average_signal_energy(frame))
+    # frame /= avg_frame_ampl
+    print 'frame duration: ', 1e6 * len(frame) / samp_rate, 'us'
+
+    # simulate Noise and frequency offset!
+    # frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
+    noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
+    # noise_variance = 0.0
     s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
     s[block_len:block_len + len(frame)] += frame
-    # s = np.concatenate((np.zeros(block_len), frame, np.zeros(block_len)))
-    # s = np.concatenate((np.zeros(block_len / 4), frame))
-    # s = np.tile(s, 5)
-    # s = cp.awgn(s, -20)
-    # plt.plot(*signal.welch(s))
-    print 'prepended zeros + preamble length: ', block_len + len(preamble)
-    nm, cfo = auto_correlation_sync(s, K, cp_len, len(preamble) - cp_len)
 
-    xcc = cross_correlation_paper_def(s, x_preamble)
-    xacc = np.abs(xcc)
-    fs = np.argmax(xacc)
-    print 'x_preamble: signal.correlate detection peak: ', fs
-    plt.plot(xacc)
+    print 'frame_start:', block_len, ', short preamble_start:', block_len + cp_len
 
-    pcc = cross_correlation_paper_def(s, preamble)
-    apcc = np.abs(pcc)
-    print 'paper detection peak: ', np.argmax(apcc)
-    plt.plot(np.abs(apcc))
-    plt.show()
+    find_frame_start(s, x_preamble, K, cp_len)
+
+
+def preamble_auto_corr_test():
+    K = 32
+    pn_seq = get_random_qpsk(K)
+    pn_symbols = np.tile(pn_seq, 2)
+    D = get_data_matrix(pn_symbols, K, True)
+    print np.shape(D)
+    print np.all(D[0] == D[1])
+
+    pl, p = generate_sync_symbol(pn_seq, 'rrc', .5, K, 2, K, K / 2)
+    print np.shape(p)
+    acc = auto_correlate_halfs(p)
+    print acc, np.angle(acc)
+
+    taps = gfdm_filter_taps('rrc', .5, 2, K, 1)
+    A = gfdm_modulation_matrix(taps, 2, K)
+    x = A.dot(pn_symbols)
+    print np.shape(x)
+    acc = auto_correlate_halfs(x)
+    print acc, np.angle(acc)
 
 
 def main():
     np.set_printoptions(precision=4)
     sync_test()
-    # alpha = .5
-    # M = 2
-    # K = 32
-    # L = 2
-    # cp_len = K
-    # ramp_len = cp_len / 2
-    # pn_symbols = get_random_qpsk(K)
-    # H = get_frequency_domain_filter('rrc', alpha, M, K, L)
-    # symbol = get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
-    # symbol *= 1. / np.sqrt(np.sum(symbol ** 2))
-    # symbol = symbol[cp_len:]
-    # print np.shape(symbol)
-    # c = signal.correlate(symbol, symbol)
-    # # c *= 1. / len(symbol)
-    # print np.shape(np.abs(c))
-    # nc = c[np.argmax(np.abs(c))]
-    # print nc
-    # plt.plot(np.abs(c))
-    # plt.show()
+    # preamble_auto_corr_test()
+    # n_sc = 9
+    # pn = get_random_qpsk(n_sc // 2)
+    # print pn
+    # s = np.zeros(n_sc, dtype=np.complex)
+    # s[1::2] = pn
+    # print s
+    # x = np.fft.ifft(s, 12)
+    # print x[0:6]
+    # print x[6:]
+    # print auto_correlate_halfs(x)
+
 
 
 if __name__ == '__main__':

@@ -61,9 +61,21 @@ def get_zero_f_data(k, K, M):
     return data
 
 
+def magnitude_squared(input_signal):
+    return input_signal.real ** 2 + input_signal.imag ** 2
+
+
+def calculate_signal_energy(input_signal):
+    return np.sum(magnitude_squared(input_signal))
+
+
+def calculate_average_signal_energy(input_signal):
+    return calculate_signal_energy(input_signal) / len(input_signal)
+
+
 # function adopted from scikit-commpy. Separated noise variance calculation and noise vector generation.
 def calculate_awgn_noise_variance(input_signal, snr_dB, rate=1.0):
-    avg_energy = np.sum(input_signal * input_signal) / len(input_signal)
+    avg_energy = calculate_average_signal_energy(input_signal)
     snr_linear = 10. ** (snr_dB / 10.0)
     noise_variance = avg_energy/(2*rate*snr_linear)
     return noise_variance
@@ -71,5 +83,7 @@ def calculate_awgn_noise_variance(input_signal, snr_dB, rate=1.0):
 
 # corresponds to 'calculate_awgn_noise_variance.
 def get_complex_noise_vector(nsamples, noise_variance):
+    if noise_variance == 0.0:
+        return np.zeros(nsamples, dtype=np.complex)
     return (np.sqrt(noise_variance) * np.random.randn(nsamples)) + (np.sqrt(noise_variance) * np.random.randn(nsamples) * 1j)
 
