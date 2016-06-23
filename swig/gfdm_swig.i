@@ -9,7 +9,6 @@
 %include "gfdm_swig_doc.i"
 
 %{
-#include "gfdm/transmitter_cvc.h"
 #include "gfdm/framer_cc.h"
 #include "gfdm/modulator_cc.h"
 #include "gfdm/receiver_cc.h"
@@ -24,14 +23,12 @@
 #include "gfdm/add_cyclic_prefix_cc.h"
 %}
 
-%include "gfdm/transmitter_cvc.h"
 %include "gfdm/framer_cc.h"
 %include "gfdm/modulator_cc.h"
 %include "gfdm/receiver_cc.h"
 %include "gfdm/advanced_receiver_cc.h"
 %include "gnuradio/digital/constellation.h"
 
-GR_SWIG_BLOCK_MAGIC2(gfdm, transmitter_cvc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, framer_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, modulator_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, receiver_cc);
@@ -48,4 +45,3 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, cyclic_prefixer_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, remove_prefix_cc);
 %include "gfdm/simple_modulator_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, simple_modulator_cc);
-//%include "gfdm/modulator_kernel_cc.h"
