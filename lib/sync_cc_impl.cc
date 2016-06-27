@@ -24,6 +24,7 @@
 
 #include <gnuradio/io_signature.h>
 #include "sync_cc_impl.h"
+#include <gfdm/improved_sync_algorithm_kernel_cc.h>
 
 namespace gr {
   namespace gfdm {
@@ -57,6 +58,9 @@ namespace gr {
       gr::block::set_output_multiple( d_block_len+d_sync_fft_len );
       d_P_d_abs_prev.resize(cp_length,0);
       d_known_preamble = d_preamble_generator->get_preamble();
+
+      d_kernel = new improved_sync_algorithm_kernel_cc(sync_fft_len, cp_length, d_known_preamble);
+
     }
 
     /*
@@ -64,6 +68,7 @@ namespace gr {
      */
     sync_cc_impl::~sync_cc_impl()
     {
+      delete d_kernel;
     }
 
     void
@@ -83,6 +88,8 @@ namespace gr {
       gr_complex *corr_out;
       float *corr_i_out;
       float *res_out;
+
+      d_kernel->generic_work(out, in, ninput_items[0]);
 
       //Initialize some vectors to hold Correlation_data
       //P_d: (complex) autocorrelation of length sync_fft_len/2 to detect signal with two identical halves length sync_fft_len

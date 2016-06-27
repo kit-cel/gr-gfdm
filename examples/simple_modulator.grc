@@ -120,6 +120,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(40, 556)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>c_preamble</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>gfdm_pregen.get_preamble()</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(248, 68)</value>
     </param>
     <param>
@@ -197,7 +224,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>filter_alpha</key>
@@ -221,7 +248,7 @@
     </param>
     <param>
       <key>sync_fft_len</key>
-      <value>1</value>
+      <value>2 * subcarriers</value>
     </param>
   </block>
   <block>

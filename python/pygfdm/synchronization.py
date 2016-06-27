@@ -193,7 +193,7 @@ def auto_correlation_sync(s, K, cp_len):
         ac[i] = auto_correlate_halfs(c)
         nc[i] = 2 * np.abs(ac[i]) / p
     print 'low energy detected:', le_catched
-    ic = np.zeros(slen - plen + cp_len, dtype=float)
+    ic = np.zeros(slen - plen, dtype=float)
     for n in range(cp_len, slen - plen):
         p_int = nc[n-cp_len:n + 1]
         ic[n] = (1. / len(p_int)) * np.sum(p_int)
@@ -220,7 +220,8 @@ def cross_correlation_paper_def(s, preamble):
 def improved_cross_correlation_peak(s, preamble, abs_auto_corr_vals):
     apcc = np.abs(cross_correlation_paper_def(s, preamble))
     # Find peak and suppress minor peaks at +-N/2
-    napcc = apcc * abs_auto_corr_vals[0:len(apcc)]
+    min_array_len = min(len(apcc), len(abs_auto_corr_vals))
+    napcc = apcc[0:min_array_len] * abs_auto_corr_vals[0:min_array_len]
     nc = np.argmax(napcc)
     return nc, napcc, apcc
 
@@ -230,7 +231,7 @@ def correct_frequency_offset(signal, cfo):
     return signal * np.exp(-2j * np.pi * cfo * n)
 
 
-def find_frame_start(s, preamble, K, cp_len):
+def initialize_sync_algorithm(preamble, K):
     # initialization part
     if not len(preamble) == 2 * K:
         raise ValueError('Preamble length must be equal to 2K!')
@@ -242,6 +243,12 @@ def find_frame_start(s, preamble, K, cp_len):
         raise ValueError('preamble not properly normalized!')
 
     print 'average preamble amplitude:', avg_preamble_ampl, 'normalized preamble:', calculate_average_signal_energy(preamble)
+    return preamble
+
+
+def find_frame_start(s, preamble, K, cp_len):
+    # initialization part
+    preamble = initialize_sync_algorithm(preamble, K)
 
     # THIS PARTS represents the live algorithm!
     # first part of the algorithm. rough STO sync and CFO estimation!
@@ -254,20 +261,25 @@ def find_frame_start(s, preamble, K, cp_len):
     # find exact peak over fine STO estimation
     # ONLY nc required, everything else only used for evaluation!
     nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, auto_corr_vals)
-    # ALGORITHM FINISHED! Now for some plotting
+    # ALGORITHM FINISHED!
 
-    # evaluate results!
-    print 'cross correlation nc:', nc, np.abs(napcc[nc])
-    # norm vectors for plotting
-    plt.plot(np.abs(apcc) * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
-    plt.plot(np.abs(napcc))
-    plt.plot(auto_corr_vals)
-    peak = auto_corr_vals > 0.5
-    plt.plot(peak)
-    print 'peak width:', np.sum(peak)
-    print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
+    return nc, cfo, auto_corr_vals, napcc, apcc
 
-    plt.show()
+
+def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo):
+    block_len = M * K
+    data = get_random_qpsk(block_len)
+    x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
+
+    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
+    frame = np.concatenate((preamble, x))
+
+    # simulate Noise and frequency offset!
+    frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
+    noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
+    s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
+    s[block_len:block_len + len(frame)] += frame
+    return s
 
 
 def sync_test():
@@ -281,7 +293,7 @@ def sync_test():
     ramp_len = cp_len / 2
 
     test_cfo = -.2
-    snr_dB = 5.0
+    snr_dB = 15.0
 
     print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
     print 'assumed samp_rate:', samp_rate, ' with sc_bw:', samp_rate / K
@@ -305,7 +317,18 @@ def sync_test():
 
     print 'frame_start:', block_len, ', short preamble_start:', block_len + cp_len
 
-    find_frame_start(s, x_preamble, K, cp_len)
+    nc, cfo, auto_corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
+    print 'cross correlation nc:', nc, np.abs(napcc[nc])
+
+    plt.plot(np.abs(apcc) * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
+    plt.plot(np.abs(napcc))
+    plt.plot(auto_corr_vals)
+    peak = auto_corr_vals > 0.5
+    plt.plot(peak)
+    print 'peak width:', np.sum(peak)
+    print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
+    plt.show()
+
 
 
 def preamble_auto_corr_test():

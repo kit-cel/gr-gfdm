@@ -24,6 +24,7 @@
 #include <gfdm/sync_cc.h>
 #include <volk/volk.h>
 #include <pmt/pmt.h>
+#include <gfdm/improved_sync_algorithm_kernel_cc.h>
 
 namespace gr {
   namespace gfdm {
@@ -45,6 +46,8 @@ namespace gr {
        
        void initialize( const gr_complex in[] );
        void iterate( gr_complex out[], const gr_complex start[], int num_items);
+
+      improved_sync_algorithm_kernel_cc* d_kernel;
 
 
 

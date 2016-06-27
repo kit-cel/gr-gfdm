@@ -82,6 +82,33 @@
     </param>
   </block>
   <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(856, 84)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>c_preamble</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>gfdm_pregen.get_preamble()</value>
+    </param>
+  </block>
+  <block>
     <key>variable_constellation</key>
     <param>
       <key>comment</key>
@@ -274,7 +301,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(856, 23)</value>
+      <value>(856, 8)</value>
     </param>
     <param>
       <key>_rotation</key>

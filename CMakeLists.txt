@@ -34,6 +34,19 @@ endif(NOT CMAKE_BUILD_TYPE)
 #make sure our local CMake Modules path comes first
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
+if(POLICY CMP0026)
+    cmake_policy(SET CMP0026 OLD)
+endif()
+if(POLICY CMP0043)
+    cmake_policy(SET CMP0043 OLD)
+endif()
+if(POLICY CMP0045)
+    cmake_policy(SET CMP0045 OLD)
+endif()
+if(POLICY CMP0046)
+    cmake_policy(SET CMP0046 OLD)
+endif()
+
 ########################################################################
 # Compiler specific setup
 ########################################################################

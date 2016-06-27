@@ -22,6 +22,7 @@
 #include "gfdm/modulator_kernel_cc.h"
 #include "gfdm/receiver_kernel_cc.h"
 #include "gfdm/add_cyclic_prefix_cc.h"
+#include "gfdm/improved_sync_algorithm_kernel_cc.h"
 #include "gfdm/simple_receiver_cc.h"
 %}
 
@@ -49,3 +50,4 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, remove_prefix_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, simple_modulator_cc);
 %include "gfdm/simple_receiver_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, simple_receiver_cc);
+%include "gfdm/improved_sync_algorithm_kernel_cc.h"
