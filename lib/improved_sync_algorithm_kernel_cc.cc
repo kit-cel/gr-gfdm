@@ -92,27 +92,74 @@ namespace gr {
       int nc = find_exact_cross_correlation_peak(p_out + offset, abs_corr_vals + offset);
       std::cout << "exact_preamble_start: " << nc << ", result: " << res.nm - d_n_subcarriers + nc << std::endl;
 
-//# find exact peak over fine STO estimation
-//# ONLY nc required, everything else only used for evaluation!
-//      nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, auto_corr_vals)
-//# ALGORITHM FINISHED! Now for some plotting
     }
 
-    float improved_sync_algorithm_kernel_cc::calculate_normalized_cfo(const gr_complex corr_val)
+    std::vector<gr_complex>
+    improved_sync_algorithm_kernel_cc::auto_correlate_preamble(std::vector<gr_complex> in_vec)
     {
-      return std::arg(corr_val) / M_PI;
+      const int p_len = 2 * d_n_subcarriers;
+      const int buf_len = in_vec.size() - p_len;
+      std::vector<gr_complex> res(buf_len, 0);
+      auto_correlate(&res[0], &in_vec[0], in_vec.size());
+      return res;
     }
 
-    improved_sync_algorithm_kernel_cc::auto_correlation_result_t
-    improved_sync_algorithm_kernel_cc::find_auto_correlation_peak(float* abs_auto_corr_vals, const gr_complex* p_in, int ninput_size)
+    void
+    improved_sync_algorithm_kernel_cc::auto_correlate(gr_complex* corr_vals, const gr_complex* p_in, const int ninput_size)
     {
       const int p_len = 2 * d_n_subcarriers;
       const int buf_len = ninput_size - p_len;
-      gr_complex* corr_vals = (gr_complex*) volk_malloc(sizeof(gr_complex) * buf_len, volk_get_alignment());
+      gr_complex energy = gr_complex(0.0, 0.0);
+      gr_complex val = gr_complex(0.0, 0.0);
+      for (int i = 0; i < buf_len; ++i) {
+        // calculate symbol energy for normalization
+        volk_32fc_x2_conjugate_dot_prod_32fc(&energy, p_in, p_in, p_len);
 
+        // correlate over half preamble length
+        // ATTENTION: second array is conjugated! Not first!
+        volk_32fc_x2_conjugate_dot_prod_32fc(&val, p_in + p_len / 2, p_in, p_len / 2);
+
+        // normalize result!
+        float abs_energy = 0.5 * energy.real();
+        *corr_vals++ = val / abs_energy;
+
+        ++p_in;
+      }
+    }
+
+    std::vector<float>
+    improved_sync_algorithm_kernel_cc::abs_integrate_preamble(std::vector<gr_complex> in_vec)
+    {
+      std::vector<float> res(in_vec.size(), 0);
+      abs_integrate(&res[0], &in_vec[0], in_vec.size());
+      return res;
+    }
+
+    void
+    improved_sync_algorithm_kernel_cc::abs_integrate(float* vals, const gr_complex* p_in, const int ninput_size)
+    {
+      std::deque<float> fifo(d_cp_len, 0.0);
+      const float norm_factor = 1.0 / (d_cp_len + 1.0);
+
+      for (int i = 0; i < ninput_size; ++i) {
+        fifo.push_back(std::abs(*p_in++));
+
+        float fifo_sum = 0.0;
+        for (int j = 0; j < fifo.size(); ++j) {
+          fifo_sum += fifo.at(j);
+        }
+        fifo.pop_front();
+
+        *vals++ = fifo_sum * norm_factor;
+      }
+    }
+
+    void
+    improved_sync_algorithm_kernel_cc::auto_correlate_integrate(float* abs_corr_vals, gr_complex* corr_vals, const gr_complex* p_in, const int ninput_size)
+    {
+      const int p_len = 2 * d_n_subcarriers;
+      const int buf_len = ninput_size - p_len;
       std::deque<float> fifo_abs_corr_vals(d_cp_len, 0.0);
-      float* abs_corr_vals = (float*) volk_malloc(sizeof(float) * buf_len, volk_get_alignment());
-
       gr_complex energy = gr_complex(0.0, 0.0);
       for (int i = 0; i < buf_len; ++i) {
         // calculate symbol energy for normalization
@@ -134,23 +181,80 @@ namespace gr {
 
         ++p_in;
       }
+    }
+
+    int improved_sync_algorithm_kernel_cc::find_peak_preamble(std::vector<float> in_vec)
+    {
+      return find_peak(&in_vec[0], in_vec.size());
+    }
+
+    int
+    improved_sync_algorithm_kernel_cc::find_peak(float* vals, const int ninput_size)
+    {
+      unsigned int nm = 0;
+      volk_32f_index_max_32u(&nm, vals, ninput_size);
+//      unsigned int nm = std::distance(vals, std::max_element(vals, vals + ninput_size));
+      return (int) nm;
+    }
+
+    improved_sync_algorithm_kernel_cc::auto_correlation_result_t
+    improved_sync_algorithm_kernel_cc::find_auto_correlation_peak(float* abs_auto_corr_vals, const gr_complex* p_in, int ninput_size)
+    {
+      const int p_len = 2 * d_n_subcarriers;
+      const int buf_len = ninput_size - p_len;
+
+      gr_complex* corr_vals = (gr_complex*) volk_malloc(sizeof(gr_complex) * buf_len, volk_get_alignment());
+      auto_correlate(corr_vals, p_in, ninput_size);
+      float* abs_corr_vals = (float*) volk_malloc(sizeof(float) * buf_len, volk_get_alignment());
+      abs_integrate(abs_corr_vals, corr_vals, buf_len);
 
       auto_correlation_result_t res;
-
-      res.nm = std::distance(abs_corr_vals, std::max_element(abs_corr_vals, abs_corr_vals + buf_len));
+      res.nm = find_peak(abs_corr_vals, buf_len);
       res.cfo = calculate_normalized_cfo(corr_vals[res.nm]);
 
       memcpy(abs_auto_corr_vals, abs_corr_vals, sizeof(float) * buf_len);
       return res;
     }
 
+    float improved_sync_algorithm_kernel_cc::calculate_normalized_cfo(const gr_complex corr_val)
+    {
+      return std::arg(corr_val) / M_PI;
+    }
+
+    std::vector<gr_complex>
+    improved_sync_algorithm_kernel_cc::remove_cfo_preamble(std::vector<gr_complex> in_vec, const float cfo)
+    {
+      std::vector<gr_complex> res(in_vec.size(), 0);
+      remove_cfo(&res[0], &in_vec[0], cfo, in_vec.size());
+      return res;
+    }
+
     void
-    improved_sync_algorithm_kernel_cc::remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const float ninput_size)
+    improved_sync_algorithm_kernel_cc::remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const int ninput_size)
     {
       gr_complex initial_phase = gr_complex(1.0, 0.0);
       const float cfo_incr = -1.0f * M_PI * cfo / d_n_subcarriers;
       gr_complex phase_increment = gr_complex(std::cos(cfo_incr), std::sin(cfo_incr));
       volk_32fc_s32fc_x2_rotator_32fc(p_out, p_in, phase_increment, &initial_phase, ninput_size);
+    }
+
+    std::vector<gr_complex> improved_sync_algorithm_kernel_cc::cross_correlate_preamble(std::vector<gr_complex> in_vec)
+    {
+      std::vector<gr_complex> res(in_vec.size() - 2 * d_n_subcarriers, 0);
+      cross_correlate(&res[0], &in_vec[0], in_vec.size());
+      return res;
+    }
+
+
+    void improved_sync_algorithm_kernel_cc::cross_correlate(gr_complex* p_out, const gr_complex* p_in, const int ninput_size)
+    {
+      const int p_len = 2 * d_n_subcarriers;
+      const int buf_len = ninput_size - p_len;
+      for(int i = 0; i < buf_len; ++i){
+//        volk_32fc_x2_dot_prod_32fc(p_out++, p_in++, d_preamble, p_len);
+//        volk_32fc_x2_conjugate_dot_prod_32fc(p_out++, d_preamble, p_in++, p_len);
+        volk_32fc_x2_conjugate_dot_prod_32fc(p_out++, p_in++, d_preamble, p_len);
+      }
     }
 
     int

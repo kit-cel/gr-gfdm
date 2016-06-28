@@ -43,7 +43,16 @@ namespace gr {
       ~improved_sync_algorithm_kernel_cc();
 
       int generic_work(gr_complex* p_out, const gr_complex* p_in, int ninput_size);
+
+      // The following public functions are mainly a debugging interface to Python!
       std::vector<gr_complex> find_preamble(std::vector<gr_complex> in_vec);
+      std::vector<gr_complex> auto_correlate_preamble(std::vector<gr_complex> in_vec);
+      std::vector<float> abs_integrate_preamble(std::vector<gr_complex> in_vec);
+      int find_peak_preamble(std::vector<float> in_vec);
+      float calculate_normalized_cfo_preamble(const gr_complex val){ return calculate_normalized_cfo(val);};
+      std::vector<gr_complex> remove_cfo_preamble(std::vector<gr_complex> in_vec, const float cfo);
+      std::vector<gr_complex> cross_correlate_preamble(std::vector<gr_complex> in_vec);
+
     private:
       struct auto_correlation_result_t{
         int nm;
@@ -54,10 +63,14 @@ namespace gr {
       gr_complex* d_preamble;
       float* d_abs_auto_corr_vals;
 
+      void auto_correlate(gr_complex* corr_vals, const gr_complex* p_in, const int ninput_size);
+      void abs_integrate(float* vals, const gr_complex* p_in, const int ninput_size);
+      int find_peak(float* vals, const int ninput_size);
       float calculate_normalized_cfo(const gr_complex corr_val);
-
+      void auto_correlate_integrate(float* abs_corr_vals, gr_complex* corr_vals, const gr_complex* p_in, const int ninput_size);
       auto_correlation_result_t find_auto_correlation_peak(float* abs_auto_corr_vals, const gr_complex* p_in, int ninput_size);
-      void remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const float ninput_size);
+      void remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const int ninput_size);
+      void cross_correlate(gr_complex* p_out, const gr_complex* p_in, const int ninput_size);
 
       float* d_cc_float;
       gr_complex* d_cc_complex;

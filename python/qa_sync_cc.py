@@ -25,6 +25,7 @@ import gfdm_swig as gfdm
 import numpy as np
 from pygfdm.utils import calculate_signal_energy
 from pygfdm.synchronization import auto_correlate_halfs, generate_test_sync_samples, find_frame_start
+from pygfdm.synchronization import auto_correlate_signal, abs_integrate, correct_frequency_offset, cross_correlation_paper_def
 import matplotlib.pyplot as plt
 
 class qa_sync_cc(gr_unittest.TestCase):
@@ -49,21 +50,41 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         pre_gen = gfdm.preamble_generator(K, alpha, K * 2)
         preamble = np.array(pre_gen.get_preamble())
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
 
         signal = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
-        nc, cfo, auto_corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
 
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
-        iqres = kernel.find_preamble(signal)
-        res = np.zeros(len(iqres), dtype=float)
-        # iqres = np.array(iqres[0:len(iqres) // 2])
-        # res[0::2] = iqres.real
-        # res[1::2] = iqres.imag
-        # print np.shape(res)
-        p = iqres[1088:1088+2*K]
-        print p
-        val = auto_correlate_halfs(p)
-        print 'CFO residual:', np.angle(val) / np.pi, ', PYTHON residual: ', test_cfo - cfo
+        nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
+
+        ac = auto_correlate_signal(signal, K)
+        kac = np.array(kernel.auto_correlate_preamble(signal))
+        self.assertComplexTuplesAlmostEqual(ac, kac, 6)
+
+        ic = abs_integrate(np.abs(ac), cp_len)
+        kic = np.array(kernel.abs_integrate_preamble(kac))
+        self.assertFloatTuplesAlmostEqual(ic[cp_len:], kic[cp_len:], 6)
+
+        nm = np.argmax(ic)
+        knm = kernel.find_peak_preamble(kic)
+        self.assertEqual(nm, knm)
+
+        cfo = np.angle(ac[nm]) / np.pi
+        kcfo = kernel.calculate_normalized_cfo_preamble(kac[knm])
+        self.assertAlmostEqual(cfo, kcfo)
+        print cfo, kcfo
+
+        s = correct_frequency_offset(signal, cfo / (2. * K))
+        ks = kernel.remove_cfo_preamble(signal, kcfo)
+        self.assertComplexTuplesAlmostEqual(s, ks, 3)  # VOLK rotator is inaccurate. Thus, accuracy == 3
+        # continue test with one of the two.
+
+        kcc = np.array(kernel.cross_correlate_preamble(ks)) / len(preamble)
+        cc = cross_correlation_paper_def(ks, preamble)[0:len(kcc)]
+
+        err = np.abs(kcc - cc)
+        aerr = np.argmax(err)
+        print 'max err:', np.max(err), ', avg err:', np.sum(err) / len(err), aerr
+
 
 if __name__ == '__main__':
     # gr_unittest.run(qa_sync_cc, "qa_sync_cc.xml")

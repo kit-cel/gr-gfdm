@@ -171,36 +171,43 @@ def get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len):
 
 
 def auto_correlate_halfs(s):
-    slen = len(s)
-    return np.sum(np.conjugate(s[0:slen/2]) * s[slen/2:])
+    pivot = len(s) / 2
+    return np.sum(np.conjugate(s[0:pivot]) * s[pivot:])
+
+
+def auto_correlate_signal(signal, K):
+    plen = K * 2
+    slen = len(signal)
+    ac = np.zeros(slen - plen, dtype=np.complex)
+
+    for i in range(slen - plen):
+        # calc auto-correlation
+        c = signal[i:i+plen]
+        #normalize value
+        p = calculate_signal_energy(c)
+        ac[i] = 2 * auto_correlate_halfs(c) / p
+    return ac
+
+
+def abs_integrate(nc, cp_len):
+    ic = np.zeros(len(nc), dtype=float)
+    for n in range(cp_len, len(nc)):
+        p_int = nc[n-cp_len:n + 1]
+        ic[n] = (1. / len(p_int)) * np.sum(p_int)
+    return ic
 
 
 def auto_correlation_sync(s, K, cp_len):
     plen = K * 2
-    slen = len(s)
-    ac = np.zeros(slen - plen, dtype=np.complex)
-    nc = np.zeros(slen - plen, dtype=float)
 
-    le_catched = 0
-    for i in range(slen - plen):
-        # calc auto-correlation
-        c = s[i:i+plen]
-        #normalize value
-        p = calculate_signal_energy(c)
-        if p < 1e-4:
-            p = 1.0
-            le_catched += 1
-        ac[i] = auto_correlate_halfs(c)
-        nc[i] = 2 * np.abs(ac[i]) / p
-    print 'low energy detected:', le_catched
-    ic = np.zeros(slen - plen, dtype=float)
-    for n in range(cp_len, slen - plen):
-        p_int = nc[n-cp_len:n + 1]
-        ic[n] = (1. / len(p_int)) * np.sum(p_int)
+    ac = auto_correlate_signal(s, K)
+    nc = np.abs(ac)
+    ic = abs_integrate(nc, cp_len)
+
     nm = np.argmax(ic)
     cfo = np.angle(ac[nm]) / np.pi
     print 'max corr val', ic[nm], 'with energy:', calculate_average_signal_energy(s[nm: nm + plen])
-    return nm, cfo, ic
+    return nm, cfo, ic, ac
 
 
 def cross_correlation_paper_def(s, preamble):
@@ -242,7 +249,7 @@ def initialize_sync_algorithm(preamble, K):
     if np.abs(calculate_average_signal_energy(preamble) - 1.0) > 1e-6:
         raise ValueError('preamble not properly normalized!')
 
-    print 'average preamble amplitude:', avg_preamble_ampl, 'normalized preamble:', calculate_average_signal_energy(preamble)
+    # print 'average preamble amplitude:', avg_preamble_ampl, 'normalized preamble:', calculate_average_signal_energy(preamble)
     return preamble
 
 
@@ -252,7 +259,7 @@ def find_frame_start(s, preamble, K, cp_len):
 
     # THIS PARTS represents the live algorithm!
     # first part of the algorithm. rough STO sync and CFO estimation!
-    nm, cfo, auto_corr_vals = auto_correlation_sync(s, K, cp_len)
+    nm, cfo, auto_corr_vals, corr_vals = auto_correlation_sync(s, K, cp_len)
     print 'auto correlation nm:', nm, ', cfo:', cfo, ', val:', auto_corr_vals[nm]
 
     # Fix CFO!
@@ -263,7 +270,7 @@ def find_frame_start(s, preamble, K, cp_len):
     nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, auto_corr_vals)
     # ALGORITHM FINISHED!
 
-    return nc, cfo, auto_corr_vals, napcc, apcc
+    return nc, cfo, auto_corr_vals, corr_vals, napcc, apcc
 
 
 def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo):
@@ -317,7 +324,7 @@ def sync_test():
 
     print 'frame_start:', block_len, ', short preamble_start:', block_len + cp_len
 
-    nc, cfo, auto_corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
+    nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
     print 'cross correlation nc:', nc, np.abs(napcc[nc])
 
     plt.plot(np.abs(apcc) * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
