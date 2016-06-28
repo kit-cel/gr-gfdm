@@ -30,7 +30,6 @@ list(APPEND gfdm_sources
     gfdm_utils.cc
     gfdm_receiver.cc
     modulator_cc_impl.cc
-    #receiver_cc_impl.cc
     receiver2_cc_impl.cc
     advanced_receiver_cc_impl.cc
     sync_cc_impl.cc
