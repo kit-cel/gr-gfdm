@@ -29,7 +29,7 @@
 #include <string.h>
 #include <complex>
 #include <queue>
-#include <deque>
+
 #include <volk/volk.h>
 
 namespace gr {
@@ -58,40 +58,76 @@ namespace gr {
       volk_32f_s32f_multiply_32f((float*) d_preamble, (float*) &preamble[0], scaling_factor, 2 * 2 * n_subcarriers);
 
       // DEBUG ONLY: check if values match!
-      volk_32fc_x2_conjugate_dot_prod_32fc(&energy, d_preamble, d_preamble, 2 * n_subcarriers);
-      std::cout << "preamble_energy: " << energy << std::endl;
+//      volk_32fc_x2_conjugate_dot_prod_32fc(&energy, d_preamble, d_preamble, 2 * n_subcarriers);
+//      std::cout << "preamble_energy: " << energy << std::endl;
+      d_fifo.resize(d_cp_len);
+//      for (int i = 0; i < d_fifo.size(); ++i) {
+//        std::cout << ", " << i << ":" << d_fifo.at(i);
+//      }
+//      std::cout << std::endl;
 
       d_abs_auto_corr_vals = (float*) volk_malloc(sizeof(float) * 2 * n_subcarriers, volk_get_alignment());
-      d_cc_float = (float*) volk_malloc(sizeof(float) * 2 * n_subcarriers, volk_get_alignment());
-      d_cc_complex = (gr_complex*) volk_malloc(sizeof(gr_complex) * 2 * n_subcarriers, volk_get_alignment());
+
+      d_xcorr_vals = (gr_complex*) volk_malloc(sizeof(gr_complex) * 4 * n_subcarriers, volk_get_alignment());
+      d_abs_xcorr_vals = (float*) volk_malloc(sizeof(float) * 2 * n_subcarriers, volk_get_alignment());
     }
 
     improved_sync_algorithm_kernel_cc::~improved_sync_algorithm_kernel_cc()
     {
       volk_free(d_preamble);
       volk_free(d_abs_auto_corr_vals);
+      volk_free(d_xcorr_vals);
+      volk_free(d_abs_xcorr_vals);
     }
 
-    std::vector<gr_complex> improved_sync_algorithm_kernel_cc::find_preamble(std::vector<gr_complex> in_vec)
+    std::vector<gr_complex> improved_sync_algorithm_kernel_cc::preamble()
     {
-      std::vector<gr_complex> res(in_vec.size() - 2 * d_n_subcarriers);
-      generic_work(&res[0], &in_vec[0], in_vec.size());
+      std::vector<gr_complex> preamble(2 * d_n_subcarriers);
+      memcpy(&preamble[0], d_preamble, sizeof(gr_complex) * 2 * d_n_subcarriers);
+      return preamble;
+    }
+
+    int
+    improved_sync_algorithm_kernel_cc::find_preamble(std::vector<gr_complex> in_vec)
+    {
+      int res = detect_frame_start(&in_vec[0], in_vec.size());
       return res;
     }
 
     int
-    improved_sync_algorithm_kernel_cc::generic_work(gr_complex* p_out, const gr_complex* p_in, int ninput_size)
+    improved_sync_algorithm_kernel_cc::detect_frame_start(const gr_complex *p_in, int ninput_size)
     {
       const int buf_len = (ninput_size - 2 * d_n_subcarriers);
-      float* abs_corr_vals = (float*) volk_malloc(sizeof(float) * buf_len, volk_get_alignment());
-      auto_correlation_result_t res = find_auto_correlation_peak(abs_corr_vals, p_in, ninput_size);
-      std::cout << "max element position: " << res.nm << ", corrval: " << abs_corr_vals[res.nm] << ", CFO:" << res.cfo << std::endl;
-      memcpy(p_out, abs_corr_vals, sizeof(float) * buf_len);
-      remove_cfo(p_out, p_in, res.cfo, buf_len);
-      const int offset = res.nm - d_n_subcarriers;
-      int nc = find_exact_cross_correlation_peak(p_out + offset, abs_corr_vals + offset);
-      std::cout << "exact_preamble_start: " << nc << ", result: " << res.nm - d_n_subcarriers + nc << std::endl;
 
+      gr_complex* corr_vals = (gr_complex*) volk_malloc(sizeof(gr_complex) * buf_len, volk_get_alignment());
+      float* abs_int_vals = (float*) volk_malloc(sizeof(float) * buf_len, volk_get_alignment());
+
+      const float threshold = 0.5;
+      const int step_size = 1070;
+      const int max_part_size = step_size + 2 * d_n_subcarriers;
+      for (int i = 0; i < buf_len; i += step_size) {
+        const int part_step_size = std::min(step_size, buf_len - i);
+        auto_correlate(corr_vals + i, p_in + i, part_step_size + 2 * d_n_subcarriers);
+        abs_integrate(abs_int_vals + i, corr_vals + i, part_step_size);
+        int nm = find_peak(abs_int_vals + i, std::min(step_size, buf_len - i));
+        if (*(abs_int_vals + i + nm) > threshold && std::min(nm, step_size - nm) < d_n_subcarriers){
+          std::cout << "threshold detected! " << nm << std::endl;
+          i -= d_n_subcarriers;
+        }
+      }
+//      auto_correlate(corr_vals, p_in, ninput_size);
+//      abs_integrate(abs_int_vals, corr_vals, buf_len);
+
+      int nm = find_peak(abs_int_vals, buf_len);
+      float cfo = calculate_normalized_cfo(corr_vals[nm]);
+
+      const int offset = nm - d_n_subcarriers;
+      int rnc = offset + find_cross_correlation_peak(p_in + offset, abs_int_vals + offset, cfo);
+
+      volk_free(corr_vals);
+      volk_free(abs_int_vals);
+
+      return rnc;
     }
 
     std::vector<gr_complex>
@@ -135,51 +171,25 @@ namespace gr {
       return res;
     }
 
-    void
-    improved_sync_algorithm_kernel_cc::abs_integrate(float* vals, const gr_complex* p_in, const int ninput_size)
+    float improved_sync_algorithm_kernel_cc::integrate_fifo(float next_val)
     {
-      std::deque<float> fifo(d_cp_len, 0.0);
-      const float norm_factor = 1.0 / (d_cp_len + 1.0);
+      d_fifo.push_back(next_val);
 
-      for (int i = 0; i < ninput_size; ++i) {
-        fifo.push_back(std::abs(*p_in++));
-
-        float fifo_sum = 0.0;
-        for (int j = 0; j < fifo.size(); ++j) {
-          fifo_sum += fifo.at(j);
-        }
-        fifo.pop_front();
-
-        *vals++ = fifo_sum * norm_factor;
+      float fifo_sum = 0.0;
+      for (int j = 0; j < d_fifo.size(); ++j) {
+        fifo_sum += d_fifo.at(j);
       }
+      d_fifo.pop_front();
+      return fifo_sum;
     }
 
     void
-    improved_sync_algorithm_kernel_cc::auto_correlate_integrate(float* abs_corr_vals, gr_complex* corr_vals, const gr_complex* p_in, const int ninput_size)
+    improved_sync_algorithm_kernel_cc::abs_integrate(float* vals, const gr_complex* p_in, const int ninput_size)
     {
-      const int p_len = 2 * d_n_subcarriers;
-      const int buf_len = ninput_size - p_len;
-      std::deque<float> fifo_abs_corr_vals(d_cp_len, 0.0);
-      gr_complex energy = gr_complex(0.0, 0.0);
-      for (int i = 0; i < buf_len; ++i) {
-        // calculate symbol energy for normalization
-        volk_32fc_x2_conjugate_dot_prod_32fc(&energy, p_in, p_in, p_len);
-        float abs_energy = energy.real();
-
-        // correlate over half preamble length
-        // ATTENTION: second array is conjugated! Not first!
-        volk_32fc_x2_conjugate_dot_prod_32fc(corr_vals + i, p_in + p_len / 2, p_in, p_len / 2);
-
-        float cval = 2.0 * std::abs(corr_vals[i]) / abs_energy;
-        fifo_abs_corr_vals.push_back(cval);
-        float fifo_sum = 0.0;
-        for (int j = 0; j < fifo_abs_corr_vals.size(); ++j) {
-          fifo_sum += fifo_abs_corr_vals.at(j);
-        }
-        fifo_abs_corr_vals.pop_front();
-        abs_corr_vals[i] = fifo_sum / (d_cp_len + 1.0);
-
-        ++p_in;
+      const float norm_factor = 1.0 / (d_cp_len + 1.0);
+      for (int i = 0; i < ninput_size; ++i) {
+        float fifo_sum = integrate_fifo(std::abs(*p_in++));
+        *vals++ = fifo_sum * norm_factor;
       }
     }
 
@@ -197,28 +207,23 @@ namespace gr {
       return (int) nm;
     }
 
-    improved_sync_algorithm_kernel_cc::auto_correlation_result_t
-    improved_sync_algorithm_kernel_cc::find_auto_correlation_peak(float* abs_auto_corr_vals, const gr_complex* p_in, int ninput_size)
-    {
-      const int p_len = 2 * d_n_subcarriers;
-      const int buf_len = ninput_size - p_len;
-
-      gr_complex* corr_vals = (gr_complex*) volk_malloc(sizeof(gr_complex) * buf_len, volk_get_alignment());
-      auto_correlate(corr_vals, p_in, ninput_size);
-      float* abs_corr_vals = (float*) volk_malloc(sizeof(float) * buf_len, volk_get_alignment());
-      abs_integrate(abs_corr_vals, corr_vals, buf_len);
-
-      auto_correlation_result_t res;
-      res.nm = find_peak(abs_corr_vals, buf_len);
-      res.cfo = calculate_normalized_cfo(corr_vals[res.nm]);
-
-      memcpy(abs_auto_corr_vals, abs_corr_vals, sizeof(float) * buf_len);
-      return res;
-    }
-
     float improved_sync_algorithm_kernel_cc::calculate_normalized_cfo(const gr_complex corr_val)
     {
       return std::arg(corr_val) / M_PI;
+    }
+
+    int
+    improved_sync_algorithm_kernel_cc::find_cross_correlation_peak(const gr_complex* p_in, const float* abs_int_vals, const float cfo)
+    {
+      const int n_corr_vals = 2 * d_n_subcarriers;
+      const int buf_len = 2 * n_corr_vals;
+
+      remove_cfo(d_xcorr_vals, p_in, cfo, buf_len);
+      cross_correlate(d_xcorr_vals, d_xcorr_vals, buf_len);
+      volk_32fc_magnitude_32f(d_abs_xcorr_vals, d_xcorr_vals, n_corr_vals);
+      combine_abs_auto_and_cross_correlation(d_abs_xcorr_vals, abs_int_vals, d_abs_xcorr_vals, n_corr_vals);
+
+      return find_peak(d_abs_xcorr_vals, n_corr_vals);
     }
 
     std::vector<gr_complex>
@@ -246,29 +251,20 @@ namespace gr {
     }
 
 
-    void improved_sync_algorithm_kernel_cc::cross_correlate(gr_complex* p_out, const gr_complex* p_in, const int ninput_size)
+    void
+    improved_sync_algorithm_kernel_cc::cross_correlate(gr_complex* p_out, const gr_complex* p_in, const int ninput_size)
     {
       const int p_len = 2 * d_n_subcarriers;
       const int buf_len = ninput_size - p_len;
       for(int i = 0; i < buf_len; ++i){
-//        volk_32fc_x2_dot_prod_32fc(p_out++, p_in++, d_preamble, p_len);
-//        volk_32fc_x2_conjugate_dot_prod_32fc(p_out++, d_preamble, p_in++, p_len);
         volk_32fc_x2_conjugate_dot_prod_32fc(p_out++, p_in++, d_preamble, p_len);
       }
     }
 
-    int
-    improved_sync_algorithm_kernel_cc::find_exact_cross_correlation_peak(const gr_complex *p_in, const float *abs_auto_corr_vals)
+    void
+    improved_sync_algorithm_kernel_cc::combine_abs_auto_and_cross_correlation(float* p_out, const float* p_auto, const float* p_cross, const int ninput_size)
     {
-      const int p_len = 2 * d_n_subcarriers;
-      for(int i = 0; i < p_len; ++i){
-        volk_32fc_x2_dot_prod_32fc(d_cc_complex + i, p_in + i, d_preamble, p_len);
-      }
-      volk_32fc_magnitude_squared_32f(d_cc_float, d_cc_complex, p_len);
-      volk_32f_x2_multiply_32f(d_cc_float, d_cc_float, abs_auto_corr_vals, p_len);
-      unsigned int nc = 0;
-      volk_32f_index_max_32u(&nc, d_cc_float, p_len);
-      return nc;
+      volk_32f_x2_multiply_32f(p_out, p_auto, p_cross, ninput_size);
     }
 
   } /* namespace gfdm */

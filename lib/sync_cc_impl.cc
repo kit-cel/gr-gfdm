@@ -89,7 +89,7 @@ namespace gr {
       float *corr_i_out;
       float *res_out;
 
-      d_kernel->generic_work(out, in, ninput_items[0]);
+      d_kernel->detect_frame_start(in, ninput_items[0]);
 
       //Initialize some vectors to hold Correlation_data
       //P_d: (complex) autocorrelation of length sync_fft_len/2 to detect signal with two identical halves length sync_fft_len

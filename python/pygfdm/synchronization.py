@@ -206,20 +206,119 @@ def auto_correlation_sync(s, K, cp_len):
 
     nm = np.argmax(ic)
     cfo = np.angle(ac[nm]) / np.pi
-    print 'max corr val', ic[nm], 'with energy:', calculate_average_signal_energy(s[nm: nm + plen])
+    # print 'max corr val', ic[nm], 'with energy:', calculate_average_signal_energy(s[nm: nm + plen])
     return nm, cfo, ic, ac
 
 
-def cross_correlation_paper_def(s, preamble):
+def cross_correlate_naive(s, p):
     # naive implementation of the algorithm described in [0]
-    # cc = np.zeros(len(s) - len(preamble), dtype=np.complex)
-    # s = np.conjugate(s)
-    # for i in range(len(s) - len(preamble)):
-    #     cc[i] = np.sum(s[i:i + len(preamble)] * preamble)
+    cc = np.zeros(len(s) - len(p), dtype=np.complex)
+    p = np.conjugate(p)
+    p_len = len(p)
+    buf_len = len(s) - p_len
+    for i in range(buf_len):
+        cc[i] = np.sum(s[i:i + p_len] * p)
+    return cc
 
+
+def cross_correlate_signal_full(s, p):
+    return signal.correlate(s, p, 'full')
+    # return signal.correlate(s, p, 'valid')[0:len(s)-len(p)]
+
+
+def cross_correlate_signal_valid(s, p):
     # scipy.signal.correlate way of doing things!
-    cc = signal.correlate(s, preamble, 'valid')
-    # normalize correlation
+    return signal.correlate(s, p, 'valid')
+
+
+def cross_correlate_signal(s, p):
+    # scipy.signal.correlate way of doing things!
+    return cross_correlate_signal_valid(s, p)[0:len(s) - len(p)]  # drop last sample.
+
+
+def cross_correlate_fft(s, p):
+    C = np.conjugate(np.fft.fft(s)) * np.fft.fft(p, len(s))
+    cf = np.fft.ifft(C)[0:len(s) - len(p)]
+    return cf
+
+
+def cross_correlate_fft_full(s, p):
+    # function is equivalent to scipy.signal.correlate(s, p, 'full')
+    pad_head = len(s) - len(p)
+    s_zero_pad = len(s) - 1
+    p_zero_pad = s_zero_pad + len(s) - len(p)
+    s = np.append(s, np.zeros(s_zero_pad))
+    p = np.append(p, np.zeros(p_zero_pad))
+    S = np.fft.fft(s)
+    P = np.fft.fft(p)
+    P = np.conjugate(P)
+    C = S * P
+    cf = np.fft.ifft(C)
+    cf = np.fft.fftshift(cf)
+    cf = cf[pad_head:]
+    if s.dtype == np.float:  # in case input was float.
+        cf = np.real(cf)
+    return cf
+
+
+def cross_correlate_fft_valid(s, p):
+    # function is equivalent to scipy.signal.correlate(s, p, 'valid')
+    valid_res_len = len(s) - len(p) + 1
+    S = np.fft.fft(s)
+    p = np.append(p, np.zeros(len(s) - len(p)))
+    P = np.fft.fft(p)
+    P = np.conjugate(P)
+    C = S * P
+    cf = np.fft.ifft(C)
+    cf = cf[0:valid_res_len]
+    if s.dtype == np.float:  # in case input was float.
+        cf = np.real(cf)
+    return cf
+
+
+def validate_full_cross_correlation(s, p, tolerance):
+    cs = cross_correlate_signal_full(s, p)
+    cf = cross_correlate_fft_full(s, p)
+    check_results(cs, cf, tolerance, err_msg='Full cross correlation algorithms produce differing results!')
+
+
+def validate_valid_cross_correlation(s, p, tolerance):
+    cs = cross_correlate_signal_valid(s, p)
+    cf = cross_correlate_fft_valid(s, p)
+    check_results(cs, cf, tolerance, err_msg='Valid cross correlation algorithms produce differing results!')
+
+
+def check_results(s, p, tolerance, err_msg):
+    err = np.abs(s - p) < tolerance
+    if not np.all(err):
+        print s
+        print p
+        print err
+        raise ValueError('check_results: ' + err_msg)
+    else:
+        # print 'passed: ' + err_msg
+        pass
+
+
+def validate_cross_correlation_algorithms():
+    l = 3
+    N = l * 3
+    tolerance = 1e-12
+
+    a = np.array([1., 2., 3., 4.])
+    b = np.array([3., 2., 0., 2.])
+    validate_full_cross_correlation(a, b, tolerance)
+    validate_valid_cross_correlation(a, b, tolerance)
+
+    s = np.random.randn(N) + 1j * np.random.randn(N)
+    x = s[0:l]
+    validate_full_cross_correlation(s, x, tolerance)
+    validate_valid_cross_correlation(s, x, tolerance)
+
+
+def cross_correlation_paper_def(s, preamble):
+    cc = cross_correlate_signal(s, preamble)
+    # cc = cross_correlate_naive(s, preamble)
     cc /= len(preamble)
     return cc
 
@@ -230,6 +329,8 @@ def improved_cross_correlation_peak(s, preamble, abs_auto_corr_vals):
     min_array_len = min(len(apcc), len(abs_auto_corr_vals))
     napcc = apcc[0:min_array_len] * abs_auto_corr_vals[0:min_array_len]
     nc = np.argmax(napcc)
+    # energy = calculate_signal_energy(s[nc:nc + len(preamble)])
+    # napcc *= 1. / np.sqrt(energy)
     return nc, napcc, apcc
 
 
@@ -259,18 +360,18 @@ def find_frame_start(s, preamble, K, cp_len):
 
     # THIS PARTS represents the live algorithm!
     # first part of the algorithm. rough STO sync and CFO estimation!
-    nm, cfo, auto_corr_vals, corr_vals = auto_correlation_sync(s, K, cp_len)
-    print 'auto correlation nm:', nm, ', cfo:', cfo, ', val:', auto_corr_vals[nm]
+    nm, cfo, abs_corr_vals, corr_vals = auto_correlation_sync(s, K, cp_len)
+    # print 'auto correlation nm:', nm, ', cfo:', cfo, ', val:', auto_corr_vals[nm]
 
     # Fix CFO!
     s = correct_frequency_offset(s, cfo / (2. * K))
 
     # find exact peak over fine STO estimation
     # ONLY nc required, everything else only used for evaluation!
-    nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, auto_corr_vals)
+    nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, abs_corr_vals)
     # ALGORITHM FINISHED!
 
-    return nc, cfo, auto_corr_vals, corr_vals, napcc, apcc
+    return nc, cfo, abs_corr_vals, corr_vals, napcc, apcc
 
 
 def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo):
@@ -286,7 +387,7 @@ def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cf
     noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
     s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
     s[block_len:block_len + len(frame)] += frame
-    return s
+    return s, x_preamble
 
 
 def sync_test():
@@ -300,42 +401,44 @@ def sync_test():
     ramp_len = cp_len / 2
 
     test_cfo = -.2
-    snr_dB = 15.0
+    snr_dB = 0.0
+    print 'Channel parameters, SNR:', snr_dB, 'dB with a relative subcarrier offset:', test_cfo
 
-    print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
+
     print 'assumed samp_rate:', samp_rate, ' with sc_bw:', samp_rate / K
-    print 'relative subcarrier CFO:', test_cfo
 
     data = get_random_qpsk(block_len)
     x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
 
     preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
     frame = np.concatenate((preamble, x))
-    avg_frame_ampl = np.sqrt(calculate_average_signal_energy(frame))
-    # frame /= avg_frame_ampl
-    print 'frame duration: ', 1e6 * len(frame) / samp_rate, 'us'
 
+    print 'frame duration: ', 1e6 * len(frame) / samp_rate, 'us'
+    print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
     # simulate Noise and frequency offset!
     frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
     noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
     # noise_variance = 0.0
     s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
     s[block_len:block_len + len(frame)] += frame
+    print 'frame start in test vector: ', block_len + cp_len
 
-    print 'frame_start:', block_len, ', short preamble_start:', block_len + cp_len
-
-    nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
-    print 'cross correlation nc:', nc, np.abs(napcc[nc])
+    s *= 1.0 / np.sqrt(len(x_preamble))
+    nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
+    print 'FOUND FRAMESTART nc:', nc, np.abs(napcc[nc]), abs_corr_vals[nc]
+    # print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
 
     plt.plot(np.abs(apcc) * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
     plt.plot(np.abs(napcc))
-    plt.plot(auto_corr_vals)
-    peak = auto_corr_vals > 0.5
-    plt.plot(peak)
-    print 'peak width:', np.sum(peak)
-    print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
-    plt.show()
+    plt.plot(abs_corr_vals)
 
+    for thr in (.3, .4, .5, .6):
+        peak = abs_corr_vals > thr
+        plt.plot(peak * thr)
+        print 'n exceed thr: ', thr, ':', np.sum(peak)
+
+    # plt.xlim((1000, 1200))
+    plt.show()
 
 
 def preamble_auto_corr_test():
@@ -343,36 +446,31 @@ def preamble_auto_corr_test():
     pn_seq = get_random_qpsk(K)
     pn_symbols = np.tile(pn_seq, 2)
     D = get_data_matrix(pn_symbols, K, True)
-    print np.shape(D)
-    print np.all(D[0] == D[1])
+    # print np.shape(D)
+    print 'subcarriers bear same symbols:', np.all(D[0] == D[1])
 
     pl, p = generate_sync_symbol(pn_seq, 'rrc', .5, K, 2, K, K / 2)
-    print np.shape(p)
+    # print np.shape(p)
     acc = auto_correlate_halfs(p)
     print acc, np.angle(acc)
 
     taps = gfdm_filter_taps('rrc', .5, 2, K, 1)
     A = gfdm_modulation_matrix(taps, 2, K)
     x = A.dot(pn_symbols)
-    print np.shape(x)
+    # print np.shape(x)
     acc = auto_correlate_halfs(x)
     print acc, np.angle(acc)
 
 
 def main():
-    np.set_printoptions(precision=4)
+    np.set_printoptions(precision=4, suppress=True)
+    preamble_auto_corr_test()
+    validate_cross_correlation_algorithms()
     sync_test()
-    # preamble_auto_corr_test()
-    # n_sc = 9
-    # pn = get_random_qpsk(n_sc // 2)
-    # print pn
-    # s = np.zeros(n_sc, dtype=np.complex)
-    # s[1::2] = pn
-    # print s
-    # x = np.fft.ifft(s, 12)
-    # print x[0:6]
-    # print x[6:]
-    # print auto_correlate_halfs(x)
+
+
+
+
 
 
 

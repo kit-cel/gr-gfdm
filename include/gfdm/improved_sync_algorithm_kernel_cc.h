@@ -23,6 +23,7 @@
 #define INCLUDED_GFDM_IMPROVED_SYNC_ALGORITHM_KERNEL_CC_H
 
 #include <gfdm/api.h>
+#include <deque>
 
 namespace gr {
   namespace gfdm {
@@ -42,39 +43,45 @@ namespace gr {
       improved_sync_algorithm_kernel_cc(int n_subcarriers, int cp_len, std::vector<gr_complex> preamble);
       ~improved_sync_algorithm_kernel_cc();
 
-      int generic_work(gr_complex* p_out, const gr_complex* p_in, int ninput_size);
+      int detect_frame_start(const gr_complex *p_in, int ninput_size);
 
       // The following public functions are mainly a debugging interface to Python!
-      std::vector<gr_complex> find_preamble(std::vector<gr_complex> in_vec);
+      int find_preamble(std::vector<gr_complex> in_vec);
       std::vector<gr_complex> auto_correlate_preamble(std::vector<gr_complex> in_vec);
       std::vector<float> abs_integrate_preamble(std::vector<gr_complex> in_vec);
       int find_peak_preamble(std::vector<float> in_vec);
       float calculate_normalized_cfo_preamble(const gr_complex val){ return calculate_normalized_cfo(val);};
       std::vector<gr_complex> remove_cfo_preamble(std::vector<gr_complex> in_vec, const float cfo);
       std::vector<gr_complex> cross_correlate_preamble(std::vector<gr_complex> in_vec);
+      std::vector<gr_complex> preamble();
 
     private:
-      struct auto_correlation_result_t{
-        int nm;
-        float cfo;
-      };
       int d_n_subcarriers;
       int d_cp_len;
       gr_complex* d_preamble;
       float* d_abs_auto_corr_vals;
 
+
       void auto_correlate(gr_complex* corr_vals, const gr_complex* p_in, const int ninput_size);
+
+      // following functions take care of absolute value integration over CP length.
+      std::deque<float> d_fifo;
+      float integrate_fifo(float next_val);
       void abs_integrate(float* vals, const gr_complex* p_in, const int ninput_size);
+
+      // calculate results from auto correlation results.
       int find_peak(float* vals, const int ninput_size);
       float calculate_normalized_cfo(const gr_complex corr_val);
-      void auto_correlate_integrate(float* abs_corr_vals, gr_complex* corr_vals, const gr_complex* p_in, const int ninput_size);
-      auto_correlation_result_t find_auto_correlation_peak(float* abs_auto_corr_vals, const gr_complex* p_in, int ninput_size);
+
+      // following lines hold arrays and functions for xcorr fine STO peak detection.
+      gr_complex* d_xcorr_vals;
+      float* d_abs_xcorr_vals;
+      int find_cross_correlation_peak(const gr_complex* p_in, const float* abs_int_vals, const float cfo);
       void remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const int ninput_size);
       void cross_correlate(gr_complex* p_out, const gr_complex* p_in, const int ninput_size);
+      void combine_abs_auto_and_cross_correlation(float* p_out, const float* p_auto, const float* p_cross, const int ninput_size);
 
-      float* d_cc_float;
-      gr_complex* d_cc_complex;
-      int find_exact_cross_correlation_peak(const gr_complex* p_in, const float* abs_auto_corr_vals);
+
     };
 
   } // namespace gfdm
