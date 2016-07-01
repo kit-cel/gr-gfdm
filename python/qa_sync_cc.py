@@ -181,7 +181,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         ramp_len = cp_len / 2
 
         test_cfo = -.2
-        snr_dB = 0.0
+        snr_dB = 10.0
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
 
@@ -192,6 +192,37 @@ class qa_sync_cc(gr_unittest.TestCase):
         knc = np.array(kernel.find_preamble(signal))
         print knc, nc
         self.assertEqual(nc, knc)
+
+    def test_008_stepped(self):
+        print '\n\n\nstepped test'
+        alpha = .5
+        M = 33
+        K = 32
+        L = 2
+        cp_len = K
+        ramp_len = cp_len / 2
+
+        test_cfo = -.2
+        snr_dB = 10.0
+
+        signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
+
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        preamble = np.array(kernel.preamble())
+        nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
+
+        # knc = np.array(kernel.find_preamble(signal))
+        step_size = 1070
+        window_nc = 0
+        for i in range(0, len(signal), step_size):
+            snc = np.array(kernel.find_preamble(signal[i:i + step_size + 2 * K]))
+            if snc > -1:
+                window_nc = i + snc
+                print 'it:', i // step_size, snc, window_nc
+
+        print 'actual nc position:', window_nc
+        # print knc, nc
+        # self.assertEqual(nc, knc)
 
 
 if __name__ == '__main__':

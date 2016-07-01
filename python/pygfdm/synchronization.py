@@ -354,6 +354,14 @@ def initialize_sync_algorithm(preamble, K):
     return preamble
 
 
+def calculate_threshold_factor(false_alarm_prob):
+    # obviously: false_alarm_prob < 1.0
+    if not false_alarm_prob < 1.0:
+        raise ValueError('False alarm probability MUST be smaller 1.0!')
+    return np.sqrt(-(4 / np.pi) * np.log(false_alarm_prob))
+
+
+
 def find_frame_start(s, preamble, K, cp_len):
     # initialization part
     preamble = initialize_sync_algorithm(preamble, K)
@@ -423,14 +431,19 @@ def sync_test():
     s[block_len:block_len + len(frame)] += frame
     print 'frame start in test vector: ', block_len + cp_len
 
-    s *= 1.0 / np.sqrt(len(x_preamble))
+    s *= .1 / np.sqrt(len(x_preamble))
     nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
     print 'FOUND FRAMESTART nc:', nc, np.abs(napcc[nc]), abs_corr_vals[nc]
     # print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
-
-    plt.plot(np.abs(apcc) * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
-    plt.plot(np.abs(napcc))
+    thr = calculate_threshold_factor(1e-3) * np.sum(apcc[nc - K:nc + K]) / (2 * K)
+    print 'threshold: ', thr
     plt.plot(abs_corr_vals)
+    plt.plot(apcc)# * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
+    plt.plot(napcc)
+    threshold_peak = np.zeros(len(napcc), dtype=float)
+    threshold_peak[nc] = napcc[nc]
+    plt.plot((threshold_peak > thr) * (napcc[nc] / thr))
+
 
     for thr in (.3, .4, .5, .6):
         peak = abs_corr_vals > thr
@@ -467,6 +480,11 @@ def main():
     preamble_auto_corr_test()
     validate_cross_correlation_algorithms()
     sync_test()
+
+    # for i in np.arange(0.7, 8):
+    #     fap = 10 ** -i
+    #     print fap, calculate_threshold_factor(fap)
+
 
 
 
