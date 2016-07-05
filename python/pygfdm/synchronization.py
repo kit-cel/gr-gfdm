@@ -410,6 +410,7 @@ def sync_test():
 
     test_cfo = -.2
     snr_dB = 0.0
+    false_alarm_probability = 1e-3
     print 'Channel parameters, SNR:', snr_dB, 'dB with a relative subcarrier offset:', test_cfo
 
 
@@ -431,11 +432,11 @@ def sync_test():
     s[block_len:block_len + len(frame)] += frame
     print 'frame start in test vector: ', block_len + cp_len
 
-    s *= .1 / np.sqrt(len(x_preamble))
+    s *= 100. / np.sqrt(len(x_preamble))
     nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
     print 'FOUND FRAMESTART nc:', nc, np.abs(napcc[nc]), abs_corr_vals[nc]
     # print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
-    thr = calculate_threshold_factor(1e-3) * np.sum(apcc[nc - K:nc + K]) / (2 * K)
+    thr = calculate_threshold_factor(false_alarm_probability) * np.sum(apcc[nc - K:nc + K]) / (2 * K)
     print 'threshold: ', thr
     plt.plot(abs_corr_vals)
     plt.plot(apcc)# * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
@@ -443,7 +444,7 @@ def sync_test():
     threshold_peak = np.zeros(len(napcc), dtype=float)
     threshold_peak[nc] = napcc[nc]
     plt.plot((threshold_peak > thr) * (napcc[nc] / thr))
-
+    print 'threshold exceeded points: ', np.sum(threshold_peak > thr)
 
     for thr in (.3, .4, .5, .6):
         peak = abs_corr_vals > thr

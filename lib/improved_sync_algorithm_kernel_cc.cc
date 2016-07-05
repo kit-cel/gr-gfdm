@@ -45,7 +45,7 @@ namespace gr {
         throw std::runtime_error("ERROR: preamble.size() MUST be equal to 2 * n_subcarriers!");
       }
 
-      set_false_alarm_probability(0.001);
+      set_false_alarm_probability(0.00001);
 
       // calculate energy of preamble
       gr_complex energy = gr_complex(0.0, 0.0);
@@ -72,8 +72,11 @@ namespace gr {
 
       d_p_in_buffer = (gr_complex*) volk_malloc(sizeof(gr_complex) * 4 * n_subcarriers, volk_get_alignment());
       memset(d_p_in_buffer, 0, sizeof(gr_complex) * n_subcarriers);
-      d_auto_corr_vals  = (gr_complex*) volk_malloc(sizeof(gr_complex) * 4000, volk_get_alignment());
-      d_abs_auto_corr_vals  = (float*) volk_malloc(sizeof(float) * 4000, volk_get_alignment());
+      const int array_len = 4000;
+      d_auto_corr_vals  = (gr_complex*) volk_malloc(sizeof(gr_complex) * array_len, volk_get_alignment());
+      memset(d_auto_corr_vals, 0, sizeof(gr_complex) * array_len);
+      d_abs_auto_corr_vals  = (float*) volk_malloc(sizeof(float) * array_len, volk_get_alignment());
+      memset(d_abs_auto_corr_vals, 0, sizeof(float) * array_len);
 
       d_xcorr_vals = (gr_complex*) volk_malloc(sizeof(gr_complex) * 4 * n_subcarriers, volk_get_alignment());
       d_abs_xcorr_vals = (float*) volk_malloc(sizeof(float) * 2 * n_subcarriers, volk_get_alignment());
@@ -111,30 +114,55 @@ namespace gr {
     int
     improved_sync_algorithm_kernel_cc::detect_frame_start(const gr_complex *p_in, int ninput_size)
     {
-      const int buf_len = (ninput_size - 2 * d_n_subcarriers);
+      const int processable_items = ninput_size - d_n_subcarriers;
+      const int acorr_len = processable_items - d_n_subcarriers;
+      const int xcorr_len = acorr_len - d_n_subcarriers;
 
-      const float threshold = 0.5;
+      const int n_xcorr_samples = 4 * d_n_subcarriers;
+      const float threshold = 0.5f;
 
+//      std::cout << "ninput_size: " << ninput_size << ", proc_items:" << processable_items << ", acorr_len: " << acorr_len << ", xcorr_len: " << xcorr_len << std::endl;
+
+      // auto correlation stage! should produce a reasonable peak, otherwise sync is pretty bad.
       gr_complex* auto_corr_vals = d_auto_corr_vals + d_n_subcarriers;
       float* abs_auto_corr_vals = d_abs_auto_corr_vals + d_n_subcarriers;
-      auto_correlate(auto_corr_vals, p_in, ninput_size);
-      abs_integrate(abs_auto_corr_vals, auto_corr_vals, buf_len);
+      auto_correlate(auto_corr_vals, p_in, processable_items);
+      abs_integrate(abs_auto_corr_vals, auto_corr_vals, acorr_len);
 
-      int nm = find_peak(abs_auto_corr_vals, buf_len);
-      int rnc = -1;
-      if (*(abs_auto_corr_vals + nm) > threshold){
-        float cfo = calculate_normalized_cfo(auto_corr_vals[nm]);
+      // find maximum and calculate derived values.
+      // find_peak searches in buffered values and ignores the last d_n_subcarriers values. Use them next round.
+      int nm = find_peak(d_abs_auto_corr_vals, xcorr_len + d_n_subcarriers);
+      const float max_auto_corr_val = d_abs_auto_corr_vals[nm];
+      float cfo = calculate_normalized_cfo(d_auto_corr_vals[nm]);
+      const int auto_corr_offset = nm - d_n_subcarriers;
+      const int offset = auto_corr_offset - d_n_subcarriers;
+//      std::cout << "nm: " << nm << ", auto_corr_offset: " << auto_corr_offset << ", offset: " << offset << ", corr_val: " << max_auto_corr_val << std::endl;
 
-        const int offset = nm - d_n_subcarriers;
-        rnc = -2 * buf_len;
-        int res = find_cross_correlation_peak(p_in + offset, abs_auto_corr_vals + offset, cfo);
-        if (res > -1){
-          rnc = offset + res;
-        }
+      int rnc = -2 * ninput_size;
 
+      if (offset < 0){
+        std::cout << "really use buffered values\n";
+        memmove(d_p_in_buffer, d_p_in_buffer + d_n_subcarriers + offset, sizeof(gr_complex) * (-1 * offset));
+        memcpy(d_p_in_buffer - offset, p_in, sizeof(gr_complex) * (n_xcorr_samples + offset));
+      }
+      else{
+        memcpy(d_p_in_buffer, p_in + offset, sizeof(gr_complex) * n_xcorr_samples);
       }
 
-      memcpy(d_p_in_buffer, p_in + ninput_size - d_n_subcarriers, sizeof(gr_complex) * d_n_subcarriers);
+      int res = -1;
+      if(max_auto_corr_val > threshold){
+        res = find_cross_correlation_peak(d_p_in_buffer, d_abs_auto_corr_vals + auto_corr_offset, cfo);
+      }
+
+      if (res > -1) {
+        rnc = offset + res;
+//        std::cout << "exact position: " << rnc <<", in xcorr: " << res << std::endl;
+      }
+
+      // buffer already calculated values.
+      memcpy(d_p_in_buffer, p_in + acorr_len - d_n_subcarriers, sizeof(gr_complex) * d_n_subcarriers);
+      memcpy(d_abs_auto_corr_vals, abs_auto_corr_vals + acorr_len - d_n_subcarriers, sizeof(float) * d_n_subcarriers);
+      memcpy(d_auto_corr_vals, auto_corr_vals + acorr_len - d_n_subcarriers, sizeof(gr_complex) * d_n_subcarriers);
 
       return rnc;
     }
@@ -227,13 +255,20 @@ namespace gr {
       const int n_corr_vals = 2 * d_n_subcarriers;
       const int buf_len = 2 * n_corr_vals;
 
+      const float max_auto_corr = abs_int_vals[d_n_subcarriers];
+
       remove_cfo(d_xcorr_vals, p_in, cfo, buf_len);
       cross_correlate(d_xcorr_vals, d_xcorr_vals, buf_len);
       volk_32fc_magnitude_32f(d_abs_xcorr_vals, d_xcorr_vals, n_corr_vals);
       combine_abs_auto_and_cross_correlation(d_abs_xcorr_vals, abs_int_vals, d_abs_xcorr_vals, n_corr_vals);
       int nc = find_peak(d_abs_xcorr_vals, n_corr_vals);
 
-      float thr = d_false_alarm_prob_factor * std::accumulate(d_abs_auto_corr_vals, d_abs_auto_corr_vals + 2 * d_n_subcarriers, 0.0f) / (2 * d_n_subcarriers);
+      float acc = std::accumulate(d_abs_xcorr_vals, d_abs_xcorr_vals + 2 * d_n_subcarriers, 0.0f);
+      float factor = d_false_alarm_prob_factor / (2 * d_n_subcarriers);
+      float thr = factor * acc;
+//      std::cout << "factor: " << factor << ", acc: " << acc << ", threshold: " << thr << ", xcorr: " << d_abs_xcorr_vals[nc];
+//      std::cout << ", ratio: " << d_abs_xcorr_vals[nc] / thr << ", acorr: " << max_auto_corr << std::endl;
+
       if(d_abs_xcorr_vals[nc] < thr){
         nc = -1;
       }

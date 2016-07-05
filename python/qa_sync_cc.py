@@ -184,11 +184,13 @@ class qa_sync_cc(gr_unittest.TestCase):
         snr_dB = 10.0
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
-
+        # print 'preamble size:', len(preamble), len(preamble) == 2 * K
+        # print 'init kernel'
         kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
         preamble = np.array(kernel.preamble())
         nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
 
+        # print 'kernel.find_preamble'
         knc = np.array(kernel.find_preamble(signal))
         print knc, nc
         self.assertEqual(nc, knc)
@@ -206,23 +208,41 @@ class qa_sync_cc(gr_unittest.TestCase):
         snr_dB = 10.0
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
+        signal *= .001
 
         kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
         preamble = np.array(kernel.preamble())
         nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
+        slen = len(signal)
+        n_rep = 4
+        signal = np.tile(signal, n_rep)
+
+        nc_vec = [nc, ]
+        for i in range(n_rep - 1):
+            nc_vec = np.append(nc_vec, nc_vec[-1] + slen)
+        print nc_vec
 
         # knc = np.array(kernel.find_preamble(signal))
-        step_size = 1070
-        window_nc = 0
+        step_size = 1080
+        window_nc = np.array([], dtype=int)
+        dumped = np.array([], dtype=int)
         for i in range(0, len(signal), step_size):
-            snc = np.array(kernel.find_preamble(signal[i:i + step_size + 2 * K]))
-            if snc > -1:
-                window_nc = i + snc
-                print 'it:', i // step_size, snc, window_nc
+            w = signal[i:i + step_size + 3 * K]
+            if len(w) > 4 * K:
+                print
+                snc = int(kernel.find_preamble(w))
+                if not snc == -2 * len(w):
+                    window_nc = np.append(window_nc, i + snc)
+                    # print 'it:', i // step_size, snc, window_nc
+                else:
+                    dumped = np.append(dumped, snc)
+                    # print 'dump val: ', snc
 
-        print 'actual nc position:', window_nc
+        print 'dumped values:          ', dumped
+        print 'expected peak positions:', nc_vec
+        print 'actual nc position:     ', window_nc
         # print knc, nc
-        # self.assertEqual(nc, knc)
+        self.assertEqual(nc, window_nc[0])
 
 
 if __name__ == '__main__':
