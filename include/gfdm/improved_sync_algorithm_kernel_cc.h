@@ -72,9 +72,20 @@ namespace gr {
       float integrate_fifo(float next_val);
       void abs_integrate(float* vals, const gr_complex* p_in, const int ninput_size);
 
-      // calculate results from auto correlation results.
+      // calculate results from auto correlation.
       int find_peak(float* vals, const int ninput_size);
+
+      // perform the auto correlation stage and write all results to the provided buffers!
+      void perform_auto_correlation_stage(float *abs_corr_vals, gr_complex *corr_vals,
+                                          const gr_complex *p_in, const int window_size,
+                                          const int buf_size);
+
+      // derive subcarrier CFO from correlation value peak.
       float calculate_normalized_cfo(const gr_complex corr_val);
+
+      // function assumes enough samples are available. Just lile xcorr stage does!
+      void prepare_xcorr_input_array(gr_complex *xcorr_in, const gr_complex *p_in,
+                                     const int offset);
 
       // following lines hold arrays and functions for xcorr fine STO peak detection.
       gr_complex* d_xcorr_vals;

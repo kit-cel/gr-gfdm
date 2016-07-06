@@ -94,7 +94,12 @@ class qa_sync_cc(gr_unittest.TestCase):
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         ac = auto_correlate_signal(signal, K)
         ic = abs_integrate(np.abs(ac), cp_len)
-        kic = np.array(kernel.abs_integrate_preamble(ac))
+        window_size = 1024
+        kic = np.array([], dtype=np.complex)
+        for i in range(0, len(signal), window_size):
+            w = ac[i:i + window_size]
+            kic = np.concatenate((kic, kernel.abs_integrate_preamble(w)))
+        # kic = np.array(kernel.abs_integrate_preamble(ac))
         self.assertFloatTuplesAlmostEqual(ic[cp_len:], kic[cp_len:], 6)
 
     def test_004_find_auto_correlation_peak(self):
@@ -181,7 +186,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         ramp_len = cp_len / 2
 
         test_cfo = -.2
-        snr_dB = 10.0
+        snr_dB = 20.0
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         # print 'preamble size:', len(preamble), len(preamble) == 2 * K
@@ -212,9 +217,10 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
         preamble = np.array(kernel.preamble())
-        nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
+        nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
+        print 'auto_corr nm:', np.argmax(abs_corr_vals)
         slen = len(signal)
-        n_rep = 4
+        n_rep = 300
         signal = np.tile(signal, n_rep)
 
         nc_vec = [nc, ]
@@ -223,26 +229,34 @@ class qa_sync_cc(gr_unittest.TestCase):
         print nc_vec
 
         # knc = np.array(kernel.find_preamble(signal))
-        step_size = 1080
+        step_size = nc + 4
         window_nc = np.array([], dtype=int)
         dumped = np.array([], dtype=int)
         for i in range(0, len(signal), step_size):
             w = signal[i:i + step_size + 3 * K]
             if len(w) > 4 * K:
                 print
+                print
+                it = i // step_size
+                print 'PROCESS WINDOW ', it
                 snc = int(kernel.find_preamble(w))
                 if not snc == -2 * len(w):
-                    window_nc = np.append(window_nc, i + snc)
-                    # print 'it:', i // step_size, snc, window_nc
+                    abs_nc = i + snc
+                    if not abs_nc == nc_vec[len(window_nc)]:
+                        print len(window_nc), abs_nc, ' != ', nc_vec[len(window_nc)]
+                        assert abs_nc == nc_vec[len(window_nc)]
+                    window_nc = np.append(window_nc, abs_nc)
+                    print 'RESULT', snc, abs_nc
                 else:
                     dumped = np.append(dumped, snc)
                     # print 'dump val: ', snc
 
-        print 'dumped values:          ', dumped
+        # print 'dumped values:          ', dumped
         print 'expected peak positions:', nc_vec
         print 'actual nc position:     ', window_nc
         # print knc, nc
         self.assertEqual(nc, window_nc[0])
+        self.assertTupleEqual(tuple(nc_vec), tuple(window_nc))
 
 
 if __name__ == '__main__':

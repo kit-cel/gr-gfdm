@@ -55,7 +55,7 @@ namespace gr {
       float amplitude = std::sqrt(energy.real());
       float scaling_factor = 1.0 / amplitude;
 
-      std::cout << "preamble_energy: " << energy << ", amplitude: " << amplitude << std::endl;
+//      std::cout << "preamble_energy: " << energy << ", amplitude: " << amplitude << std::endl;
 
       // malloc array for preamble and copy scaled version to array.
       d_preamble = (gr_complex*) volk_malloc(sizeof(gr_complex) * 2 * n_subcarriers, volk_get_alignment());
@@ -114,57 +114,59 @@ namespace gr {
     int
     improved_sync_algorithm_kernel_cc::detect_frame_start(const gr_complex *p_in, int ninput_size)
     {
-      const int processable_items = ninput_size - d_n_subcarriers;
-      const int acorr_len = processable_items - d_n_subcarriers;
-      const int xcorr_len = acorr_len - d_n_subcarriers;
+      const int acorr_buf_len = 2 * d_n_subcarriers;
+      const int tail_len = 3 * d_n_subcarriers;
+      const int window_size = ninput_size - tail_len;
+      const int search_window = window_size + d_n_subcarriers;
 
-      const int n_xcorr_samples = 4 * d_n_subcarriers;
-      const float threshold = 0.5f;
+      perform_auto_correlation_stage(d_abs_auto_corr_vals, d_auto_corr_vals, p_in, window_size, acorr_buf_len);
 
-//      std::cout << "ninput_size: " << ninput_size << ", proc_items:" << processable_items << ", acorr_len: " << acorr_len << ", xcorr_len: " << xcorr_len << std::endl;
+      const int search_window_head = acorr_buf_len / 2;
+      const int w_nm = find_peak(d_abs_auto_corr_vals + search_window_head, search_window);
+      const bool is_tail_case = w_nm > window_size;
+      const int acorr_nm = w_nm + search_window_head;
+      const int acorr_offset = acorr_nm - d_n_subcarriers;
+      const int p_nm = acorr_nm - acorr_buf_len;
+      const int p_offset = p_nm - d_n_subcarriers;
 
-      // auto correlation stage! should produce a reasonable peak, otherwise sync is pretty bad.
-      gr_complex* auto_corr_vals = d_auto_corr_vals + d_n_subcarriers;
-      float* abs_auto_corr_vals = d_abs_auto_corr_vals + d_n_subcarriers;
-      auto_correlate(auto_corr_vals, p_in, processable_items);
-      abs_integrate(abs_auto_corr_vals, auto_corr_vals, acorr_len);
+      std::cout << "acorr_buf_len: " << acorr_buf_len << ", acorr_offset: " << acorr_offset << ", acorr_nm: " << acorr_nm << ", p_nm: " << p_nm << ", p_offset: " << p_offset << std::endl;
 
-      // find maximum and calculate derived values.
-      // find_peak searches in buffered values and ignores the last d_n_subcarriers values. Use them next round.
-      int nm = find_peak(d_abs_auto_corr_vals, xcorr_len + d_n_subcarriers);
-      const float max_auto_corr_val = d_abs_auto_corr_vals[nm];
-      float cfo = calculate_normalized_cfo(d_auto_corr_vals[nm]);
-      const int auto_corr_offset = nm - d_n_subcarriers;
-      const int offset = auto_corr_offset - d_n_subcarriers;
-//      std::cout << "nm: " << nm << ", auto_corr_offset: " << auto_corr_offset << ", offset: " << offset << ", corr_val: " << max_auto_corr_val << std::endl;
+      // derive CFO from correlation peak!
+      const gr_complex max_auto_corr_val = d_auto_corr_vals[acorr_nm];
+      const float max_abs_auto_corr_val = d_abs_auto_corr_vals[acorr_nm];
+      float cfo = calculate_normalized_cfo(max_auto_corr_val);
+      std::cout << "max_corr: " << max_abs_auto_corr_val << ", cfo: " << cfo << std::endl;
 
       int rnc = -2 * ninput_size;
-
-      if (offset < 0){
-        std::cout << "really use buffered values\n";
-        memmove(d_p_in_buffer, d_p_in_buffer + d_n_subcarriers + offset, sizeof(gr_complex) * (-1 * offset));
-        memcpy(d_p_in_buffer - offset, p_in, sizeof(gr_complex) * (n_xcorr_samples + offset));
+      if(!is_tail_case){
+        prepare_xcorr_input_array(d_p_in_buffer, p_in, p_offset);
+        int res = find_cross_correlation_peak(d_p_in_buffer, d_abs_auto_corr_vals + acorr_offset, cfo);
+        if (res > -1) {
+          std::cout << "max_corr: " << max_abs_auto_corr_val << ", cfo: " << cfo << std::endl;
+          rnc = p_offset + res;
+          std::cout << "exact position: " << rnc <<", in xcorr: " << res << std::endl;
+        }
       }
       else{
-        memcpy(d_p_in_buffer, p_in + offset, sizeof(gr_complex) * n_xcorr_samples);
+        std::cout << "peak " << p_nm << " is in tail and unreliable! -> " << p_nm - window_size << "\n";
       }
 
-      int res = -1;
-      if(max_auto_corr_val > threshold){
-        res = find_cross_correlation_peak(d_p_in_buffer, d_abs_auto_corr_vals + auto_corr_offset, cfo);
-      }
-
-      if (res > -1) {
-        rnc = offset + res;
-//        std::cout << "exact position: " << rnc <<", in xcorr: " << res << std::endl;
-      }
-
-      // buffer already calculated values.
-      memcpy(d_p_in_buffer, p_in + acorr_len - d_n_subcarriers, sizeof(gr_complex) * d_n_subcarriers);
-      memcpy(d_abs_auto_corr_vals, abs_auto_corr_vals + acorr_len - d_n_subcarriers, sizeof(float) * d_n_subcarriers);
-      memcpy(d_auto_corr_vals, auto_corr_vals + acorr_len - d_n_subcarriers, sizeof(gr_complex) * d_n_subcarriers);
-
+      // buffer input values.
+      memcpy(d_p_in_buffer, p_in + window_size, sizeof(gr_complex) * acorr_buf_len);
+      memcpy(d_abs_auto_corr_vals, d_abs_auto_corr_vals + window_size, sizeof(float) * acorr_buf_len);
+      memcpy(d_auto_corr_vals, d_auto_corr_vals + window_size, sizeof(gr_complex) * acorr_buf_len);
       return rnc;
+    }
+
+    void
+    improved_sync_algorithm_kernel_cc::perform_auto_correlation_stage(float *abs_corr_vals, gr_complex *corr_vals,
+                                                                      const gr_complex *p_in, const int window_size,
+                                                                      const int buf_size)
+    {
+      const int ac_tail = 2 * d_n_subcarriers;
+      auto_correlate(corr_vals + buf_size, p_in, window_size + ac_tail);
+      // integrate auto correlation samples over CP length -> remove plateau!
+      abs_integrate(abs_corr_vals + buf_size, corr_vals + buf_size, window_size);
     }
 
     std::vector<gr_complex>
@@ -249,6 +251,28 @@ namespace gr {
       return std::arg(corr_val) / M_PI;
     }
 
+    void
+    improved_sync_algorithm_kernel_cc::prepare_xcorr_input_array(gr_complex *xcorr_in, const gr_complex *p_in,
+                                                                     const int offset)
+    {
+      const int n_xcorr_samples = 4 * d_n_subcarriers;
+      const int buf_len = 2 * d_n_subcarriers;
+      // we know that 2*n_subcarriers samples are buffered!
+      // calculate how many samples we need to copy from end of buffer to front.
+      const int n_buffered = -1 * std::min(0, offset);
+
+      if (n_buffered){
+        std::cout << "n_buffered: " << n_buffered << ", offset: " << offset << std::endl;
+        gr_complex* xcorr_offset_in = xcorr_in + buf_len - n_buffered;
+        std::cout << "really use buffered values: " << xcorr_offset_in - xcorr_in << ", diff: " << buf_len - (xcorr_offset_in - xcorr_in) << std::endl;
+        memmove(xcorr_in, xcorr_offset_in, sizeof(gr_complex) * n_buffered);
+        memcpy(xcorr_in + n_buffered, p_in, sizeof(gr_complex) * (n_xcorr_samples - n_buffered));
+      }
+      else{
+        memcpy(xcorr_in, p_in + offset, sizeof(gr_complex) * n_xcorr_samples);
+      }
+    }
+
     int
     improved_sync_algorithm_kernel_cc::find_cross_correlation_peak(const gr_complex* p_in, const float* abs_int_vals, const float cfo)
     {
@@ -271,6 +295,10 @@ namespace gr {
 
       if(d_abs_xcorr_vals[nc] < thr){
         nc = -1;
+      }
+      else{
+        const float ratio = d_abs_xcorr_vals[nc] / thr;
+        std::cout << "xcorr_ratio: " << ratio << std::endl;
       }
       return nc;
     }
