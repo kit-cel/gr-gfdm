@@ -38,7 +38,7 @@ namespace gr {
   namespace gfdm {
 
     improved_sync_algorithm_kernel_cc::improved_sync_algorithm_kernel_cc(int n_subcarriers, int cp_len, std::vector<gr_complex> preamble):
-      d_n_subcarriers(n_subcarriers), d_cp_len(cp_len)
+      d_n_subcarriers(n_subcarriers), d_cp_len(cp_len), d_buffer_len(2 * n_subcarriers)
     {
       // perform initial checks!
       if(preamble.size() != 2 * n_subcarriers){
@@ -97,6 +97,27 @@ namespace gr {
       d_false_alarm_prob_factor = std::sqrt((-4.0 / M_PI) * std::log(false_alarm_prob));
     }
 
+    std::vector<gr_complex> improved_sync_algorithm_kernel_cc::input_buffer()
+    {
+      std::vector<gr_complex> res(2 * d_n_subcarriers);
+      memcpy(&res[0], d_p_in_buffer, sizeof(gr_complex) * 2 * d_n_subcarriers);
+      return res;
+    }
+
+    std::vector<gr_complex> improved_sync_algorithm_kernel_cc::auto_corr_buffer()
+    {
+      std::vector<gr_complex> res(2 * d_n_subcarriers);
+      memcpy(&res[0], d_auto_corr_vals, sizeof(gr_complex) * 2 * d_n_subcarriers);
+      return res;
+    }
+
+    std::vector<float> improved_sync_algorithm_kernel_cc::integration_buffer()
+    {
+      std::vector<float> res(2 * d_n_subcarriers);
+      memcpy(&res[0], d_abs_auto_corr_vals, sizeof(float) * 2 * d_n_subcarriers);
+      return res;
+    }
+
     std::vector<gr_complex> improved_sync_algorithm_kernel_cc::preamble()
     {
       std::vector<gr_complex> preamble(2 * d_n_subcarriers);
@@ -119,7 +140,7 @@ namespace gr {
       const int window_size = ninput_size - tail_len;
       const int search_window = window_size + d_n_subcarriers;
 
-      perform_auto_correlation_stage(d_abs_auto_corr_vals, d_auto_corr_vals, p_in, window_size, acorr_buf_len);
+      perform_auto_correlation_stage(d_abs_auto_corr_vals + acorr_buf_len, d_auto_corr_vals + acorr_buf_len, p_in, window_size);
 
       const int search_window_head = acorr_buf_len / 2;
       const int w_nm = find_peak(d_abs_auto_corr_vals + search_window_head, search_window);
@@ -152,21 +173,28 @@ namespace gr {
       }
 
       // buffer input values.
-      memcpy(d_p_in_buffer, p_in + window_size, sizeof(gr_complex) * acorr_buf_len);
+      memcpy(d_p_in_buffer, p_in + window_size - acorr_buf_len, sizeof(gr_complex) * acorr_buf_len);
       memcpy(d_abs_auto_corr_vals, d_abs_auto_corr_vals + window_size, sizeof(float) * acorr_buf_len);
       memcpy(d_auto_corr_vals, d_auto_corr_vals + window_size, sizeof(gr_complex) * acorr_buf_len);
       return rnc;
     }
 
+    std::vector<float> improved_sync_algorithm_kernel_cc::auto_corr_integrate(std::vector<gr_complex> in_vec)
+    {
+      std::vector<float> res(in_vec.size() - 2 * d_n_subcarriers);
+      std::vector<gr_complex> buf(in_vec.size() - 2 * d_n_subcarriers);
+      perform_auto_correlation_stage(&res[0], &buf[0], &in_vec[0], in_vec.size() - 2 * d_n_subcarriers);
+      return res;
+    }
+
     void
     improved_sync_algorithm_kernel_cc::perform_auto_correlation_stage(float *abs_corr_vals, gr_complex *corr_vals,
-                                                                      const gr_complex *p_in, const int window_size,
-                                                                      const int buf_size)
+                                                                          const gr_complex *p_in, const int window_size)
     {
       const int ac_tail = 2 * d_n_subcarriers;
-      auto_correlate(corr_vals + buf_size, p_in, window_size + ac_tail);
+      auto_correlate(corr_vals, p_in, window_size + ac_tail);
       // integrate auto correlation samples over CP length -> remove plateau!
-      abs_integrate(abs_corr_vals + buf_size, corr_vals + buf_size, window_size);
+      abs_integrate(abs_corr_vals, corr_vals, window_size);
     }
 
     std::vector<gr_complex>

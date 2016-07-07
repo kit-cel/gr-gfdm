@@ -55,8 +55,13 @@ namespace gr {
       std::vector<gr_complex> cross_correlate_preamble(std::vector<gr_complex> in_vec);
       std::vector<gr_complex> preamble();
       void set_false_alarm_probability(float false_alarm_prob);
+      std::vector<gr_complex> input_buffer();
+      std::vector<gr_complex> auto_corr_buffer();
+      std::vector<float> integration_buffer();
+      std::vector<float> auto_corr_integrate(std::vector<gr_complex> in_vec);
 
     private:
+      int d_buffer_len;
       float d_false_alarm_prob_factor;
       int d_n_subcarriers;
       int d_cp_len;
@@ -77,8 +82,7 @@ namespace gr {
 
       // perform the auto correlation stage and write all results to the provided buffers!
       void perform_auto_correlation_stage(float *abs_corr_vals, gr_complex *corr_vals,
-                                          const gr_complex *p_in, const int window_size,
-                                          const int buf_size);
+                                          const gr_complex *p_in, const int window_size);
 
       // derive subcarrier CFO from correlation value peak.
       float calculate_normalized_cfo(const gr_complex corr_val);

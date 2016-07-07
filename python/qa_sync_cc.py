@@ -200,7 +200,46 @@ class qa_sync_cc(gr_unittest.TestCase):
         print knc, nc
         self.assertEqual(nc, knc)
 
-    def test_008_stepped(self):
+    def test_008_auto_correlation_stepped(self):
+        print 'test window buffering for auto correlation'
+        alpha = .5
+        M = 33
+        K = 32
+        L = 2
+        cp_len = K
+        ramp_len = cp_len / 2
+
+        test_cfo = -.2
+        snr_dB = 10.0
+
+        signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
+        signal *= .001
+
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        preamble = np.array(kernel.preamble())
+        nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
+
+        step_size = 1088
+        for i in range(0, len(signal), step_size):
+            w = signal[i:i + step_size + 3 * K]
+            a = abs_corr_vals[i:i + step_size]
+            ref_buf = abs_corr_vals[i + step_size - 2 * K:i + step_size]
+            cref_buf = corr_vals[i + step_size - 2 * K:i + step_size]
+            inref_buf = signal[i + step_size - 2 * K:i + step_size]
+            if len(w) > 4 * K and len(ref_buf) == 2 * K:
+                bi_buf = np.array(kernel.integration_buffer())
+                kbuf = np.concatenate((bi_buf, a))
+                print 'KBEF argmax', np.argmax(kbuf)
+                snc = int(kernel.find_preamble(w))
+                ai_buf = np.array(kernel.integration_buffer())
+                self.assertFloatTuplesAlmostEqual(ref_buf, ai_buf, 5)
+                c_buf = np.array(kernel.auto_corr_buffer())
+                self.assertComplexTuplesAlmostEqual(cref_buf, c_buf, 5)
+                in_buf = np.array(kernel.input_buffer())
+                self.assertComplexTuplesAlmostEqual(inref_buf, in_buf)
+
+
+    def test_009_stepped(self):
         print '\n\n\nstepped test'
         alpha = .5
         M = 33
@@ -220,7 +259,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
         print 'auto_corr nm:', np.argmax(abs_corr_vals)
         slen = len(signal)
-        n_rep = 300
+        n_rep = 55
         signal = np.tile(signal, n_rep)
 
         nc_vec = [nc, ]
@@ -255,7 +294,6 @@ class qa_sync_cc(gr_unittest.TestCase):
         print 'expected peak positions:', nc_vec
         print 'actual nc position:     ', window_nc
         # print knc, nc
-        self.assertEqual(nc, window_nc[0])
         self.assertTupleEqual(tuple(nc_vec), tuple(window_nc))
 
 
