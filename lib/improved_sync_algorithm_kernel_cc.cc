@@ -240,11 +240,8 @@ namespace gr {
     {
       const float norm_factor = 1.0 / (d_cp_len + 1.0);
       // FIFO management may profit from optimization?!
+      const float fifo_sum = next_val + std::accumulate(d_fifo.begin(), d_fifo.end(), 0.0f);
       d_fifo.push_back(next_val);
-      float fifo_sum = 0.0;
-      for (int j = 0; j < d_fifo.size(); ++j) {
-        fifo_sum += d_fifo.at(j);
-      }
       d_fifo.pop_front();
       return norm_factor * fifo_sum;
     }

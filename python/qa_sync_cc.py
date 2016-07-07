@@ -23,12 +23,11 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
 import numpy as np
-import scipy as sp
 from pygfdm.utils import calculate_signal_energy
 from pygfdm.synchronization import auto_correlate_halfs, generate_test_sync_samples, find_frame_start
 from pygfdm.synchronization import auto_correlate_signal, abs_integrate, correct_frequency_offset
 from pygfdm.synchronization import cross_correlate_naive, cross_correlate_signal
-import matplotlib.pyplot as plt
+
 
 class qa_sync_cc(gr_unittest.TestCase):
     def setUp(self):
@@ -291,6 +290,40 @@ class qa_sync_cc(gr_unittest.TestCase):
                     dumped = np.append(dumped, snc)
 
         self.assertTupleEqual(tuple(nc_vec), tuple(window_nc))
+
+    def test_010_sync_block(self):
+        print 'test window buffering for auto correlation'
+        alpha = .5
+        M = 33
+        K = 32
+        L = 2
+        cp_len = K
+        ramp_len = cp_len / 2
+        frame_len = 2 * K + cp_len + M * K
+
+        test_cfo = -.2
+        snr_dB = 10.0
+
+        signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
+        signal *= .001
+
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, np.array(kernel.preamble()), K, cp_len)
+
+
+        # (int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> preamble, const std::string& gfdm_tag_key)
+        src = blocks.vector_source_c(signal)
+        sync = gfdm.sync_cc(K, cp_len, frame_len, preamble, 'gfdm_block')
+        snk = blocks.vector_sink_c()
+        self.tb.connect(src, sync, snk)
+        self.tb.run()
+
+
+        ref = signal[nc:nc + frame_len]
+        res = np.array(snk.data())
+        print 'res length:', len(res)
+        print 'frame size:', frame_len
+        self.assertComplexTuplesAlmostEqual(ref, res)
 
 
 if __name__ == '__main__':
