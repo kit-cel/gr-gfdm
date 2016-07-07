@@ -20,9 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_GFDM_RECEIVER_H
-#define INCLUDED_GFDM_RECEIVER_H
-#endif
+#ifndef INCLUDED_GFDM_RECEIVER_KERNEL_CC_H
+#define INCLUDED_GFDM_RECEIVER_KERNEL_CC_H
 
 #include <complex>
 #include <vector>
@@ -32,45 +31,52 @@
 
 namespace gr {
   namespace gfdm {
-      
-      class  receiver_kernel_cc
+
+    class  receiver_kernel_cc
+    {
+    public:
+      typedef std::complex<float> gfdm_complex;
+      typedef boost::shared_ptr<receiver_kernel_cc> sptr;
+
+      receiver_kernel_cc(int n_subcarriers, int n_timeslots, int overlap, std::vector<gfdm_complex> frequency_taps);
+      ~receiver_kernel_cc();
+      void gfdm_work(gfdm_complex out[], const gfdm_complex in[], int ninputitems, int noutputitems);
+      int block_size()
       {
-        public:
-          typedef std::complex<float> gfdm_complex;
-          typedef boost::shared_ptr<receiver_kernel_cc> sptr;
-
-          receiver_kernel_cc(int n_subcarriers, int n_timeslots, int overlap, std::vector<gfdm_complex> frequency_taps);
-          ~receiver_kernel_cc();
-          void gfdm_work(gfdm_complex out[], const gfdm_complex in[], int ninputitems, int noutputitems);
-          int block_size(){return d_n_subcarriers * d_n_timeslots;};
-          
-        private:
-          int d_n_subcarriers;
-          int d_n_timeslots;
-          int d_filter_width;
-          int d_overlap;
-          int d_fft_len;
-          gfdm_complex* d_filter_taps;
-
-          fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
-
-          std::vector< std::vector<gfdm_complex> > d_sc_fdomain;
-          std::vector< std::vector<gfdm_complex> > d_sc_symbols;
-          fftwf_plan d_in_fft_plan;
-          gfdm_complex *d_in_fft_in;
-          gfdm_complex *d_in_fft_out;
-          fftwf_plan d_sc_ifft_plan;
-          gfdm_complex *d_sc_ifft_in;
-          gfdm_complex *d_sc_ifft_out;
-
-          void filter_superposition(std::vector< std::vector<gfdm_complex> > &out, const gfdm_complex in[]);
-          void demodulate_subcarrier(std::vector< std::vector<gfdm_complex> > &out, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
-          void serialize_output(gfdm_complex out[], std::vector< std::vector<gfdm_complex> > &sc_symbols);
-
-
-
+        return d_n_subcarriers * d_n_timeslots;
       };
+
+    private:
+      int d_n_subcarriers;
+      int d_n_timeslots;
+      int d_overlap;
+      int d_fft_len;
+      gfdm_complex* d_filter_taps;
+
+      fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
+
+      std::vector< std::vector<gfdm_complex> > d_sc_fdomain;
+      std::vector< std::vector<gfdm_complex> > d_sc_symbols;
+      fftwf_plan d_in_fft_plan;
+      gfdm_complex* d_in_fft_in;
+      gfdm_complex* d_in_fft_out;
+      fftwf_plan d_sc_ifft_plan;
+      gfdm_complex* d_sc_ifft_in;
+      gfdm_complex* d_sc_ifft_out;
+      gfdm_complex* d_sc_postfilter;
+
+      void filter_superposition(std::vector< std::vector<gfdm_complex> > &out, const gfdm_complex in[]);
+      void demodulate_subcarrier(std::vector< std::vector<gfdm_complex> > &out, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
+      void serialize_output(gfdm_complex out[], std::vector< std::vector<gfdm_complex> > &sc_symbols);
+
+
+
+    };
   } /* namespace gfdm */
 } /* namespace gr */
+
+#endif /* INCLUDED_GFDM_RECEIVER_KERNEL_CC_H */
+
+
 
 
