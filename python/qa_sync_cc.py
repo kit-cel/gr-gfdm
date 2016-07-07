@@ -230,7 +230,7 @@ class qa_sync_cc(gr_unittest.TestCase):
                 bi_buf = np.array(kernel.integration_buffer())
                 kbuf = np.concatenate((bi_buf, a))
                 print 'KBEF argmax', np.argmax(kbuf)
-                snc = int(kernel.find_preamble(w))
+                snc = int(kernel.find_preamble(w))  # necessary to update kernel state!
                 ai_buf = np.array(kernel.integration_buffer())
                 self.assertFloatTuplesAlmostEqual(ref_buf, ai_buf, 5)
                 c_buf = np.array(kernel.auto_corr_buffer())
@@ -238,9 +238,8 @@ class qa_sync_cc(gr_unittest.TestCase):
                 in_buf = np.array(kernel.input_buffer())
                 self.assertComplexTuplesAlmostEqual(inref_buf, in_buf)
 
-
-    def test_009_stepped(self):
-        print '\n\n\nstepped test'
+    def test_009_step_window(self):
+        print 'long windowed test'
         alpha = .5
         M = 33
         K = 32
@@ -257,43 +256,40 @@ class qa_sync_cc(gr_unittest.TestCase):
         kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
         preamble = np.array(kernel.preamble())
         nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
-        print 'auto_corr nm:', np.argmax(abs_corr_vals)
         slen = len(signal)
-        n_rep = 55
+        n_rep = 10
         signal = np.tile(signal, n_rep)
 
-        nc_vec = [nc, ]
-        for i in range(n_rep - 1):
-            nc_vec = np.append(nc_vec, nc_vec[-1] + slen)
-        print nc_vec
+        nc_vec = (np.arange(0, n_rep) * slen) + nc
 
-        # knc = np.array(kernel.find_preamble(signal))
         step_size = nc + 4
         window_nc = np.array([], dtype=int)
         dumped = np.array([], dtype=int)
         for i in range(0, len(signal), step_size):
             w = signal[i:i + step_size + 3 * K]
             if len(w) > 4 * K:
-                print
-                print
-                it = i // step_size
-                print 'PROCESS WINDOW ', it
+                # it = i // step_size
+                # print 'PROCESS WINDOW ', it
                 snc = int(kernel.find_preamble(w))
                 if not snc == -2 * len(w):
                     abs_nc = i + snc
-                    if not abs_nc == nc_vec[len(window_nc)]:
-                        print len(window_nc), abs_nc, ' != ', nc_vec[len(window_nc)]
-                        assert abs_nc == nc_vec[len(window_nc)]
-                    window_nc = np.append(window_nc, abs_nc)
-                    print 'RESULT', snc, abs_nc
+                    n_frame = len(window_nc)
+                    prev_pos = nc_vec[n_frame - 1]
+                    if abs_nc == prev_pos:
+                        print 'found:', abs_nc, 'previous:', prev_pos
+                    elif not abs_nc == nc_vec[n_frame]:
+                        print 'FAIL STATUS: reps', n_rep, 'detected frames:', n_frame, 'avail_frames:', len(nc_vec)
+                        print '#frame', n_frame, 'expected:', nc_vec[n_frame], 'found:', abs_nc, 'diff:', abs_nc - nc_vec[n_frame]
+                        print 'step_size:', step_size, 'step_start:', i, 'snc:', snc
+                        print nc_vec[n_frame-3:n_frame+3]
+                        print window_nc[-3:]
+                        self.assertEqual(abs_nc, nc_vec[n_frame])
+                    else:
+                        # print 'SUCCESSFULLY detected frame @', abs_nc
+                        window_nc = np.append(window_nc, abs_nc)
                 else:
                     dumped = np.append(dumped, snc)
-                    # print 'dump val: ', snc
 
-        # print 'dumped values:          ', dumped
-        print 'expected peak positions:', nc_vec
-        print 'actual nc position:     ', window_nc
-        # print knc, nc
         self.assertTupleEqual(tuple(nc_vec), tuple(window_nc))
 
 
