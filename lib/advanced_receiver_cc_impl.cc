@@ -29,31 +29,36 @@ namespace gr {
   namespace gfdm {
 
     advanced_receiver_cc::sptr
-    advanced_receiver_cc::make(int nsubcarrier, int ntimeslots, double filter_alpha, int fft_len, int ic_iter, gr::digital::constellation_sptr constellation, const std::string& len_tag_key)
+    advanced_receiver_cc::make(int nsubcarriers, int ntimeslots, int overlap, int ic_iter, std::vector<gr_complex> frequency_taps, gr::digital::constellation_sptr constellation, const std::string& len_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new advanced_receiver_cc_impl(nsubcarrier, ntimeslots, filter_alpha, fft_len, ic_iter, constellation, len_tag_key));
+        (new advanced_receiver_cc_impl(nsubcarriers, ntimeslots, overlap,  ic_iter, frequency_taps, constellation, len_tag_key));
     }
 
     /*
      * The private constructor
      */
-    advanced_receiver_cc_impl::advanced_receiver_cc_impl(int nsubcarrier, int ntimeslots, double filter_alpha, int fft_len, int ic_iter, gr::digital::constellation_sptr constellation, const std::string& len_tag_key)
+    advanced_receiver_cc_impl::advanced_receiver_cc_impl(int nsubcarriers, int ntimeslots, int overlap, int ic_iter, std::vector<gr_complex> frequency_taps, gr::digital::constellation_sptr constellation, const std::string& len_tag_key)
       : gr::tagged_stream_block("advanced_receiver_cc",
               gr::io_signature::make(1,1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               len_tag_key),
-      gfdm_receiver(nsubcarrier, ntimeslots, filter_alpha, fft_len),
+      d_n_subcarriers(nsubcarriers),
+      d_n_timeslots(ntimeslots),
       d_constellation(constellation),
       d_ic_iter(ic_iter)
     {
-      set_relative_rate(double(d_N)/double(d_fft_len));
-      d_ic_filter_taps.resize(d_ntimeslots);
-      // Only works for d_filter_width = 2
-      ::volk_32fc_x2_multiply_32fc(&d_ic_filter_taps[0],&d_filter_taps[0],&d_filter_taps[d_ntimeslots],d_ntimeslots);
-      d_sc_fft = new fft::fft_complex(d_ntimeslots,true,1);
-      d_sc_fft_in = d_sc_fft->get_inbuf();
-      d_sc_fft_out = d_sc_fft->get_outbuf();
+      d_kernel = receiver_kernel_cc::sptr(new receiver_kernel_cc(d_n_subcarriers,ntimeslots,overlap,frequency_taps));
+      d_sc_fdomain.resize(d_n_subcarriers);
+      for (std::vector< std::vector<gr_complex> >::iterator it = d_sc_fdomain.begin(); it != d_sc_fdomain.end(); ++it)
+      {
+        it->resize(ntimeslots);
+      }
+      d_sc_symbols.resize(d_n_subcarriers);
+      for (std::vector< std::vector<gr_complex> >::iterator it = d_sc_symbols.begin(); it != d_sc_symbols.end(); ++it)
+      {
+        it->resize(ntimeslots);
+      }
     }
 
     /*
@@ -79,18 +84,18 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
 
-      filter_superposition(d_sc_fdomain,&in[0]);
-      demodulate_subcarrier(d_sc_symbols,d_sc_fdomain);
-      for (int j=0;j<d_ic_iter;j++)
+      d_kernel->filter_superposition(d_sc_fdomain,&in[0]);
+      d_kernel->demodulate_subcarrier(d_sc_symbols,d_sc_fdomain);
+      for (int j=0;j<d_ic_iter;++j)
       {
         map_sc_symbols(d_sc_symbols);
-        remove_sc_interference(d_sc_symbols,d_sc_fdomain);
-        //Should work since output is assigned after operation and no volk calls are in demodulate_subcarrier
-        demodulate_subcarrier(d_sc_symbols,d_sc_symbols);
+        d_kernel->remove_sc_interference(d_sc_symbols,d_sc_fdomain);
+        //Should work since output is assigned after operation
+        d_kernel->demodulate_subcarrier(d_sc_symbols,d_sc_symbols);
       }
-      serialize_output(&out[0],d_sc_symbols);
+      d_kernel->serialize_output(&out[0],d_sc_symbols);
 
-      return d_N;
+      return d_kernel->block_size();
     }
 
     void
@@ -98,9 +103,9 @@ namespace gr {
     {
       unsigned int symbol_tmp = 0;
       std::vector<gr_complex> const_points = d_constellation->points();
-      for (int k=0;k<d_nsubcarrier;k++)
+      for (int k=0;k<d_n_subcarriers;k++)
       {
-        for (int m=0;m<d_ntimeslots;m++)
+        for (int m=0;m<d_n_timeslots;m++)
         {
           symbol_tmp =d_constellation->decision_maker(&sc_symbols[k][m]);
           sc_symbols[k][m] = const_points[symbol_tmp];
@@ -108,33 +113,6 @@ namespace gr {
       }
     }
 
-    void
-    advanced_receiver_cc_impl::remove_sc_interference(std::vector< std::vector<gr_complex> > &sc_symbols, std::vector< std::vector<gr_complex> > &sc_fdomain)
-    {
-      std::vector< std::vector<gr_complex> > prev_sc_symbols = sc_symbols;
-      std::vector<gr_complex> sc_tmp(d_ntimeslots);
-      std::vector<gr_complex> sc_zeros(d_ntimeslots);
-      for (int k=0; k<d_nsubcarrier; k++)
-      {
-        if(d_ntimeslots*d_nsubcarrier < d_N && ((k==0) || (k==d_nsubcarrier-1)))
-        {
-          if (k==0)
-          {
-            ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[((k+1)% d_nsubcarrier)][0],(float*)&sc_zeros[0],2*d_ntimeslots);
-          }else if(k==d_nsubcarrier-1){
-            ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[(((k-1) % d_nsubcarrier) + d_nsubcarrier ) % d_nsubcarrier][0],(float*)&sc_zeros[0],2*d_ntimeslots);
-          }
-        }else{
-          ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[(((k-1) % d_nsubcarrier) + d_nsubcarrier) % d_nsubcarrier][0],(float*)&prev_sc_symbols[((k+1)% d_nsubcarrier)][0],2*d_ntimeslots);
-        }
-        d_sc_fft->execute();
-        ::volk_32fc_x2_multiply_32fc(&sc_symbols[k][0],&d_ic_filter_taps[0],&d_sc_fft_out[0],d_ntimeslots);
-        ::volk_32f_x2_subtract_32f((float*)&sc_tmp[0],(float*)&sc_fdomain[k][0],(float*)&sc_symbols[k][0],2*d_ntimeslots);
-        ::std::memcpy(&sc_symbols[k][0],&sc_tmp[0],sizeof(gr_complex)*d_ntimeslots);
-
-      }
-
-    }
 
   } /* namespace gfdm */
 } /* namespace gr */

@@ -40,7 +40,11 @@ namespace gr {
 
       receiver_kernel_cc(int n_subcarriers, int n_timeslots, int overlap, std::vector<gfdm_complex> frequency_taps);
       ~receiver_kernel_cc();
-      void gfdm_work(gfdm_complex out[], const gfdm_complex in[], int ninputitems, int noutputitems);
+      void generic_work(gfdm_complex* out, const gfdm_complex* in);
+      void filter_superposition(std::vector< std::vector<gfdm_complex> > &out, const gfdm_complex in[]);
+      void demodulate_subcarrier(std::vector< std::vector<gfdm_complex> > &out, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
+      void serialize_output(gfdm_complex out[], std::vector< std::vector<gfdm_complex> > &sc_symbols);
+      void remove_sc_interference(std::vector< std::vector<gfdm_complex> > &sc_symbols, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
       int block_size()
       {
         return d_n_subcarriers * d_n_timeslots;
@@ -52,6 +56,7 @@ namespace gr {
       int d_overlap;
       int d_fft_len;
       gfdm_complex* d_filter_taps;
+      gfdm_complex* d_ic_filter_taps;
 
       fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
 
@@ -63,11 +68,11 @@ namespace gr {
       fftwf_plan d_sc_ifft_plan;
       gfdm_complex* d_sc_ifft_in;
       gfdm_complex* d_sc_ifft_out;
+      fftwf_plan d_sc_fft_plan;
+      gfdm_complex* d_sc_fft_in;
+      gfdm_complex* d_sc_fft_out;
       gfdm_complex* d_sc_postfilter;
 
-      void filter_superposition(std::vector< std::vector<gfdm_complex> > &out, const gfdm_complex in[]);
-      void demodulate_subcarrier(std::vector< std::vector<gfdm_complex> > &out, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
-      void serialize_output(gfdm_complex out[], std::vector< std::vector<gfdm_complex> > &sc_symbols);
 
 
 

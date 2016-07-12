@@ -28,9 +28,9 @@ link_directories(${Boost_LIBRARY_DIRS})
 list(APPEND gfdm_sources
     framer_cc_impl.cc
     gfdm_utils.cc
-    gfdm_receiver.cc
+    receiver_kernel_cc.cc
     modulator_cc_impl.cc
-    receiver2_cc_impl.cc
+    #receiver2_cc_impl.cc
     advanced_receiver_cc_impl.cc
     sync_cc_impl.cc
     cyclic_prefixer_cc_impl.cc
@@ -38,8 +38,8 @@ list(APPEND gfdm_sources
     remove_prefix_cc_impl.cc
     simple_modulator_cc_impl.cc
     modulator_kernel_cc.cc
-    add_cyclic_prefix_cc.cc
-    simple_receiver_cc_impl.cc)
+    add_cyclic_prefix_cc.cc)
+    #simple_receiver_cc_impl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)

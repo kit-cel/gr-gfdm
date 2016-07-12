@@ -29,17 +29,15 @@ namespace gr {
   namespace gfdm {
 
     receiver_cc::sptr
-    receiver_cc::make(int nsubcarrier,
+    receiver_cc::make(int nsubcarriers,
                       int ntimeslots,
-                      double filter_alpha,
-                      int fft_len,
+                      std::vector<gr_complex> frequency_taps,
                       const std::string& len_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new receiver2_cc_impl(nsubcarrier,
+        (new receiver2_cc_impl(nsubcarriers,
                               ntimeslots,
-                              filter_alpha,
-                              fft_len,
+                              frequency_taps,
                               len_tag_key));
     }
 
@@ -54,8 +52,10 @@ namespace gr {
       : gr::tagged_stream_block("receiver_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex)), len_tag_key),
-      kernel::gfdm_receiver(nsubcarrier, ntimeslots, filter_alpha, fft_len)
+      d_n_subcarriers(nsubcarriers),
+      d_n_timeslots(ntimeslots),
     {
+      d_kernel = receiver_kernel_cc::sptr(new receiver_kernel_cc(d_nsubcarriers,d_n_timeslots,d_overlap,d_frequency_taps));
       set_relative_rate(double(d_N)/double(d_fft_len));
 
     }
@@ -71,7 +71,7 @@ namespace gr {
     int
     receiver2_cc_impl::calculate_output_stream_length(const gr_vector_int &ninput_items)
     {
-      int noutput_items = d_nsubcarrier*d_ntimeslots;
+      int noutput_items = d_n_subcarrier*d_ntimeslots;
       if (ninput_items[0] != d_fft_len)
       {
         throw std::runtime_error("frame_len must be equal to fft_len");

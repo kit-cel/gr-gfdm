@@ -25,13 +25,15 @@
 #include <gnuradio/fft/fft.h>
 #include <volk/volk.h>
 #include <gnuradio/filter/firdes.h>
-#include <gfdm/gfdm_receiver.h>
+#include <gfdm/receiver_kernel_cc.h>
 
 namespace gr {
   namespace gfdm {
 
-    class receiver2_cc_impl :  public receiver_cc, public kernel::gfdm_receiver
+    class receiver2_cc_impl :  public receiver_cc
     {
+     private:
+      receiver_kernel_cc::sptr d_kernel;
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 

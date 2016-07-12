@@ -25,8 +25,8 @@ install(FILES
     framer_cc.h
     modulator_cc.h
     gfdm_utils.h
-    gfdm_receiver.h
-    receiver_cc.h
+    receiver_kernel_cc.h
+    #receiver_cc.h
     advanced_receiver_cc.h
     sync_cc.h
     cyclic_prefixer_cc.h
@@ -34,6 +34,6 @@ install(FILES
     remove_prefix_cc.h
     simple_modulator_cc.h
     modulator_kernel_cc.h
-    add_cyclic_prefix_cc.h
-    simple_receiver_cc.h DESTINATION include/gfdm
+    add_cyclic_prefix_cc.h DESTINATION include/gfdm
+    #simple_receiver_cc.h DESTINATION include/gfdm
 )

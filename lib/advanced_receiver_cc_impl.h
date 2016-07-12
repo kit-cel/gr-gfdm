@@ -22,33 +22,36 @@
 #define INCLUDED_GFDM_ADVANCED_RECEIVER_CC_IMPL_H
 
 #include <gfdm/advanced_receiver_cc.h>
+#include <gfdm/receiver_kernel_cc.h>
 
 namespace gr {
   namespace gfdm {
 
-    class advanced_receiver_cc_impl : public advanced_receiver_cc, public kernel::gfdm_receiver
+    class advanced_receiver_cc_impl : public advanced_receiver_cc
     {
      private:
        int d_ic_iter;
+       int d_n_subcarriers;
+       int d_n_timeslots;
        std::vector<gr_complex> d_ic_filter_taps;
        gr::digital::constellation_sptr d_constellation;
        void map_sc_symbols(std::vector< std::vector<gr_complex> > &sc_symbols);
        void remove_sc_interference(
            std::vector< std::vector<gr_complex> > &sc_symbols,
            std::vector< std::vector<gr_complex> > &sc_fdomain);
-       fft::fft_complex *d_sc_fft;
-       gr_complex *d_sc_fft_in;
-       gr_complex *d_sc_fft_out;
+       receiver_kernel_cc::sptr d_kernel;
+       std::vector< std::vector<gr_complex> > d_sc_fdomain;
+       std::vector< std::vector<gr_complex> > d_sc_symbols;
      protected:
       int calculate_output_stream_length(const gr_vector_int &ninput_items);
 
      public:
       advanced_receiver_cc_impl(
-          int nsubcarrier,
+          int nsubcarriers,
           int ntimeslots,
-          double filter_alpha,
-          int fft_len,
+          int overlap,
           int ic_iter,
+          std::vector<gr_complex> frequency_taps,
           gr::digital::constellation_sptr constellation,
           const std::string& len_tag_key);
       ~advanced_receiver_cc_impl();

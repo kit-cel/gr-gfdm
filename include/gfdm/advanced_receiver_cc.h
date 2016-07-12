@@ -24,7 +24,7 @@
 
 #include <gfdm/api.h>
 #include <gnuradio/tagged_stream_block.h>
-#include <gfdm/gfdm_receiver.h>
+#include <gfdm/receiver_kernel_cc.h>
 #include <gnuradio/digital/api.h>
 #include <gnuradio/digital/constellation.h>
 
@@ -50,11 +50,11 @@ namespace gr {
        * creating new instances.
        */
       static sptr make(
-          int nsubcarrier,
+          int nsubcarriers,
           int ntimeslots,
-          double filter_alpha,
-          int fft_len,
+          int overlap,
           int ic_iter,
+          std::vector<gr_complex> frequency_taps,
           gr::digital::constellation_sptr constellation,
           const std::string& len_tag_key = "gfdm_frame");
       virtual void set_ic(int ic_iter){};
