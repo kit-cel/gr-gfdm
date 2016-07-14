@@ -150,7 +150,6 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
     H = get_frequency_domain_filter('rrc', alpha, M, K, overlap)
     D = get_data_matrix(data, K, group_by_subcarrier=False)
     return gfdm_modulate_block(D, H, M, K, overlap, False)
-    return x
 
 
 def gr_conformity_validation():

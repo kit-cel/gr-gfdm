@@ -21,7 +21,6 @@
 
 import numpy as np
 
-
 # [2] "Bit Error Rate Performance of Generalized Frequency Division Multiplexing"
 def get_data_matrix(data, K, group_by_subcarrier=False):
     # function yields data matrix according to [2]
@@ -32,6 +31,11 @@ def get_data_matrix(data, K, group_by_subcarrier=False):
         # data grouped as described in [2]
         return np.reshape(data, (K, -1)).T
 
+def get_data_stream(data, group_by_subcarrier=False):
+    if group_by_subcarrier:
+        return np.reshape(data,(-1,1)).T[0]
+    else:
+        return np.reshape(data.T, (1,-1))[0]
 
 def reshape_input(x, M, K, group_by_subcarrier=True):
     '''
