@@ -292,6 +292,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         self.assertTupleEqual(tuple(nc_vec), tuple(window_nc))
 
     def test_010_sync_block(self):
+        np.set_printoptions(precision=4)
         print 'GR block sync!'
         alpha = .5
         M = 33
@@ -303,6 +304,7 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         test_cfo = -.2
         snr_dB = 10.0
+        n_reps = 4
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         signal *= .001
@@ -311,6 +313,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, np.array(kernel.preamble()), K, cp_len)
         print 'Python frame start: ', nc
 
+        signal = np.tile(signal, n_reps)
         src = blocks.vector_source_c(signal)
         sync = gfdm.sync_cc(K, cp_len, frame_len, preamble, 'gfdm_block')
         snk = blocks.vector_sink_c()
@@ -318,44 +321,36 @@ class qa_sync_cc(gr_unittest.TestCase):
         self.tb.run()
 
         ref = signal[nc:nc + frame_len]
+        ref = np.tile(ref, n_reps)
+        res = np.array(snk.data())
+        print 'res length:', len(res) / n_reps
+        print 'frame size:', frame_len
+        self.assertComplexTuplesAlmostEqual(ref, res)
+
+    def test_011_block_noise_input(self):
+        print 'test_011_Noise only!'
+        alpha = .5
+        M = 33
+        K = 32
+        L = 2
+        cp_len = K
+        ramp_len = cp_len / 2
+        frame_len = 2 * K + cp_len + M * K
+
+        signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, 10.0, -.2)
+        noise_variance = .5
+        signal = get_complex_noise_vector(4 * M * K, noise_variance)
+
+        src = blocks.vector_source_c(signal)
+        sync = gfdm.sync_cc(K, cp_len, frame_len, preamble, 'gfdm_block')
+        snk = blocks.vector_sink_c()
+        self.tb.connect(src, sync, snk)
+        self.tb.run()
+
         res = np.array(snk.data())
         print 'res length:', len(res)
         print 'frame size:', frame_len
-        self.assertComplexTuplesAlmostEqual(ref[32:], res[32:])
-
-    # def test_011_block_noise_input(self):
-    #     print '\n\n\ntest_011_Noise only!'
-    #     alpha = .5
-    #     M = 33
-    #     K = 32
-    #     L = 2
-    #     cp_len = K
-    #     ramp_len = cp_len / 2
-    #     frame_len = 2 * K + cp_len + M * K
-    #
-    #     test_cfo = -.2
-    #     snr_dB = 10.0
-    #
-    #     signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
-    #     # signal *= .001
-    #     #
-    #     # kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
-    #     # nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, np.array(kernel.preamble()), K, cp_len)
-    #
-    #     noise_variance = .5
-    #     signal = get_complex_noise_vector(4 * M * K, noise_variance)
-    #
-    #     src = blocks.vector_source_c(signal)
-    #     sync = gfdm.sync_cc(K, cp_len, frame_len, preamble, 'gfdm_block')
-    #     snk = blocks.vector_sink_c()
-    #     self.tb.connect(src, sync, snk)
-    #     self.tb.run()
-    #
-    #     # ref = signal[nc:nc + frame_len]
-    #     res = np.array(snk.data())
-    #     print 'res length:', len(res)
-    #     print 'frame size:', frame_len
-    #     # self.assertComplexTuplesAlmostEqual(ref, res)
+        self.assertTrue(len(res) == 0)
 
 
 if __name__ == '__main__':

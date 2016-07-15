@@ -69,10 +69,11 @@ namespace gr {
       d_p_in_buffer = (gr_complex*) volk_malloc(sizeof(gr_complex) * 4 * n_subcarriers, volk_get_alignment());
       memset(d_p_in_buffer, 0, sizeof(gr_complex) * n_subcarriers);
       std::cout << "buffer size: " << max_ninput_size << std::endl;
-      d_auto_corr_vals  = (gr_complex*) volk_malloc(sizeof(gr_complex) * max_ninput_size, volk_get_alignment());
-      memset(d_auto_corr_vals, 0, sizeof(gr_complex) * max_ninput_size);
-      d_abs_auto_corr_vals  = (float*) volk_malloc(sizeof(float) * max_ninput_size, volk_get_alignment());
-      memset(d_abs_auto_corr_vals, 0, sizeof(float) * max_ninput_size);
+      const int array_len = max_ninput_size + d_buffer_len;
+      d_auto_corr_vals  = (gr_complex*) volk_malloc(sizeof(gr_complex) * array_len, volk_get_alignment());
+      memset(d_auto_corr_vals, 0, sizeof(gr_complex) * array_len);
+      d_abs_auto_corr_vals  = (float*) volk_malloc(sizeof(float) * array_len, volk_get_alignment());
+      memset(d_abs_auto_corr_vals, 0, sizeof(float) * array_len);
 
       d_xcorr_vals = (gr_complex*) volk_malloc(sizeof(gr_complex) * 4 * n_subcarriers, volk_get_alignment());
       d_abs_xcorr_vals = (float*) volk_malloc(sizeof(float) * 2 * n_subcarriers, volk_get_alignment());

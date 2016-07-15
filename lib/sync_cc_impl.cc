@@ -45,15 +45,13 @@ namespace gr {
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make3(1, 4, sizeof(gr_complex),sizeof(gr_complex),sizeof(float))),
       d_block_len(frame_len),
-      d_gfdm_tag_key(gfdm_tag_key)
+      d_gfdm_tag_key(gfdm_tag_key),
+      d_is_at_frame_start(false)
 
     {
       // Make sure to have only multiple of( one GFDM Block + Sync) in input
-//      gr::block::set_output_multiple(d_block_len + 2 * n_subcarriers);
       set_output_multiple(d_block_len);
-//      set_history(n_subcarriers + 1);
-
-      std::cout << "output multiple: " << output_multiple() << std::endl;
+      set_history(n_subcarriers + 1);
 
       std::cout << "preamble: " << d_known_preamble.size() << std::endl;
       d_kernel = new improved_sync_algorithm_kernel_cc(n_subcarriers, cp_length, preamble, output_multiple() + output_multiple() / 2);
@@ -85,30 +83,44 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
 
+      if(d_is_at_frame_start){ // this is easier and avoids errors! also, no "resync"!
+        std::cout << "frame aligned call to work! produce and return!\n";
+        produce_output_frame(out, in + new_items_pos);
+        consume_each(d_block_len);
+        d_is_at_frame_start = false;
+        return d_block_len;
+      }
+
       // if no frame is detected, kernel returns -2 * ninput_items!
       const int ninput_item_size = std::min(ninput_items[0] - new_items_pos, d_kernel->max_ninput_size());
       const int frame_pos = d_kernel->detect_frame_start(in + new_items_pos, ninput_item_size);
       const int avail_items = ninput_item_size - frame_pos;
-      std::cout << "frame_pos: " << frame_pos << ", avail_items: " << avail_items << ", ninput_items: " << ninput_items[0] << ", ninput_item_size: " << ninput_item_size << ", " << ((frame_pos == -2 * ninput_items[0]) ? "true" : "false") << std::endl;
+      std::cout << "frame_pos: " << frame_pos << ", avail_items: " << avail_items << ", ninput_items: " << ninput_items[0] << ", ninput_item_size: " << ninput_item_size << ", " << ((frame_pos == -2 * ninput_item_size) ? "true" : "false") << std::endl;
       if(frame_pos == -2 * ninput_item_size){
         std::cout << "NO frame found!\n";
         consume_each(ninput_item_size);
         return 0;
       }
-      else if(avail_items < d_block_len){
-        std::cout << "Not enough items! try again @ next call to work!\n";
+      else if(avail_items < d_block_len){ // align buffered items for next call to work!
+        std::cout << "Not enough items! try again @next call to work!\n";
+        d_is_at_frame_start = true;
         consume_each(frame_pos);
         return 0;
       }
       else{
         std::cout << "Boya! Frame FOUND! noutput_items: " << noutput_items << std::endl;
-        memcpy(out, in + new_items_pos + frame_pos, sizeof(gr_complex) * d_block_len);
+        produce_output_frame(out, in + frame_pos + new_items_pos);
         consume_each(frame_pos + d_block_len);
-        add_item_tag(0, nitems_written(0),
-                     pmt::string_to_symbol(d_gfdm_tag_key),
-                     pmt::from_long(d_sync_fft_len));
         return d_block_len;
       }
+    }
+
+    void sync_cc_impl::produce_output_frame(gr_complex* outbuf, const gr_complex*inbuf)
+    {
+      memcpy(outbuf, inbuf, sizeof(gr_complex) * d_block_len);
+      add_item_tag(0, nitems_written(0),
+                   pmt::string_to_symbol(d_gfdm_tag_key),
+                   pmt::from_long(d_sync_fft_len));
     }
 
   } /* namespace gfdm */
