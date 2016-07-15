@@ -37,8 +37,8 @@
 namespace gr {
   namespace gfdm {
 
-    improved_sync_algorithm_kernel_cc::improved_sync_algorithm_kernel_cc(int n_subcarriers, int cp_len, std::vector<gr_complex> preamble):
-      d_n_subcarriers(n_subcarriers), d_cp_len(cp_len), d_buffer_len(2 * n_subcarriers)
+    improved_sync_algorithm_kernel_cc::improved_sync_algorithm_kernel_cc(int n_subcarriers, int cp_len, std::vector<gr_complex> preamble, int max_ninput_size):
+      d_n_subcarriers(n_subcarriers), d_cp_len(cp_len), d_buffer_len(2 * n_subcarriers), d_max_ninput_size(max_ninput_size)
     {
       // perform initial checks!
       if(preamble.size() != 2 * n_subcarriers){
@@ -68,11 +68,11 @@ namespace gr {
 
       d_p_in_buffer = (gr_complex*) volk_malloc(sizeof(gr_complex) * 4 * n_subcarriers, volk_get_alignment());
       memset(d_p_in_buffer, 0, sizeof(gr_complex) * n_subcarriers);
-      const int array_len = 4000;
-      d_auto_corr_vals  = (gr_complex*) volk_malloc(sizeof(gr_complex) * array_len, volk_get_alignment());
-      memset(d_auto_corr_vals, 0, sizeof(gr_complex) * array_len);
-      d_abs_auto_corr_vals  = (float*) volk_malloc(sizeof(float) * array_len, volk_get_alignment());
-      memset(d_abs_auto_corr_vals, 0, sizeof(float) * array_len);
+      std::cout << "buffer size: " << max_ninput_size << std::endl;
+      d_auto_corr_vals  = (gr_complex*) volk_malloc(sizeof(gr_complex) * max_ninput_size, volk_get_alignment());
+      memset(d_auto_corr_vals, 0, sizeof(gr_complex) * max_ninput_size);
+      d_abs_auto_corr_vals  = (float*) volk_malloc(sizeof(float) * max_ninput_size, volk_get_alignment());
+      memset(d_abs_auto_corr_vals, 0, sizeof(float) * max_ninput_size);
 
       d_xcorr_vals = (gr_complex*) volk_malloc(sizeof(gr_complex) * 4 * n_subcarriers, volk_get_alignment());
       d_abs_xcorr_vals = (float*) volk_malloc(sizeof(float) * 2 * n_subcarriers, volk_get_alignment());

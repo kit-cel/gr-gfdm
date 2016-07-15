@@ -23,7 +23,7 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
 import numpy as np
-from pygfdm.utils import calculate_signal_energy
+from pygfdm.utils import calculate_signal_energy, get_complex_noise_vector
 from pygfdm.synchronization import auto_correlate_halfs, generate_test_sync_samples, find_frame_start
 from pygfdm.synchronization import auto_correlate_signal, abs_integrate, correct_frequency_offset
 from pygfdm.synchronization import cross_correlate_naive, cross_correlate_signal
@@ -44,7 +44,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         pre_gen = gfdm.preamble_generator(K, alpha, K * 2)
         preamble = np.array(pre_gen.get_preamble())
 
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
         kernel_preamble = np.array(kernel.preamble())
 
         # normalize preamble
@@ -67,7 +67,7 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         pre_gen = gfdm.preamble_generator(K, alpha, K * 2)
         preamble = np.array(pre_gen.get_preamble())
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         ac = auto_correlate_signal(signal, K)
@@ -88,7 +88,7 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         pre_gen = gfdm.preamble_generator(K, alpha, K * 2)
         preamble = np.array(pre_gen.get_preamble())
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         ac = auto_correlate_signal(signal, K)
@@ -115,7 +115,7 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         pre_gen = gfdm.preamble_generator(K, alpha, K * 2)
         preamble = np.array(pre_gen.get_preamble())
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         ac = auto_correlate_signal(signal, K)
@@ -143,7 +143,7 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         pre_gen = gfdm.preamble_generator(K, alpha, K * 2)
         preamble = np.array(pre_gen.get_preamble())
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
 
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         ac = auto_correlate_signal(signal, K)
@@ -168,7 +168,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         snr_dB = 15.0
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
 
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
         preamble = np.array(kernel.preamble())
 
         kcc = np.array(kernel.cross_correlate_preamble(signal))
@@ -190,7 +190,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         # print 'preamble size:', len(preamble), len(preamble) == 2 * K
         # print 'init kernel'
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
         preamble = np.array(kernel.preamble())
         nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
 
@@ -214,7 +214,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         signal *= .001
 
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
         preamble = np.array(kernel.preamble())
         nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
 
@@ -252,7 +252,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         signal *= .001
 
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
         preamble = np.array(kernel.preamble())
         nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
         slen = len(signal)
@@ -292,7 +292,7 @@ class qa_sync_cc(gr_unittest.TestCase):
         self.assertTupleEqual(tuple(nc_vec), tuple(window_nc))
 
     def test_010_sync_block(self):
-        print 'test window buffering for auto correlation'
+        print 'GR block sync!'
         alpha = .5
         M = 33
         K = 32
@@ -307,23 +307,55 @@ class qa_sync_cc(gr_unittest.TestCase):
         signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
         signal *= .001
 
-        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+        kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
         nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, np.array(kernel.preamble()), K, cp_len)
+        print 'Python frame start: ', nc
 
-
-        # (int sync_fft_len, int cp_length, int fft_len, std::vector<gr_complex> preamble, const std::string& gfdm_tag_key)
         src = blocks.vector_source_c(signal)
         sync = gfdm.sync_cc(K, cp_len, frame_len, preamble, 'gfdm_block')
         snk = blocks.vector_sink_c()
         self.tb.connect(src, sync, snk)
         self.tb.run()
 
-
         ref = signal[nc:nc + frame_len]
         res = np.array(snk.data())
         print 'res length:', len(res)
         print 'frame size:', frame_len
-        self.assertComplexTuplesAlmostEqual(ref, res)
+        self.assertComplexTuplesAlmostEqual(ref[32:], res[32:])
+
+    # def test_011_block_noise_input(self):
+    #     print '\n\n\ntest_011_Noise only!'
+    #     alpha = .5
+    #     M = 33
+    #     K = 32
+    #     L = 2
+    #     cp_len = K
+    #     ramp_len = cp_len / 2
+    #     frame_len = 2 * K + cp_len + M * K
+    #
+    #     test_cfo = -.2
+    #     snr_dB = 10.0
+    #
+    #     signal, preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
+    #     # signal *= .001
+    #     #
+    #     # kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble)
+    #     # nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, np.array(kernel.preamble()), K, cp_len)
+    #
+    #     noise_variance = .5
+    #     signal = get_complex_noise_vector(4 * M * K, noise_variance)
+    #
+    #     src = blocks.vector_source_c(signal)
+    #     sync = gfdm.sync_cc(K, cp_len, frame_len, preamble, 'gfdm_block')
+    #     snk = blocks.vector_sink_c()
+    #     self.tb.connect(src, sync, snk)
+    #     self.tb.run()
+    #
+    #     # ref = signal[nc:nc + frame_len]
+    #     res = np.array(snk.data())
+    #     print 'res length:', len(res)
+    #     print 'frame size:', frame_len
+    #     # self.assertComplexTuplesAlmostEqual(ref, res)
 
 
 if __name__ == '__main__':

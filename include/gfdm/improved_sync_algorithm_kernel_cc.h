@@ -40,10 +40,11 @@ namespace gr {
     class GFDM_API improved_sync_algorithm_kernel_cc
     {
     public:
-      improved_sync_algorithm_kernel_cc(int n_subcarriers, int cp_len, std::vector<gr_complex> preamble);
+      improved_sync_algorithm_kernel_cc(int n_subcarriers, int cp_len, std::vector<gr_complex> preamble, int max_ninput_size);
       ~improved_sync_algorithm_kernel_cc();
 
       int detect_frame_start(const gr_complex *p_in, int ninput_size);
+      int max_ninput_size() const { return d_max_ninput_size;};
 
       // The following public functions are mainly a debugging interface to Python!
       int find_preamble(std::vector<gr_complex> in_vec);
@@ -61,6 +62,7 @@ namespace gr {
       std::vector<float> auto_corr_integrate(std::vector<gr_complex> in_vec);
 
     private:
+      int d_max_ninput_size;
       int d_buffer_len;
       float d_false_alarm_prob_factor;
       int d_n_subcarriers;
