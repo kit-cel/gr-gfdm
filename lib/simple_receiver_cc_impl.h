@@ -22,7 +22,7 @@
 #define INCLUDED_GFDM_SIMPLE_RECEIVER_CC_IMPL_H
 
 #include <gfdm/simple_receiver_cc.h>
-#include <gfdm/gfdm_receiver.h>
+#include <gfdm/receiver_kernel_cc.h>
 
 namespace gr {
   namespace gfdm {
@@ -30,7 +30,6 @@ namespace gr {
     class simple_receiver_cc_impl : public simple_receiver_cc
     {
      private:
-      // Nothing to declare in this block.
       receiver_kernel_cc::sptr d_kernel;
 
      public:

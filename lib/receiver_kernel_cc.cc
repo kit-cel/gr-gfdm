@@ -30,8 +30,8 @@ namespace gr
   namespace gfdm
   {
 
-    receiver_kernel_cc::receiver_kernel_cc(int n_subcarriers,
-                                           int n_timeslots,
+    receiver_kernel_cc::receiver_kernel_cc(int n_timeslots,
+                                           int n_subcarriers,
                                            int overlap,
                                            std::vector<gfdm_complex> frequency_taps):
       d_n_subcarriers(n_subcarriers),
@@ -153,7 +153,7 @@ namespace gr
           ::volk_32fc_x2_multiply_32fc(d_sc_postfilter, d_filter_taps+target_part_pos,d_in_fft_out+src_part_pos, d_n_timeslots);
           //Superposition parts in out[k]
           ::volk_32f_x2_add_32f((float*)&out[k][0],
-                              (float*)(&out[k][0]),(float*)(&d_sc_postfilter[0]),d_n_timeslots);
+                              (float*)(&out[k][0]),(float*)(&d_sc_postfilter[0]),2*d_n_timeslots);
         }
       }
 
@@ -169,7 +169,7 @@ namespace gr
         memcpy(&d_sc_ifft_in[0],&sc_fdomain[k][0],sizeof(gfdm_complex)*d_n_timeslots);
         fftwf_execute(d_sc_ifft_plan);
         //Scale afterwards if required
-        ::volk_32fc_s32fc_multiply_32fc(&out[k][0],&d_sc_ifft_out[0],static_cast<gfdm_complex>(1.0/d_n_subcarriers),d_n_timeslots);
+        ::volk_32fc_s32fc_multiply_32fc(&out[k][0],&d_sc_ifft_out[0],static_cast<gfdm_complex>(1.0/d_n_timeslots),d_n_timeslots);
         //memcpy(&out[k][0],&d_sc_ifft_out[0],sizeof(gfdm_complex)*d_n_timeslots);
       }
 

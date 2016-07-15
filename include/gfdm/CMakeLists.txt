@@ -34,6 +34,6 @@ install(FILES
     remove_prefix_cc.h
     simple_modulator_cc.h
     modulator_kernel_cc.h
-    add_cyclic_prefix_cc.h DESTINATION include/gfdm
-    #simple_receiver_cc.h DESTINATION include/gfdm
+    add_cyclic_prefix_cc.h
+    simple_receiver_cc.h DESTINATION include/gfdm
 )

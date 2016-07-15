@@ -38,7 +38,7 @@ namespace gr {
       typedef std::complex<float> gfdm_complex;
       typedef boost::shared_ptr<receiver_kernel_cc> sptr;
 
-      receiver_kernel_cc(int n_subcarriers, int n_timeslots, int overlap, std::vector<gfdm_complex> frequency_taps);
+      receiver_kernel_cc(int n_timeslots, int n_subcarriers, int overlap, std::vector<gfdm_complex> frequency_taps);
       ~receiver_kernel_cc();
       void generic_work(gfdm_complex* out, const gfdm_complex* in);
       void filter_superposition(std::vector< std::vector<gfdm_complex> > &out, const gfdm_complex in[]);

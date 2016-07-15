@@ -40,9 +40,12 @@ namespace gr {
      */
     simple_receiver_cc_impl::simple_receiver_cc_impl(int n_timeslots, int n_subcarriers, int overlap, std::vector<gr_complex> frequency_taps)
       : gr::sync_block("simple_receiver_cc",
-              gr::io_signature::make(<+MIN_IN+>, <+MAX_IN+>, sizeof(<+ITYPE+>)),
-              gr::io_signature::make(<+MIN_OUT+>, <+MAX_OUT+>, sizeof(<+OTYPE+>)))
-    {}
+              gr::io_signature::make(1, 1, sizeof(gr_complex)),
+              gr::io_signature::make(1, 1, sizeof(gr_complex)))
+    {
+      d_kernel = receiver_kernel_cc::sptr(new receiver_kernel_cc(n_timeslots, n_subcarriers, overlap, frequency_taps));
+      set_output_multiple(d_kernel->block_size());
+    }
 
     /*
      * Our virtual destructor.
@@ -56,12 +59,17 @@ namespace gr {
         gr_vector_const_void_star &input_items,
         gr_vector_void_star &output_items)
     {
-      const <+ITYPE+> *in = (const <+ITYPE+> *) input_items[0];
-      <+OTYPE+> *out = (<+OTYPE+> *) output_items[0];
+      const gr_complex *in = (const gr_complex *) input_items[0];
+      gr_complex *out = (gr_complex *) output_items[0];
 
-      // Do <+signal processing+>
+      const int n_blocks = noutput_items / d_kernel->block_size();
 
-      // Tell runtime system how many output items we produced.
+      for (int i = 0; i < n_blocks; ++i) {
+        d_kernel->generic_work(out, in);
+        in += d_kernel->block_size();
+        out += d_kernel->block_size();
+      }
+
       return noutput_items;
     }
 

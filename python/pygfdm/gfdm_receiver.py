@@ -57,4 +57,4 @@ def gfdm_demodulate_block(R,H,K,M,L):
 
 def gfdm_demodulate_fft(data,alpha,M,K,overlap):
     H = get_frequency_domain_filter('rrc', alpha, M, K, overlap)
-    return gfdm_demodulate_block(data,H,K,M,overlap)
+    return gfdm_demodulate_block(data,H.conj(),K,M,overlap)
