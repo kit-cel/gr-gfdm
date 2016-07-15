@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<?grc format='1' created='3.7.10'?>
+<?grc format='1' created='3.7.11'?>
 <flow_graph>
   <timestamp>Thu Apr 14 22:29:02 2016</timestamp>
   <block>
@@ -82,6 +82,33 @@
     </param>
   </block>
   <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(832, 76)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>f_taps</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>filters.get_frequency_domain_filter('rrc', 1.0, gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap)</value>
+    </param>
+  </block>
+  <block>
     <key>variable_constellation</key>
     <param>
       <key>comment</key>
@@ -93,7 +120,7 @@
     </param>
     <param>
       <key>type</key>
-      <value>16qam</value>
+      <value>qpsk</value>
     </param>
     <param>
       <key>dims</key>
@@ -130,104 +157,6 @@
     <param>
       <key>sym_map</key>
       <value>[0, 1, 3, 2]</value>
-    </param>
-  </block>
-  <block>
-    <key>variable_qtgui_range</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(208, 9)</value>
-    </param>
-    <param>
-      <key>gui_hint</key>
-      <value>0,0,1,1</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>gfdm_ic_iter</value>
-    </param>
-    <param>
-      <key>label</key>
-      <value>IC Iteration Count</value>
-    </param>
-    <param>
-      <key>min_len</key>
-      <value>50</value>
-    </param>
-    <param>
-      <key>orient</key>
-      <value>Qt.Horizontal</value>
-    </param>
-    <param>
-      <key>start</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>step</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>stop</key>
-      <value>50</value>
-    </param>
-    <param>
-      <key>rangeType</key>
-      <value>int</value>
-    </param>
-    <param>
-      <key>widget</key>
-      <value>counter_slider</value>
-    </param>
-  </block>
-  <block>
-    <key>variable_preamble_generator</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>filter_alpha</key>
-      <value>gfdm_var.filteralpha</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(824, 23)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>gfdm_pregen</value>
-    </param>
-    <param>
-      <key>nsubcarrier</key>
-      <value>gfdm_var.nsubcarrier</value>
-    </param>
-    <param>
-      <key>sync_fft_len</key>
-      <value>gfdm_var.syncfftlen</value>
     </param>
   </block>
   <block>
@@ -273,6 +202,14 @@
       <value>0</value>
     </param>
     <param>
+      <key>value4</key>
+      <value>10</value>
+    </param>
+    <param>
+      <key>value5</key>
+      <value>0.3</value>
+    </param>
+    <param>
       <key>value6</key>
       <value>0</value>
     </param>
@@ -298,11 +235,11 @@
     </param>
     <param>
       <key>field0</key>
-      <value>nsubcarrier</value>
+      <value>subcarriers</value>
     </param>
     <param>
       <key>field1</key>
-      <value>ntimeslots</value>
+      <value>timeslots</value>
     </param>
     <param>
       <key>field10</key>
@@ -346,19 +283,19 @@
     </param>
     <param>
       <key>field2</key>
-      <value>fftlen</value>
+      <value>alpha</value>
     </param>
     <param>
       <key>field3</key>
-      <value>syncfftlen</value>
+      <value>overlap</value>
     </param>
     <param>
       <key>field4</key>
-      <value>cplen</value>
+      <value></value>
     </param>
     <param>
       <key>field5</key>
-      <value>filteralpha</value>
+      <value></value>
     </param>
     <param>
       <key>field6</key>
@@ -389,16 +326,12 @@
       <value>gfdm_var</value>
     </param>
     <param>
-      <key>value4</key>
-      <value>10</value>
-    </param>
-    <param>
       <key>value2</key>
       <value>32*32</value>
     </param>
     <param>
-      <key>value5</key>
-      <value>0.3</value>
+      <key>value3</key>
+      <value>2</value>
     </param>
     <param>
       <key>value0</key>
@@ -407,10 +340,6 @@
     <param>
       <key>value1</key>
       <value>32</value>
-    </param>
-    <param>
-      <key>value3</key>
-      <value>16*2</value>
     </param>
   </block>
   <block>
@@ -551,7 +480,7 @@
     </param>
     <param>
       <key>num_samps</key>
-      <value>100*gfdm_var.fftlen</value>
+      <value>100*gfdm_var.timeslots*gfdm_var.subcarriers</value>
     </param>
     <param>
       <key>type</key>
@@ -560,6 +489,108 @@
     <param>
       <key>repeat</key>
       <value>True</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_multiply_const_vxx</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>const</key>
+      <value>1./gfdm_var.subcarriers</value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(432, 396)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_multiply_const_vxx_0</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>vlen</key>
+      <value>1</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_multiply_const_vxx</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>const</key>
+      <value>1./gfdm_var.subcarriers</value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(616, 276)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_multiply_const_vxx_1</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>vlen</key>
+      <value>1</value>
     </param>
   </block>
   <block>
@@ -586,7 +617,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(936, 344)</value>
+      <value>(1040, 352)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -603,61 +634,6 @@
     <param>
       <key>num_inputs</key>
       <value>1</value>
-    </param>
-    <param>
-      <key>vlen</key>
-      <value>1</value>
-    </param>
-  </block>
-  <block>
-    <key>blocks_stream_to_tagged_stream</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(192, 269)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>blocks_stream_to_tagged_stream_0</value>
-    </param>
-    <param>
-      <key>len_tag_key</key>
-      <value>"frame_len"</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>packet_len</key>
-      <value>gfdm_var.nsubcarrier*gfdm_var.ntimeslots</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
     </param>
     <param>
       <key>vlen</key>
@@ -684,7 +660,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(664, 172)</value>
+      <value>(640, 172)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -779,74 +755,7 @@
     </param>
   </block>
   <block>
-    <key>gfdm_advanced_receiver_cc</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>constellation</key>
-      <value>gfdm_constellation</value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>fft_len</key>
-      <value>gfdm_var.fftlen</value>
-    </param>
-    <param>
-      <key>filter_alpha</key>
-      <value>gfdm_var.filteralpha</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(192, 354)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>gfdm_advanced_receiver_cc_0</value>
-    </param>
-    <param>
-      <key>ic_iter</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>len_tag_key</key>
-      <value>"gfdm_frame"</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>nsubcarrier</key>
-      <value>gfdm_var.nsubcarrier</value>
-    </param>
-    <param>
-      <key>ntimeslots</key>
-      <value>gfdm_var.ntimeslots</value>
-    </param>
-  </block>
-  <block>
-    <key>gfdm_framer_cc</key>
+    <key>gfdm_simple_modulator_cc</key>
     <param>
       <key>alias</key>
       <value></value>
@@ -864,8 +773,12 @@
       <value>True</value>
     </param>
     <param>
+      <key>frequency_taps</key>
+      <value>f_taps</value>
+    </param>
+    <param>
       <key>_coordinate</key>
-      <value>(416, 241)</value>
+      <value>(296, 256)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -873,7 +786,19 @@
     </param>
     <param>
       <key>id</key>
-      <value>gfdm_framer_cc_0</value>
+      <value>gfdm_simple_modulator_cc_0</value>
+    </param>
+    <param>
+      <key>n_subcarriers</key>
+      <value>gfdm_var.subcarriers</value>
+    </param>
+    <param>
+      <key>overlap</key>
+      <value>gfdm_var.overlap</value>
+    </param>
+    <param>
+      <key>n_timeslots</key>
+      <value>gfdm_var.timeslots</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -883,29 +808,9 @@
       <key>minoutbuf</key>
       <value>0</value>
     </param>
-    <param>
-      <key>nsubcarrier</key>
-      <value>gfdm_var.nsubcarrier</value>
-    </param>
-    <param>
-      <key>ntimeslots</key>
-      <value>gfdm_var.ntimeslots</value>
-    </param>
-    <param>
-      <key>preamble_generator</key>
-      <value>gfdm_pregen</value>
-    </param>
-    <param>
-      <key>sync</key>
-      <value>False</value>
-    </param>
-    <param>
-      <key>sync_symbols</key>
-      <value>[ 0.27609610+0.41414415j, -0.25297725+0.10289432j,  0.15396781+0.24007586j, -0.01634210+0.28662329j, -0.30773501+0.09016927j, -0.32160103+0.3861782j ,  0.24410530+0.17509272j, -0.23171857-0.20296446j, -0.14857749+0.29715498j,  0.48258955+0.12185783j,  0.41298330+0.20510008j,  0.25915170+0.21641385j, -0.30773501-0.09016927j, -0.28180385-0.31329964j, -0.21482801-0.38143911j,  0.10696881+0.64303704j, -0.27609610-0.41414415j,  0.25297725-0.10289432j, -0.15396781-0.24007586j,  0.01634210-0.28662329j,  0.30773501-0.09016927j,  0.32160103-0.3861782j , -0.24410530-0.17509272j,  0.23171857+0.20296446j,  0.14857749-0.29715498j, -0.48258955-0.12185783j, -0.41298330-0.20510008j, -0.25915170-0.21641385j,  0.30773501+0.09016927j,  0.28180385+0.31329964j,  0.21482801+0.38143911j, -0.10696881-0.64303704j]</value>
-    </param>
   </block>
   <block>
-    <key>gfdm_modulator_cc</key>
+    <key>gfdm_simple_receiver_cc</key>
     <param>
       <key>alias</key>
       <value></value>
@@ -923,16 +828,12 @@
       <value>True</value>
     </param>
     <param>
-      <key>fft_len</key>
-      <value>gfdm_var.fftlen</value>
-    </param>
-    <param>
-      <key>filter_alpha</key>
-      <value>gfdm_var.filteralpha</value>
+      <key>frequency_taps</key>
+      <value>f_taps</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(672, 241)</value>
+      <value>(192, 376)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -940,11 +841,19 @@
     </param>
     <param>
       <key>id</key>
-      <value>gfdm_modulator_cc_0</value>
+      <value>gfdm_simple_receiver_cc_0</value>
     </param>
     <param>
-      <key>len_tag_key</key>
-      <value>"gfdm_frame"</value>
+      <key>n_subcarriers</key>
+      <value>gfdm_var.subcarriers</value>
+    </param>
+    <param>
+      <key>overlap</key>
+      <value>gfdm_var.overlap</value>
+    </param>
+    <param>
+      <key>n_timeslots</key>
+      <value>gfdm_var.timeslots</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -954,17 +863,36 @@
       <key>minoutbuf</key>
       <value>0</value>
     </param>
+  </block>
+  <block>
+    <key>import</key>
     <param>
-      <key>nsubcarrier</key>
-      <value>gfdm_var.nsubcarrier</value>
+      <key>alias</key>
+      <value></value>
     </param>
     <param>
-      <key>ntimeslots</key>
-      <value>gfdm_var.ntimeslots</value>
+      <key>comment</key>
+      <value></value>
     </param>
     <param>
-      <key>sync_fft_len</key>
-      <value>gfdm_var.syncfftlen</value>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(832, 28)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_0</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>from gfdm.pygfdm import filters</value>
     </param>
   </block>
   <block>
@@ -995,7 +923,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(880, 381)</value>
+      <value>(984, 384)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -1267,7 +1195,7 @@
     </param>
     <param>
       <key>size</key>
-      <value>2*gfdm_var.nsubcarrier*gfdm_var.ntimeslots</value>
+      <value>2*gfdm_var.subcarriers*gfdm_var.timeslots</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -1350,7 +1278,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(880, 454)</value>
+      <value>(984, 460)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -1426,7 +1354,7 @@
     </param>
     <param>
       <key>color2</key>
-      <value>"red"</value>
+      <value>"dark green"</value>
     </param>
     <param>
       <key>label2</key>
@@ -1454,7 +1382,7 @@
     </param>
     <param>
       <key>label3</key>
-      <value>Re{d} Symbole vor dem Framer</value>
+      <value>Re{d} Symbole vor dem Modulator</value>
     </param>
     <param>
       <key>marker3</key>
@@ -1478,7 +1406,7 @@
     </param>
     <param>
       <key>label4</key>
-      <value>Im{d} Symbole vor dem Framer</value>
+      <value>Im{d} Symbole vor dem Modulator</value>
     </param>
     <param>
       <key>marker4</key>
@@ -1743,7 +1671,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(456, 396)</value>
+      <value>(608, 396)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1797,7 +1725,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(656, 484)</value>
+      <value>(760, 492)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1851,7 +1779,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(648, 364)</value>
+      <value>(752, 372)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1873,8 +1801,14 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>blocks_stream_to_tagged_stream_0</source_block_id>
-    <sink_block_id>gfdm_framer_cc_0</sink_block_id>
+    <source_block_id>blocks_multiply_const_vxx_0</source_block_id>
+    <sink_block_id>virtual_sink_2</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>blocks_multiply_const_vxx_1</source_block_id>
+    <sink_block_id>virtual_sink_1</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -1891,26 +1825,20 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_advanced_receiver_cc_0</source_block_id>
-    <sink_block_id>virtual_sink_2</sink_block_id>
+    <source_block_id>gfdm_simple_modulator_cc_0</source_block_id>
+    <sink_block_id>blocks_multiply_const_vxx_1</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_framer_cc_0</source_block_id>
-    <sink_block_id>gfdm_modulator_cc_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>gfdm_modulator_cc_0</source_block_id>
-    <sink_block_id>virtual_sink_1</sink_block_id>
+    <source_block_id>gfdm_simple_receiver_cc_0</source_block_id>
+    <sink_block_id>blocks_multiply_const_vxx_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
     <source_block_id>virtual_source_0</source_block_id>
-    <sink_block_id>blocks_stream_to_tagged_stream_0</sink_block_id>
+    <sink_block_id>gfdm_simple_modulator_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -1928,7 +1856,7 @@
   </connection>
   <connection>
     <source_block_id>virtual_source_1</source_block_id>
-    <sink_block_id>gfdm_advanced_receiver_cc_0</sink_block_id>
+    <sink_block_id>gfdm_simple_receiver_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

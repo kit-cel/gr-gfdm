@@ -1,15 +1,10 @@
 <?xml version="1.0"?>
 <block>
-  <name>simple_receiver_cc</name>
+  <name>simple GFDM Demodulator</name>
   <key>gfdm_simple_receiver_cc</key>
-  <category>[gfdm]</category>
+  <category>[gr-gfdm]</category>
   <import>import gfdm</import>
   <make>gfdm.simple_receiver_cc($n_timeslots, $n_subcarriers, $overlap, $frequency_taps)</make>
-  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
-       Sub-nodes:
-       * name
-       * key (makes the value accessible as $keyname, e.g. in the make node)
-       * type -->
  <param>
     <name>M time slots</name>
     <key>n_timeslots</key>
