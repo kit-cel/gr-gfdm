@@ -39,6 +39,7 @@ list(APPEND gfdm_sources
     simple_modulator_cc_impl.cc
     modulator_kernel_cc.cc
     add_cyclic_prefix_cc.cc
+    simple_receiver_cc_impl.cc
     improved_sync_algorithm_kernel_cc.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
