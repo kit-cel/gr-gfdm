@@ -7,10 +7,14 @@ Dependencies
 =======
 It is assumed that the classes wrapped via Cython are NOT depending on GNU Radio. Needed components are:
 
+* cython (obviously, since this is the language of choice)
 * VOLK (libvolk-dev or similar)
 * FFTW3F (version also used by GNU Radio)
 * pkg-config (makes Cython setup for compilation easier)
-* 
+
+Compilation
+=====
+just run 'python setup.py build'. If you want all build files to be located in the source directory, append '--inplace'.
 
 Functionality
 =====
