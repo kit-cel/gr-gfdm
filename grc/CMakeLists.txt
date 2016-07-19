@@ -28,5 +28,6 @@ install(FILES
     gfdm_preamble_generator.xml
     gfdm_remove_prefix_cc.xml
     gfdm_simple_modulator_cc.xml
-    gfdm_simple_receiver_cc.xml DESTINATION share/gnuradio/grc/blocks
+    gfdm_simple_receiver_cc.xml
+    gfdm_advanced_receiver_sb_cc.xml DESTINATION share/gnuradio/grc/blocks
 )
