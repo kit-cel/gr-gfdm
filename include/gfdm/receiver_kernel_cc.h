@@ -32,6 +32,21 @@
 namespace gr {
   namespace gfdm {
 
+    /*!
+     * \brief Demodulate a GFDM block
+     *  This class initializes and performs all operations necessary to demodulate a GFDM block.
+     *
+     */
+    /*!
+     * \details
+     * The GFDM receiver kernel class provides all necessary operations to blocks which instantiate it.
+     * Further functions and methods not depending on GNU Radio should be implemented here.
+     * This receiver implementation is based on [Gas+13].
+     * It is recommended to use overlap = 2 to make use of sparse frequency domain processing.
+     *
+     * [Gas+13] I.S. Gaspar et al. "Low Complexity GFDM Receiver Based on Sparse Frequency Domain Processing"
+     *
+     */
     class  receiver_kernel_cc
     {
     public:

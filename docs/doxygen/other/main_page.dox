@@ -2,9 +2,15 @@
 
 Welcome to the GNU Radio GFDM Block
 
-This is the intro page for the Doxygen manual generated for the GFDM
-block (docs/doxygen/other/main_page.dox). Edit it to add more detailed
-documentation about the new GNU Radio modules contained in this
-project.
+The gr-gfdm project is an Free Software Package which aims to provide an implementation of Generalized Frequency Division Multiplexing (GFDM) in the GNU Radio framework. GFDM is a proposed waveform for use in 5G.
 
+This project was initiated as a Bachelor Thesis at the Communication Engineering Lab (CEL) at the Karlsruhe Institute of Technology (KIT), Germany, http://www.cel.kit.edu.
+
+Recommended literature:
+ - N. Michailow et al. “Generalized Frequency Division Multiplexing for 5th Generation Cellular Networks”. In: Communications, IEEE Transactions on 62.9 (2014), S. 3045–3061. doi: 10.1109/TCOMM.2014.2345566.
+ - I.S. Gaspar et al. “Low Complexity GFDM Receiver Based on Sparse Frequency Domain Processing”. In: Vehicular Technology Conference (VTC Spring), 2013 IEEE 77th. IEEE, 2013, S. 1–6. doi: 10.1109/VTCSpring.2013.6692619.
+ - N. Michailow et al. “Generalized frequency division multiplexing: Analysis of an alternative multi-carrier technique for next generation cellular systems”. In: Wireless Communication Systems (ISWCS), 2012 International Symposium on. IEEE, 2012, S. 171–175. doi: 10.1109/ISWCS.2012.6328352.
+
+\li \subpage page_modulator "GFDM Modulator description"
+\li \subpage page_demodulator "GFDM Demodulator description"
 */
