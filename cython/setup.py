@@ -15,6 +15,7 @@ def get_pkg_option(option, pkg_name):
     return shlex.split(subprocess.check_output(("pkg-config", "--" + option, pkg_name)))
 
 # a few assumptions are made here!
+# libfftw3-dev, cython, pkg-config, VOLK are installed.
 # cython is a top-level dir of gr-gfdm!
 # header files are in 'include/gfdm'
 # source files are in 'lib'
@@ -42,7 +43,7 @@ print source_files
 
 # assume those are the only additional libraries to link against.
 libraries = ['fftw3f', 'volk']
-include_dirs = [os.path.join(project_top_level_dir, 'include/gfdm'), ]
+include_dirs = [os.path.join(project_top_level_dir, 'include/gfdm'), os.path.join(project_top_level_dir, 'include'), ]
 library_dirs = []
 extra_compile_args = []
 extra_link_args = []

@@ -7,9 +7,9 @@ Dependencies
 =======
 It is assumed that the classes wrapped via Cython are NOT depending on GNU Radio. Needed components are:
 
-* cython (obviously, since this is the language of choice)
-* VOLK (libvolk-dev or similar)
-* FFTW3F (version also used by GNU Radio)
+* cython (obviously, since this is the language of choice, version >= 0.23)
+* VOLK (libvolk-dev or version from github)
+* FFTW3F (version also used by GNU Radio, package: libfftw3-dev)
 * pkg-config (makes Cython setup for compilation easier)
 
 Compilation
