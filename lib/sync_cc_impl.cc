@@ -43,7 +43,7 @@ namespace gr {
                                const std::string &gfdm_tag_key)
       : gr::block("sync_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
-              gr::io_signature::make3(1, 4, sizeof(gr_complex),sizeof(gr_complex),sizeof(float))),
+              gr::io_signature::make(1, 1, sizeof(gr_complex))),
       d_block_len(frame_len),
       d_gfdm_tag_key(gfdm_tag_key),
       d_is_at_frame_start(false)
@@ -84,7 +84,7 @@ namespace gr {
       gr_complex *out = (gr_complex *) output_items[0];
 
       if(d_is_at_frame_start){ // this is easier and avoids errors! also, no "resync"!
-        std::cout << "frame aligned call to work! produce and return!\n";
+//        std::cout << "frame aligned call to work! produce and return!\n";
         produce_output_frame(out, in + new_items_pos);
         consume_each(d_block_len);
         d_is_at_frame_start = false;
@@ -95,20 +95,20 @@ namespace gr {
       const int ninput_item_size = std::min(ninput_items[0] - new_items_pos, d_kernel->max_ninput_size());
       const int frame_pos = d_kernel->detect_frame_start(in + new_items_pos, ninput_item_size);
       const int avail_items = ninput_item_size - frame_pos;
-      std::cout << "frame_pos: " << frame_pos << ", avail_items: " << avail_items << ", ninput_items: " << ninput_items[0] << ", ninput_item_size: " << ninput_item_size << ", " << ((frame_pos == -2 * ninput_item_size) ? "true" : "false") << std::endl;
+//      std::cout << "frame_pos: " << frame_pos << ", avail_items: " << avail_items << ", ninput_items: " << ninput_items[0] << ", ninput_item_size: " << ninput_item_size << ", " << ((frame_pos == -2 * ninput_item_size) ? "true" : "false") << std::endl;
       if(frame_pos == -2 * ninput_item_size){
-        std::cout << "NO frame found!\n";
+//        std::cout << "NO frame found!\n";
         consume_each(ninput_item_size);
         return 0;
       }
       else if(avail_items < d_block_len){ // align buffered items for next call to work!
-        std::cout << "Not enough items! try again @next call to work!\n";
+//        std::cout << "Not enough items! try again @next call to work!\n";
         d_is_at_frame_start = true;
         consume_each(frame_pos);
         return 0;
       }
       else{
-        std::cout << "Boya! Frame FOUND! noutput_items: " << noutput_items << std::endl;
+//        std::cout << "Boya! Frame FOUND! noutput_items: " << noutput_items << std::endl;
         produce_output_frame(out, in + frame_pos + new_items_pos);
         consume_each(frame_pos + d_block_len);
         return d_block_len;
