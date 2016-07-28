@@ -19,11 +19,11 @@
  */
 
 
-#ifndef INCLUDED_GFDM_ADVANCED_RECEIVER_SB_CC_H
-#define INCLUDED_GFDM_ADVANCED_RECEIVER_SB_CC_H
+#ifndef INCLUDED_GFDM_ADVANCED_RECEIVER_TSB_CC_H
+#define INCLUDED_GFDM_ADVANCED_RECEIVER_TSB_CC_H
 
 #include <gfdm/api.h>
-#include <gnuradio/sync_block.h>
+#include <gnuradio/tagged_stream_block.h>
 #include <gnuradio/digital/api.h>
 #include <gnuradio/digital/constellation.h>
 
@@ -31,29 +31,29 @@ namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief advanced receiver working as sync block
+     * \brief GFDM-Demodulator with iterative interference cancellation implemented as tagged stream block.
      * \ingroup gfdm
      *
      */
-    class GFDM_API advanced_receiver_sb_cc : virtual public gr::sync_block
+    class GFDM_API advanced_receiver_tsb_cc : virtual public gr::tagged_stream_block
     {
      public:
-      typedef boost::shared_ptr<advanced_receiver_sb_cc> sptr;
+      typedef boost::shared_ptr<advanced_receiver_tsb_cc> sptr;
 
       /*!
-       * \brief Return a shared_ptr to a new instance of gfdm::advanced_receiver_sb_cc.
+       * \brief Return a shared_ptr to a new instance of gfdm::advanced_receiver_tsb_cc.
        *
-       * To avoid accidental use of raw pointers, gfdm::advanced_receiver_sb_cc's
+       * To avoid accidental use of raw pointers, gfdm::advanced_receiver_tsb_cc's
        * constructor is in a private implementation
-       * class. gfdm::advanced_receiver_sb_cc::make is the public interface for
+       * class. gfdm::advanced_receiver_tsb_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int n_timeslots, int n_subcarriers, int overlap, int ic_iter, std::vector< gr_complex > frequency_taps, gr::digital::constellation_sptr constellation);
+      static sptr make(int n_timeslots, int n_subcarriers, int overlap, int ic_iter, std::vector< gr_complex > frequency_taps, gr::digital::constellation_sptr constellation, const std::string& len_tag_key = "gfdm_block");
       virtual void set_ic(int ic_iter){};
     };
 
   } // namespace gfdm
 } // namespace gr
 
-#endif /* INCLUDED_GFDM_ADVANCED_RECEIVER_SB_CC_H */
+#endif /* INCLUDED_GFDM_ADVANCED_RECEIVER_TSB_CC_H */
 

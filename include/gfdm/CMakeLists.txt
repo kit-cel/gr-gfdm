@@ -37,5 +37,6 @@ install(FILES
     add_cyclic_prefix_cc.h
     simple_receiver_cc.h
     improved_sync_algorithm_kernel_cc.h
-    advanced_receiver_sb_cc.h DESTINATION include/gfdm
+    advanced_receiver_sb_cc.h
+    advanced_receiver_tsb_cc.h DESTINATION include/gfdm
 )

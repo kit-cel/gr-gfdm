@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <block>
-  <name>GFDM Advanced Receiver (SB)</name>
-  <key>gfdm_advanced_receiver_sb_cc</key>
+  <name>GFDM Advanced Receiver (TSB)</name>
+  <key>gfdm_advanced_receiver_tsb_cc</key>
   <category>[gr-gfdm]</category>
   <import>import gfdm</import>
-  <make>gfdm.advanced_receiver_sb_cc($timeslots, $subcarriers, $overlap, $ic_iter, $frequency_taps, $constellation)</make>
+  <make>gfdm.advanced_receiver_tsb_cc($timeslots, $subcarriers, $overlap, $ic_iter, $frequency_taps, $constellation, $len_tag_key)</make>
   <callback>set_ic($ic_iter)</callback>
   <param>
     <name>M timeslots</name>
@@ -35,11 +35,16 @@
     <key>frequency_taps</key>
     <type>raw</type>
   </param>
-
   <param>
     <name>Constellation</name>
     <key>constellation</key>
     <type>raw</type>
+  </param>
+  <param>
+    <name>Len_tag_key</name>
+    <key>len_tag_key</key>
+    <value> "frame_len"</value>
+    <type>string</type>
   </param>
   <sink>
     <name>in</name>

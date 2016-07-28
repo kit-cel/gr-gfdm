@@ -25,6 +25,7 @@
 #include "gfdm/improved_sync_algorithm_kernel_cc.h"
 #include "gfdm/simple_receiver_cc.h"
 #include "gfdm/advanced_receiver_sb_cc.h"
+#include "gfdm/advanced_receiver_tsb_cc.h"
 %}
 
 %include "gfdm/framer_cc.h"
@@ -54,3 +55,5 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, simple_receiver_cc);
 %include "gfdm/improved_sync_algorithm_kernel_cc.h"
 %include "gfdm/advanced_receiver_sb_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, advanced_receiver_sb_cc);
+%include "gfdm/advanced_receiver_tsb_cc.h"
+GR_SWIG_BLOCK_MAGIC2(gfdm, advanced_receiver_tsb_cc);
