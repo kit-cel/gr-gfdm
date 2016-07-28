@@ -24,6 +24,7 @@
 #include <gfdm/sync_cc.h>
 #include <volk/volk.h>
 #include <pmt/pmt.h>
+#include <gfdm/improved_sync_algorithm_kernel_cc.h>
 
 namespace gr {
   namespace gfdm {
@@ -31,25 +32,19 @@ namespace gr {
     class sync_cc_impl : public sync_cc
     {
      private:
-       int d_fft_len;
+        bool d_is_at_frame_start;
        int d_sync_fft_len;
-       int d_cp_length;
-       bool d_initialized;
        int d_block_len;
-       int d_L;
-       gr_complex d_autocorr_value;
-       gr::gfdm::preamble_generator_sptr d_preamble_generator;
        std::vector<gr_complex> d_known_preamble;
-       std::vector<float> d_P_d_abs_prev;
        std::string d_gfdm_tag_key;
-       
-       void initialize( const gr_complex in[] );
-       void iterate( gr_complex out[], const gr_complex start[], int num_items);
 
+      improved_sync_algorithm_kernel_cc* d_kernel;
 
+      void produce_output_frame(gr_complex* outbuf, const gr_complex*inbuf);
 
      public:
-      sync_cc_impl(int sync_fft_len, int cp_length, int fft_len, gr::gfdm::preamble_generator_sptr preamble_generator, const std::string& gfdm_tag_key);
+      sync_cc_impl(int n_subcarriers, int cp_length, int frame_len, std::vector<gr_complex> preamble,
+                   const std::string &gfdm_tag_key);
       ~sync_cc_impl();
 
       // Where all the action really happens

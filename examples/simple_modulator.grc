@@ -46,7 +46,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>top_block</value>
+      <value>simple_modulator</value>
     </param>
     <param>
       <key>max_nouts</key>
@@ -106,6 +106,33 @@
     <param>
       <key>value</key>
       <value>timeslots * subcarriers</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(40, 556)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>c_preamble</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>gfdm_pregen.get_preamble()</value>
     </param>
   </block>
   <block>
@@ -197,7 +224,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>filter_alpha</key>
@@ -221,7 +248,7 @@
     </param>
     <param>
       <key>sync_fft_len</key>
-      <value>1</value>
+      <value>2 * subcarriers</value>
     </param>
   </block>
   <block>
@@ -275,7 +302,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>synchronization.generate_sync_symbol(utils.get_random_qpsk(subcarriers), 'rrc', .5, subcarriers, overlap, cp_len, ramp_len)</value>
+      <value>synchronization.generate_sync_symbol(utils.get_random_qpsk(subcarriers), 'rrc', .5, subcarriers, overlap, cp_len, ramp_len)[0]</value>
     </param>
   </block>
   <block>
@@ -356,7 +383,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>128</value>
+      <value>16</value>
     </param>
   </block>
   <block>
@@ -383,7 +410,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>5</value>
+      <value>75</value>
     </param>
   </block>
   <block>
@@ -585,7 +612,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(896, 384)</value>
+      <value>(936, 440)</value>
     </param>
     <param>
       <key>_rotation</key>

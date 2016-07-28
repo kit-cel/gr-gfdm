@@ -36,7 +36,6 @@ namespace gr {
         sstm << "number of frequency taps(" << frequency_taps.size() << ") MUST be equal to n_timeslots(";
         sstm << n_timeslots << ") * overlap(" << overlap << ") = " << n_timeslots * overlap << "!";
         std::string err_str = sstm.str();
-                //" MUST be equal to n_timeslots * overlap!";
         throw std::invalid_argument(err_str.c_str());
       }
       d_filter_taps = (gfdm_complex *) volk_malloc (sizeof (gfdm_complex) * n_timeslots * overlap, volk_get_alignment ());
@@ -76,7 +75,8 @@ namespace gr {
       filename += "/.gr_fftw_wisdom";
       FILE *fpr = fopen (filename.c_str(), "r");
       if (fpr != 0){
-        int r = fftwf_import_wisdom_from_file (fpr);
+//        int r = fftwf_import_wisdom_from_file (fpr); // return value is unused. avoid compiler warning.
+        fftwf_import_wisdom_from_file (fpr);
         fclose (fpr);
       }
 

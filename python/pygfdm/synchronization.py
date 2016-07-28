@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2016 Andrej Rode.
+# Copyright 2016 Andrej Rode, Johannes Demel.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,16 +19,26 @@
 # Boston, MA 02110-1301, USA.
 #
 
+'''
+Relevant paper section
+[0] A synchronization technique for generalized frequency division multiplexing
+[1] Improved Preamble-Aided Timing Estimation for OFDM Systems
+
+COMMENT
+[1] describes the algorithm while [0] additionally explains GFDM preamble generation.
+
+'''
+
 import numpy as np
 import commpy as cp
 import matplotlib.pyplot as plt
 import scipy.signal as signal
-from modulation import gfdm_tx, gfdm_tx_fft2
-from filters import get_frequency_domain_filter
-from gfdm_modulation import gfdm_modulate_block
-from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len
+from modulation import gfdm_tx, gfdm_tx_fft2, gfdm_modulation_matrix
+from filters import get_frequency_domain_filter, gfdm_filter_taps
+from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
+from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, get_root_raised_cosine_ramp
 from mapping import get_data_matrix
-from utils import get_random_qpsk
+from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance, calculate_average_signal_energy, calculate_signal_energy
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -138,40 +148,349 @@ def sync_CFO(P_d, P_di):
 
 def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
     M = 2  # fixed for preamble
-    compat_mode = False
     pn_symbols = np.concatenate((pn_symbols, pn_symbols))
-    D = get_data_matrix(pn_symbols, K, group_by_subcarrier=compat_mode)
-    symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=compat_mode)
+    D = get_data_matrix(pn_symbols, K, group_by_subcarrier=True) # careful here! group by subcarrier is correct!
+    symbol = x_symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=False)
     symbol = add_cyclic_prefix(symbol, cp_len)
     window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K))
     symbol = pinch_block(symbol, window_ramp)
-    return symbol
+    return symbol, x_symbol
 
 
 def generate_sync_symbol(pn_symbols, filtertype, alpha, K, L, cp_len, ramp_len):
     H = get_frequency_domain_filter(filtertype, alpha, 2, K, L)
     return get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
 
-def main():
-    print 'Hello World'
+
+def get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len):
+    window_len = get_window_len(cp_len, M, K)
+    b = gfdm_modulate_fft(data, alpha, M, K, L)
+    b = add_cyclic_prefix(b, cp_len)
+    window_ramp = get_root_raised_cosine_ramp(ramp_len, window_len)
+    return pinch_block(b, window_ramp)
+
+
+def auto_correlate_halfs(s):
+    pivot = len(s) / 2
+    return np.sum(np.conjugate(s[0:pivot]) * s[pivot:])
+
+
+def auto_correlate_signal(signal, K):
+    plen = K * 2
+    slen = len(signal)
+    ac = np.zeros(slen - plen, dtype=np.complex)
+
+    for i in range(slen - plen):
+        # calc auto-correlation
+        c = signal[i:i+plen]
+        #normalize value
+        p = calculate_signal_energy(c)
+        ac[i] = 2 * auto_correlate_halfs(c) / p
+    return ac
+
+
+def abs_integrate(nc, cp_len):
+    ic = np.zeros(len(nc), dtype=float)
+    for n in range(cp_len, len(nc)):
+        p_int = nc[n-cp_len:n + 1]
+        ic[n] = (1. / len(p_int)) * np.sum(p_int)
+    return ic
+
+
+def auto_correlation_sync(s, K, cp_len):
+    plen = K * 2
+
+    ac = auto_correlate_signal(s, K)
+    nc = np.abs(ac)
+    ic = abs_integrate(nc, cp_len)
+
+    nm = np.argmax(ic)
+    cfo = np.angle(ac[nm]) / np.pi
+    # print 'max corr val', ic[nm], 'with energy:', calculate_average_signal_energy(s[nm: nm + plen])
+    return nm, cfo, ic, ac
+
+
+def cross_correlate_naive(s, p):
+    # naive implementation of the algorithm described in [0]
+    cc = np.zeros(len(s) - len(p), dtype=np.complex)
+    p = np.conjugate(p)
+    p_len = len(p)
+    buf_len = len(s) - p_len
+    for i in range(buf_len):
+        cc[i] = np.sum(s[i:i + p_len] * p)
+    return cc
+
+
+def cross_correlate_signal_full(s, p):
+    return signal.correlate(s, p, 'full')
+    # return signal.correlate(s, p, 'valid')[0:len(s)-len(p)]
+
+
+def cross_correlate_signal_valid(s, p):
+    # scipy.signal.correlate way of doing things!
+    return signal.correlate(s, p, 'valid')
+
+
+def cross_correlate_signal(s, p):
+    # scipy.signal.correlate way of doing things!
+    return cross_correlate_signal_valid(s, p)[0:len(s) - len(p)]  # drop last sample.
+
+
+def cross_correlate_fft(s, p):
+    C = np.conjugate(np.fft.fft(s)) * np.fft.fft(p, len(s))
+    cf = np.fft.ifft(C)[0:len(s) - len(p)]
+    return cf
+
+
+def cross_correlate_fft_full(s, p):
+    # function is equivalent to scipy.signal.correlate(s, p, 'full')
+    pad_head = len(s) - len(p)
+    s_zero_pad = len(s) - 1
+    p_zero_pad = s_zero_pad + len(s) - len(p)
+    s = np.append(s, np.zeros(s_zero_pad))
+    p = np.append(p, np.zeros(p_zero_pad))
+    S = np.fft.fft(s)
+    P = np.fft.fft(p)
+    P = np.conjugate(P)
+    C = S * P
+    cf = np.fft.ifft(C)
+    cf = np.fft.fftshift(cf)
+    cf = cf[pad_head:]
+    if s.dtype == np.float:  # in case input was float.
+        cf = np.real(cf)
+    return cf
+
+
+def cross_correlate_fft_valid(s, p):
+    # function is equivalent to scipy.signal.correlate(s, p, 'valid')
+    valid_res_len = len(s) - len(p) + 1
+    S = np.fft.fft(s)
+    p = np.append(p, np.zeros(len(s) - len(p)))
+    P = np.fft.fft(p)
+    P = np.conjugate(P)
+    C = S * P
+    cf = np.fft.ifft(C)
+    cf = cf[0:valid_res_len]
+    if s.dtype == np.float:  # in case input was float.
+        cf = np.real(cf)
+    return cf
+
+
+def validate_full_cross_correlation(s, p, tolerance):
+    cs = cross_correlate_signal_full(s, p)
+    cf = cross_correlate_fft_full(s, p)
+    check_results(cs, cf, tolerance, err_msg='Full cross correlation algorithms produce differing results!')
+
+
+def validate_valid_cross_correlation(s, p, tolerance):
+    cs = cross_correlate_signal_valid(s, p)
+    cf = cross_correlate_fft_valid(s, p)
+    check_results(cs, cf, tolerance, err_msg='Valid cross correlation algorithms produce differing results!')
+
+
+def check_results(s, p, tolerance, err_msg):
+    err = np.abs(s - p) < tolerance
+    if not np.all(err):
+        print s
+        print p
+        print err
+        raise ValueError('check_results: ' + err_msg)
+    else:
+        # print 'passed: ' + err_msg
+        pass
+
+
+def validate_cross_correlation_algorithms():
+    l = 3
+    N = l * 3
+    tolerance = 1e-12
+
+    a = np.array([1., 2., 3., 4.])
+    b = np.array([3., 2., 0., 2.])
+    validate_full_cross_correlation(a, b, tolerance)
+    validate_valid_cross_correlation(a, b, tolerance)
+
+    s = np.random.randn(N) + 1j * np.random.randn(N)
+    x = s[0:l]
+    validate_full_cross_correlation(s, x, tolerance)
+    validate_valid_cross_correlation(s, x, tolerance)
+
+
+def cross_correlation_paper_def(s, preamble):
+    cc = cross_correlate_signal(s, preamble)
+    # cc = cross_correlate_naive(s, preamble)
+    cc /= len(preamble)
+    return cc
+
+
+def improved_cross_correlation_peak(s, preamble, abs_auto_corr_vals):
+    apcc = np.abs(cross_correlation_paper_def(s, preamble))
+    # Find peak and suppress minor peaks at +-N/2
+    min_array_len = min(len(apcc), len(abs_auto_corr_vals))
+    napcc = apcc[0:min_array_len] * abs_auto_corr_vals[0:min_array_len]
+    nc = np.argmax(napcc)
+    # energy = calculate_signal_energy(s[nc:nc + len(preamble)])
+    # napcc *= 1. / np.sqrt(energy)
+    return nc, napcc, apcc
+
+
+def correct_frequency_offset(signal, cfo):
+    n = np.arange(len(signal))
+    return signal * np.exp(-2j * np.pi * cfo * n)
+
+
+def initialize_sync_algorithm(preamble, K):
+    # initialization part
+    if not len(preamble) == 2 * K:
+        raise ValueError('Preamble length must be equal to 2K!')
+
+    # normalize preamble, maybe it helps
+    avg_preamble_ampl = np.sqrt(calculate_average_signal_energy(preamble))
+    preamble /= avg_preamble_ampl
+    if np.abs(calculate_average_signal_energy(preamble) - 1.0) > 1e-6:
+        raise ValueError('preamble not properly normalized!')
+
+    # print 'average preamble amplitude:', avg_preamble_ampl, 'normalized preamble:', calculate_average_signal_energy(preamble)
+    return preamble
+
+
+def calculate_threshold_factor(false_alarm_prob):
+    # obviously: false_alarm_prob < 1.0
+    if not false_alarm_prob < 1.0:
+        raise ValueError('False alarm probability MUST be smaller 1.0!')
+    return np.sqrt(-(4 / np.pi) * np.log(false_alarm_prob))
+
+
+
+def find_frame_start(s, preamble, K, cp_len):
+    # initialization part
+    preamble = initialize_sync_algorithm(preamble, K)
+
+    # THIS PARTS represents the live algorithm!
+    # first part of the algorithm. rough STO sync and CFO estimation!
+    nm, cfo, abs_corr_vals, corr_vals = auto_correlation_sync(s, K, cp_len)
+    # print 'auto correlation nm:', nm, ', cfo:', cfo, ', val:', auto_corr_vals[nm]
+
+    # Fix CFO!
+    s = correct_frequency_offset(s, cfo / (2. * K))
+
+    # find exact peak over fine STO estimation
+    # ONLY nc required, everything else only used for evaluation!
+    nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, abs_corr_vals)
+    # ALGORITHM FINISHED!
+
+    return nc, cfo, abs_corr_vals, corr_vals, napcc, apcc
+
+
+def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo):
+    block_len = M * K
+    data = get_random_qpsk(block_len)
+    x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
+
+    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
+    frame = np.concatenate((preamble, x))
+
+    # simulate Noise and frequency offset!
+    frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
+    noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
+    s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
+    s[block_len:block_len + len(frame)] += frame
+    return s, x_preamble
+
+
+def sync_test():
+    samp_rate = 10e6  # an assumption to work with
     alpha = .5
-    M = 2
+    M = 33
     K = 32
+    block_len = M * K
     L = 2
-    cp_len = 4
-    ramp_len = 4
-    pn_symbols = get_random_qpsk(K)
-    H = get_frequency_domain_filter('rrc', alpha, M, K, L)
-    symbol = get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
-    symbol *= 1. / np.sqrt(np.sum(symbol ** 2))
-    print np.shape(symbol)
-    c = signal.correlate(symbol, symbol)
-    # c *= 1. / len(symbol)
-    print np.shape(np.abs(c))
-    nc = c[np.argmax(np.abs(c))]
-    print nc
-    plt.plot(np.abs(c))
+    cp_len = K
+    ramp_len = cp_len / 2
+
+    test_cfo = -.2
+    snr_dB = 0.0
+    false_alarm_probability = 1e-3
+    print 'Channel parameters, SNR:', snr_dB, 'dB with a relative subcarrier offset:', test_cfo
+
+
+    print 'assumed samp_rate:', samp_rate, ' with sc_bw:', samp_rate / K
+
+    data = get_random_qpsk(block_len)
+    x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
+
+    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
+    frame = np.concatenate((preamble, x))
+
+    print 'frame duration: ', 1e6 * len(frame) / samp_rate, 'us'
+    print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
+    # simulate Noise and frequency offset!
+    frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
+    noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
+    # noise_variance = 0.0
+    s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
+    s[block_len:block_len + len(frame)] += frame
+    print 'frame start in test vector: ', block_len + cp_len
+
+    s *= 100. / np.sqrt(len(x_preamble))
+    nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
+    print 'FOUND FRAMESTART nc:', nc, np.abs(napcc[nc]), abs_corr_vals[nc]
+    # print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
+    thr = calculate_threshold_factor(false_alarm_probability) * np.sum(apcc[nc - K:nc + K]) / (2 * K)
+    print 'threshold: ', thr
+    plt.plot(abs_corr_vals)
+    plt.plot(apcc)# * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
+    plt.plot(napcc)
+    threshold_peak = np.zeros(len(napcc), dtype=float)
+    threshold_peak[nc] = napcc[nc]
+    plt.plot((threshold_peak > thr) * (napcc[nc] / thr))
+    print 'threshold exceeded points: ', np.sum(threshold_peak > thr)
+
+    for thr in (.3, .4, .5, .6):
+        peak = abs_corr_vals > thr
+        plt.plot(peak * thr)
+        print 'n exceed thr: ', thr, ':', np.sum(peak)
+
+    # plt.xlim((1000, 1200))
     plt.show()
+
+
+def preamble_auto_corr_test():
+    K = 32
+    pn_seq = get_random_qpsk(K)
+    pn_symbols = np.tile(pn_seq, 2)
+    D = get_data_matrix(pn_symbols, K, True)
+    # print np.shape(D)
+    print 'subcarriers bear same symbols:', np.all(D[0] == D[1])
+
+    pl, p = generate_sync_symbol(pn_seq, 'rrc', .5, K, 2, K, K / 2)
+    # print np.shape(p)
+    acc = auto_correlate_halfs(p)
+    print acc, np.angle(acc)
+
+    taps = gfdm_filter_taps('rrc', .5, 2, K, 1)
+    A = gfdm_modulation_matrix(taps, 2, K)
+    x = A.dot(pn_symbols)
+    # print np.shape(x)
+    acc = auto_correlate_halfs(x)
+    print acc, np.angle(acc)
+
+
+def main():
+    np.set_printoptions(precision=4, suppress=True)
+    preamble_auto_corr_test()
+    validate_cross_correlation_algorithms()
+    sync_test()
+
+    # for i in np.arange(0.7, 8):
+    #     fap = 10 ** -i
+    #     print fap, calculate_threshold_factor(fap)
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

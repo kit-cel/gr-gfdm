@@ -3,10 +3,10 @@
   <key>gfdm_sync_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
-  <make>gfdm.sync_cc($sync_fft_len, $cp_length, $fft_len, $preamble_generator, $gfdm_tag_key)</make>
+  <make>gfdm.sync_cc($n_subcarriers, $cp_length, $frame_len, $preamble, $gfdm_tag_key)</make>
   <param>
-    <name>Sync FFT length</name>
-    <key>sync_fft_len</key>
+    <name>#subcarriers</name>
+    <key>n_subcarriers</key>
     <value>32</value>
     <type>int</type>
   </param>
@@ -17,14 +17,14 @@
     <type>int</type>
   </param>
   <param>
-    <name>FFT length</name>
-    <key>fft_len</key>
-    <value>256</value>
+    <name>Frame length</name>
+    <key>frame_len</key>
+    <value>1024</value>
     <type>int</type>
   </param>
   <param>
-    <name>Preamble generator</name>
-    <key>preamble_generator</key>
+    <name>Preamble</name>
+    <key>preamble</key>
     <type>raw</type>
   </param>
   <param>
@@ -40,20 +40,5 @@
   <source>
     <name>out</name>
     <type>complex</type>
-  </source>
-  <source>
-    <name>corr_out</name>
-    <type>complex</type>
-    <optional>1</optional>
-  </source>
-  <source>
-    <name>corr_i_out</name>
-    <type>float</type>
-    <optional>1</optional>
-  </source>
-  <source>
-    <name>res_out</name>
-    <type>float</type>
-    <optional>1</optional>
   </source>
 </block>
