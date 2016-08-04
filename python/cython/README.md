@@ -14,12 +14,13 @@ It is assumed that the classes wrapped via Cython are NOT depending on GNU Radio
 
 Compilation
 =====
-just run 'python setup.py build'. If you want all build files to be located in the source directory, append '--inplace'.
+just run 'python setup.py build' from 'gr-gfdm/python'. If you want all build files to be located in the source directory, append '--inplace'.
 
 Functionality
 =====
-after compilation a *gfdm_wrapper* module is available in Python. Just load it like any other Python module. It provides the interface for several blocks. See *gfdm_wrapper.pyx* for exposed objects and functions.
+after compilation a *cgfdm* module is available in Python. Just load it like any other Python module. It provides the interface for several blocks. See *cgfdm.pyx* for exposed objects and functions.
 
 Installation
 =====
-It is yet undecided where to install *gfdm_wrapper*. Suggestions are welcome. Installation simply implies copying the *.so file into a install directory.
+'python setup.py install' does install *cgfdm* along with *pygfdm*. The '--prefix >my_install_prefix<' option will install it into a custom directory. Afterwards 'import pygfdm' and 'import 'cgfdm' are available.
+

@@ -6,6 +6,7 @@ import numpy as np
 import scipy.signal as signal
 import cgfdm as gfdm
 import matplotlib.pyplot as plt
+import pygfdm
 
 
 def map_to_waveform_resources(syms, subcarrier_map, active_subcarriers, fft_len):
