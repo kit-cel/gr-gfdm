@@ -26,8 +26,6 @@ install(FILES
     modulator_cc.h
     gfdm_utils.h
     receiver_kernel_cc.h
-    #receiver_cc.h
-    advanced_receiver_cc.h
     sync_cc.h
     cyclic_prefixer_cc.h
     preamble_generator.h

@@ -30,8 +30,6 @@ list(APPEND gfdm_sources
     gfdm_utils.cc
     receiver_kernel_cc.cc
     modulator_cc_impl.cc
-    #receiver2_cc_impl.cc
-    advanced_receiver_cc_impl.cc
     sync_cc_impl.cc
     cyclic_prefixer_cc_impl.cc
     preamble_generator.cc
