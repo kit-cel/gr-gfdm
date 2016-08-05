@@ -48,9 +48,18 @@ namespace gr
         //" MUST be equal to n_timeslots * overlap!";
         throw std::invalid_argument(err_str.c_str());
       }
+      if (d_overlap < 2)
+      {
+        std::stringstream sstm;
+        sstm << "overlap MUST be greater or equal 2";
+        std::string err_str = sstm.str();
+        throw std::invalid_argument(err_str.c_str());
+      }
       d_filter_taps = (gfdm_complex *) volk_malloc (sizeof (gfdm_complex) * n_timeslots * overlap, volk_get_alignment ());
       memcpy(d_filter_taps, &frequency_taps[0], sizeof(gfdm_complex) * n_timeslots * overlap);
+      ::volk_32fc_s32fc_multiply_32fc(d_filter_taps,d_filter_taps,static_cast<gfdm_complex>(1.0/n_subcarriers),n_timeslots*overlap);
       d_ic_filter_taps = (gfdm_complex *) volk_malloc (sizeof (gfdm_complex) * n_timeslots, volk_get_alignment ());
+      memset(&d_ic_filter_taps[0],0x00,sizeof(gfdm_complex)*n_timeslots);
 
       //Initialize input FFT
       d_in_fft_in =  (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_fft_len, volk_get_alignment ());
@@ -65,7 +74,7 @@ namespace gr
       //Initialize FFT per subcarrier (IC)
       d_sc_fft_in =  (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_n_timeslots, volk_get_alignment ());
       d_sc_fft_out =  (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_n_timeslots, volk_get_alignment ());
-      d_sc_fft_plan = initialize_fft(d_sc_ifft_out, d_sc_ifft_in, d_n_timeslots, true);
+      d_sc_fft_plan = initialize_fft(d_sc_fft_out, d_sc_fft_in, d_n_timeslots, true);
 
       d_sc_postfilter = (gfdm_complex *) volk_malloc(sizeof (gfdm_complex) * d_n_timeslots, volk_get_alignment ());
 
@@ -81,8 +90,8 @@ namespace gr
         it->resize(d_n_timeslots);
       }
 
-      //Calculate IC_Filter_taps d_overlaps MUST be greater or equal to 2
-      ::volk_32fc_x2_multiply_32fc(&d_ic_filter_taps[0],&frequency_taps[0],&frequency_taps[n_timeslots],n_timeslots);
+      //Calculate IC_Filter_taps d_overlap MUST be greater or equal to 2,only consider interference of neigboring subcarriers
+      ::volk_32fc_x2_multiply_32fc(&d_ic_filter_taps[0],&d_filter_taps[0],&d_filter_taps[n_timeslots*(overlap-1)],n_timeslots);
     }
 
     receiver_kernel_cc::~receiver_kernel_cc()
@@ -174,7 +183,7 @@ namespace gr
       }
 
     }
-
+    
     void
     receiver_kernel_cc::serialize_output(gfdm_complex out[],
                                          std::vector< std::vector<gfdm_complex> > &sc_symbols)
@@ -193,16 +202,16 @@ namespace gr
       //Alle Untertraeger
       for (int k=0; k<d_n_subcarriers; k++)
       {
-        if(d_n_timeslots*d_n_subcarriers < (d_n_timeslots*d_n_subcarriers) && ((k==0) || (k==d_n_subcarriers-1)))
-        {
         //Sum up neighboring subcarriers and then filter with ic_filter_taps
-        ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[(((k-1) % d_n_subcarriers) + d_n_subcarriers) % d_n_subcarriers][0],(float*)&prev_sc_symbols[((k+1)% d_n_subcarriers)][0],2*d_n_timeslots);
+        int prev_sc = (((k-1) % d_n_subcarriers) + d_n_subcarriers) % d_n_subcarriers;
+        int next_sc = (((k+1) % d_n_subcarriers) + d_n_subcarriers) % d_n_subcarriers;
+        ::volk_32f_x2_add_32f((float*)&d_sc_fft_in[0],(float*)&prev_sc_symbols[prev_sc][0],(float*)&prev_sc_symbols[next_sc][0],2*d_n_timeslots);
         fftwf_execute(d_sc_fft_plan);
+        //Multiply resulting symbols stream with ic_filter_taps in fd
         ::volk_32fc_x2_multiply_32fc(&sc_symbols[k][0],&d_ic_filter_taps[0],&d_sc_fft_out[0],d_n_timeslots);
+        //Subtract calculated interference from subcarrier k
         ::volk_32f_x2_subtract_32f((float*)&sc_tmp[0],(float*)&sc_fdomain[k][0],(float*)&sc_symbols[k][0],2*d_n_timeslots);
         memcpy(&sc_symbols[k][0],&sc_tmp[0],sizeof(gfdm_complex)*d_n_timeslots);
-
-      }
 
     }
     }

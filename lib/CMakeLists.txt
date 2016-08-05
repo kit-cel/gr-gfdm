@@ -30,8 +30,6 @@ list(APPEND gfdm_sources
     gfdm_utils.cc
     receiver_kernel_cc.cc
     modulator_cc_impl.cc
-    #receiver2_cc_impl.cc
-    advanced_receiver_cc_impl.cc
     sync_cc_impl.cc
     cyclic_prefixer_cc_impl.cc
     preamble_generator.cc
@@ -40,7 +38,9 @@ list(APPEND gfdm_sources
     modulator_kernel_cc.cc
     add_cyclic_prefix_cc.cc
     simple_receiver_cc_impl.cc
-    improved_sync_algorithm_kernel_cc.cc)
+    improved_sync_algorithm_kernel_cc.cc
+    advanced_receiver_sb_cc_impl.cc
+    advanced_receiver_tsb_cc_impl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)
