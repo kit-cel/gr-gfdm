@@ -21,6 +21,7 @@
 
 #include <gfdm/resource_mapper_kernel_cc.h>
 #include <string.h>
+#include <stdexcept>
 
 namespace gr {
   namespace gfdm {
