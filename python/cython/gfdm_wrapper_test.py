@@ -1,5 +1,9 @@
+import sys, os
+sys.path.insert(0, os.path.abspath('/home/demel/src/gr-gfdm/python/build/lib.linux-x86_64-2.7/'))
+print sys.path
+
+import cgfdm
 import numpy as np
-import gfdm_wrapper
 from gfdm.pygfdm.gfdm_modulation import gfdm_modulate_block
 from gfdm.pygfdm.mapping import get_data_matrix
 from gfdm.pygfdm.utils import get_random_qpsk
@@ -14,7 +18,7 @@ def main():
     K = 16
     L = 2
     taps = get_frequency_domain_filter('rrc', .5, M, K, L)
-    kernel = gfdm_wrapper.py_modulator_kernel_cc(M, K, L, taps)
+    kernel = cgfdm.py_modulator_kernel_cc(M, K, L, taps)
     print kernel.block_size()
     in_buf = get_random_qpsk(M * K).astype(dtype=np.complex64)
     out_buf = np.zeros(kernel.block_size(), dtype=np.complex64)
@@ -31,11 +35,17 @@ def main():
     print np.all(np.abs(ref - res) < err_margin)
 
     window_taps = get_raised_cosine_ramp(4, M * K + 4)
-    cpler = gfdm_wrapper.py_add_cyclic_prefix_cc(4, 4, M * K, window_taps)
+    cpler = cgfdm.py_add_cyclic_prefix_cc(4, 4, M * K, window_taps)
     print cpler.block_size()
     print cpler.frame_size()
     block = cpler.add_cyclic_prefix(in_buf)
     print np.shape(block)
+
+    active = 10
+    mapper = cgfdm.py_resource_mapper_kernel_cc(active, K, M, np.arange(active) + (K - active) // 2, True)
+    v = np.arange(50, dtype=np.complex64) + 5
+    m = mapper.map_to_resources(v)
+    print np.reshape(m, (-1, M))
 
 
 if __name__ == '__main__':
