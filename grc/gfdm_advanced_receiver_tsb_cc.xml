@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<block>
+  <name>GFDM Advanced Receiver (TSB)</name>
+  <key>gfdm_advanced_receiver_tsb_cc</key>
+  <category>[gr-gfdm]</category>
+  <import>import gfdm</import>
+  <make>gfdm.advanced_receiver_tsb_cc($timeslots, $subcarriers, $overlap, $ic_iter, $frequency_taps, $constellation, $len_tag_key)</make>
+  <callback>set_ic($ic_iter)</callback>
+  <param>
+    <name>M timeslots</name>
+    <key>timeslots</key>
+    <value>16</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>N subcarriers</name>
+    <key>subcarriers</key>
+    <value>16</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>L overlap</name>
+    <key>overlap</key>
+    <value>2</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Ic_iter</name>
+    <key>ic_iter</key>
+    <value>16</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Frequency domain taps</name>
+    <key>frequency_taps</key>
+    <type>raw</type>
+  </param>
+  <param>
+    <name>Constellation</name>
+    <key>constellation</key>
+    <type>raw</type>
+  </param>
+  <param>
+    <name>Len_tag_key</name>
+    <key>len_tag_key</key>
+    <value> "frame_len"</value>
+    <type>string</type>
+  </param>
+  <sink>
+    <name>in</name>
+    <type>complex</type>
+  </sink>
+  <source>
+    <name>out</name>
+    <type>complex</type>
+  </source>
+</block>

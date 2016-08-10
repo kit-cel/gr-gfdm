@@ -41,7 +41,6 @@ def resource_mapping_test():
         mapper.map_to_resources(data)
 
 
-
 def main():
     np.set_printoptions(precision=2, suppress=True)
     err_margin = 1e-5

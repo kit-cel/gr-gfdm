@@ -18,10 +18,7 @@ cdef class py_modulator_kernel_cc:
         return self.kernel.block_size()
 
     def generic_work(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
-        s = time.time()
         self.kernel.generic_work(<float complex*> outbuf.data, <float complex*> inbuf.data)
-        t = time.time() - s
-        print(t)
 
     def modulate(self, np.ndarray[np.complex64_t, ndim=1] samples):
         if samples.shape[0] != self.block_size():
@@ -72,10 +69,7 @@ cdef class py_resource_mapper_kernel_cc:
         return self.kernel.output_vector_size()
 
     def generic_work(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf, int input_size):
-        s = time.time()
         self.kernel.generic_work(<float complex*> outbuf.data, <float complex*> inbuf.data, input_size)
-        t = time.time() - s
-        print(t)
 
     def map_to_resources(self, np.ndarray[np.complex64_t, ndim=1] samples):
         if samples.shape[0] > self.input_vector_size():
