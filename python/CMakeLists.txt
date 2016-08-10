@@ -52,3 +52,4 @@ GR_ADD_TEST(qa_transmitter_chain_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_
 GR_ADD_TEST(qa_simple_receiver_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_simple_receiver_cc.py)
 GR_ADD_TEST(qa_advanced_receiver_sb_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_advanced_receiver_sb_cc.py)
 GR_ADD_TEST(qa_advanced_receiver_tsb_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_advanced_receiver_tsb_cc.py)
+GR_ADD_TEST(qa_resource_mapper_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_resource_mapper_cc.py)

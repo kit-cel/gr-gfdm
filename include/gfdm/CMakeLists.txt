@@ -37,5 +37,6 @@ install(FILES
     improved_sync_algorithm_kernel_cc.h
     advanced_receiver_sb_cc.h
     advanced_receiver_tsb_cc.h
-    resource_mapper_kernel_cc.h DESTINATION include/gfdm
+    resource_mapper_kernel_cc.h
+    resource_mapper_cc.h DESTINATION include/gfdm
 )
