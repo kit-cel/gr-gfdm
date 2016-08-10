@@ -11,6 +11,37 @@ from gfdm.pygfdm.filters import get_frequency_domain_filter
 from gfdm.pygfdm.cyclic_prefix import get_raised_cosine_ramp
 
 
+def modulator_test():
+    fft_len = 128
+    timeslots = 205
+    overlap = 2
+    taps = get_frequency_domain_filter('rrc', .5, timeslots, fft_len, overlap)
+    kernel = cgfdm.py_modulator_kernel_cc(timeslots, fft_len, overlap, taps)
+
+    N = 10
+    for i in range(N):
+        data = np.random.randn(2, fft_len * timeslots)
+        data = data[0] + 1j * data[1]
+        data = data.astype(dtype=np.complex64)
+        kernel.modulate(data)
+
+
+def resource_mapping_test():
+    active = 110
+    fft_len = 128
+    timeslots = 205
+    smap = np.arange(active) + (active - active) // 2
+    mapper = cgfdm.py_resource_mapper_kernel_cc(active, fft_len, timeslots, smap, True)
+
+    N = 10
+    for i in range(N):
+        data = np.random.randn(2, active * timeslots)
+        data = data[0] + 1j * data[1]
+        data = data.astype(dtype=np.complex64)
+        mapper.map_to_resources(data)
+
+
+
 def main():
     np.set_printoptions(precision=2, suppress=True)
     err_margin = 1e-5
@@ -41,11 +72,8 @@ def main():
     block = cpler.add_cyclic_prefix(in_buf)
     print np.shape(block)
 
-    active = 10
-    mapper = cgfdm.py_resource_mapper_kernel_cc(active, K, M, np.arange(active) + (K - active) // 2, True)
-    v = np.arange(50, dtype=np.complex64) + 5
-    m = mapper.map_to_resources(v)
-    print np.reshape(m, (-1, M))
+    # resource_mapping_test()
+    modulator_test()
 
 
 if __name__ == '__main__':
