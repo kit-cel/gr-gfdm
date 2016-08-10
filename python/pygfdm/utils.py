@@ -23,14 +23,20 @@
 import numpy as np
 
 
-def get_random_qpsk(nsamples):
+def get_random_qpsk(nsamples, seed=None):
+    if seed:
+        print 'reseed!'
+        np.random.seed(seed)
     d = np.random.randint(0, 2, 2 * nsamples) * -2. + 1.
     d = np.reshape(d, (2, -1))
-    d = d.astype(dtype=np.complex)
+    d = d.astype(dtype=np.complex64)
     return d[0] + 1j * d[1]
 
 
-def get_random_samples(nsamples):
+def get_random_samples(nsamples, seed=None):
+    if seed:
+        print 'reseed'
+        np.random.seed(seed)
     d = np.random.standard_normal(2 * nsamples)
     d = np.reshape(d, (2, -1))
     return d[0] + 1j * d[1]

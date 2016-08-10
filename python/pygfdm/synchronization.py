@@ -37,7 +37,7 @@ from modulation import gfdm_tx, gfdm_tx_fft2, gfdm_modulation_matrix
 from filters import get_frequency_domain_filter, gfdm_filter_taps
 from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
 from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, get_root_raised_cosine_ramp
-from mapping import get_data_matrix
+from mapping import get_data_matrix, map_to_waveform_resources
 from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance, calculate_average_signal_energy, calculate_signal_energy
 
 
@@ -144,6 +144,12 @@ def sync_CFO(P_d, P_di):
     print("P_d:{},df:{})".format(P_d[d], d_f))
 
     return (d, d_f)
+
+
+def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len):
+    pn_vals = get_random_qpsk(active_subcarriers, seed)
+    pn_sym = map_to_waveform_resources(pn_vals, active_subcarriers, fft_len, subcarrier_map)
+    return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len)
 
 
 def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
