@@ -10,7 +10,7 @@
     </param>
     <param>
       <key>window_size</key>
-      <value></value>
+      <value>1920,1080</value>
     </param>
     <param>
       <key>category</key>
@@ -93,7 +93,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(704, 68)</value>
+      <value>(848, 68)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -105,7 +105,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>timeslots * subcarriers</value>
+      <value>timeslots * fft_len</value>
     </param>
   </block>
   <block>
@@ -120,7 +120,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(896, 68)</value>
+      <value>(1040, 68)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -147,7 +147,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1032, 68)</value>
+      <value>(1176, 68)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -159,7 +159,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>2 * subcarriers + cp_len</value>
+      <value>2 * fft_len + cp_len</value>
     </param>
   </block>
   <block>
@@ -174,7 +174,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(784, 68)</value>
+      <value>(928, 68)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -187,6 +187,49 @@
     <param>
       <key>value</key>
       <value>block_len + cp_len</value>
+    </param>
+  </block>
+  <block>
+    <key>parameter</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(368, 12)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>active_subcarriers</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value></value>
+    </param>
+    <param>
+      <key>short_id</key>
+      <value></value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>intx</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>110</value>
     </param>
   </block>
   <block>
@@ -209,7 +252,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(760, 204)</value>
+      <value>(936, 204)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -260,7 +303,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(288, 12)</value>
+      <value>(216, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -303,7 +346,50 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(792, 12)</value>
+      <value>(488, 12)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>fft_len</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value></value>
+    </param>
+    <param>
+      <key>short_id</key>
+      <value></value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>intx</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>128</value>
+    </param>
+  </block>
+  <block>
+    <key>parameter</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(936, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -358,7 +444,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(568, 200)</value>
+      <value>(744, 200)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -386,6 +472,65 @@
     </param>
   </block>
   <block>
+    <key>gfdm_resource_mapper_cc</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>fft_len</key>
+      <value>fft_len</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(312, 192)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>gfdm_resource_mapper_cc_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>active_subcarriers</key>
+      <value>active_subcarriers</value>
+    </param>
+    <param>
+      <key>per_timeslot</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>subcarrier_map</key>
+      <value>subcarrier_map</value>
+    </param>
+    <param>
+      <key>timeslots</key>
+      <value>timeslots</value>
+    </param>
+  </block>
+  <block>
     <key>gfdm_simple_modulator_cc</key>
     <param>
       <key>alias</key>
@@ -409,7 +554,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(352, 200)</value>
+      <value>(528, 200)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -421,7 +566,7 @@
     </param>
     <param>
       <key>n_subcarriers</key>
-      <value>subcarriers</value>
+      <value>fft_len</value>
     </param>
     <param>
       <key>overlap</key>
@@ -487,7 +632,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(536, 12)</value>
+      <value>(568, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -526,7 +671,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(952, 220)</value>
+      <value>(1128, 220)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -616,7 +761,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1000, 12)</value>
+      <value>(1144, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -659,7 +804,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(616, 12)</value>
+      <value>(648, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -702,7 +847,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(448, 12)</value>
+      <value>(736, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -710,7 +855,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>subcarriers</value>
+      <value>subcarrier_map</value>
     </param>
     <param>
       <key>label</key>
@@ -722,11 +867,11 @@
     </param>
     <param>
       <key>type</key>
-      <value>intx</value>
+      <value></value>
     </param>
     <param>
       <key>value</key>
-      <value>128</value>
+      <value>np.arange(110)</value>
     </param>
   </block>
   <block>
@@ -745,7 +890,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(368, 12)</value>
+      <value>(296, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -788,7 +933,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(888, 12)</value>
+      <value>(1032, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -812,7 +957,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>0</value>
+      <value>[1,]</value>
     </param>
   </block>
   <connection>
@@ -828,6 +973,12 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
+    <source_block_id>gfdm_resource_mapper_cc_0</source_block_id>
+    <sink_block_id>gfdm_simple_modulator_cc_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
     <source_block_id>gfdm_simple_modulator_cc_0</source_block_id>
     <sink_block_id>gfdm_cyclic_prefixer_cc_0</sink_block_id>
     <source_key>0</source_key>
@@ -835,7 +986,7 @@
   </connection>
   <connection>
     <source_block_id>pad_source_0</source_block_id>
-    <sink_block_id>gfdm_simple_modulator_cc_0</sink_block_id>
+    <sink_block_id>gfdm_resource_mapper_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

@@ -146,6 +146,10 @@ def sync_CFO(P_d, P_di):
     return (d, d_f)
 
 
+def mapped_preamble_gnuradio(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len):
+    return mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len)[0].astype(dtype=np.complex)
+
+
 def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len):
     pn_vals = get_random_qpsk(active_subcarriers, seed)
     pn_sym = map_to_waveform_resources(pn_vals, active_subcarriers, fft_len, subcarrier_map)
@@ -491,7 +495,7 @@ def main():
     # for i in np.arange(0.7, 8):
     #     fap = 10 ** -i
     #     print fap, calculate_threshold_factor(fap)
-
+    mapped_preamble_gnuradio(1, 'rrc', .5, 110, 128, np.arange(110), 2, 64, 16)
 
 
 
