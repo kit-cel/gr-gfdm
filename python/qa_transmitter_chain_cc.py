@@ -24,7 +24,7 @@ from gnuradio import blocks
 import gfdm_swig as gfdm
 from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.gfdm_modulation import gfdm_modulate_block
-from pygfdm.mapping import get_data_matrix
+from pygfdm.mapping import get_data_matrix, map_to_waveform_resources
 from pygfdm.utils import get_random_qpsk
 from pygfdm.cyclic_prefix import get_window_len, get_raised_cosine_ramp, add_cyclic_prefix, pinch_block
 from pygfdm.synchronization import get_sync_symbol
@@ -42,8 +42,9 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         np.set_printoptions(precision=2)
         n_frames = 3
         alpha = .5
+        active = 8
         M = 8
-        K = 4
+        K = 16
         L = 2
         cp_len = 8
         ramp_len = 4
@@ -54,25 +55,32 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         pn_symbols = get_random_qpsk(K)
         H_preamble = get_frequency_domain_filter('rrc', alpha, 2, K, L)
         preamble = get_sync_symbol(pn_symbols, H_preamble, K, L, cp_len, ramp_len)[0]
+        smap = np.arange(active) + (K - active) // 2
 
         ref = np.array([], dtype=np.complex)
         data = np.array([], dtype=np.complex)
+        frame_len = window_len + len(preamble)
+        frame_gap = np.zeros(frame_len)
         for i in range(n_frames):
-            d = get_random_qpsk(block_len)
-            D = get_data_matrix(d, K, group_by_subcarrier=False)
+            d = get_random_qpsk(active * M)
+            dd = map_to_waveform_resources(d, active, K, smap)
+            D = get_data_matrix(dd, K, group_by_subcarrier=False)
             b = gfdm_modulate_block(D, taps, M, K, L, False)
             b = add_cyclic_prefix(b, cp_len)
             b = pinch_block(b, window_taps)
-            ref = np.concatenate((ref, preamble, b))
+            ref = np.concatenate((ref, frame_gap, preamble, b))
             data = np.concatenate((data, d))
 
         src = blocks.vector_source_c(data)
+        mapper = gfdm.resource_mapper_cc(active, K, M, smap, True)
         mod = gfdm.simple_modulator_cc(M, K, L, taps)
         prefixer = gfdm.cyclic_prefixer_cc(cp_len, ramp_len, block_len, window_taps)
         preambler = blocks.vector_insert_c(preamble, window_len + len(preamble), 0)
+        gapper = blocks.vector_insert_c(frame_gap, frame_len + len(frame_gap), 0)
         dst = blocks.vector_sink_c()
 
-        self.tb.connect(src, mod, prefixer, preambler, dst)
+        self.tb.connect(src, mapper, mod, prefixer, preambler, gapper, dst)
+        # self.tb.connect(src, mapper, dst)
         self.tb.run()
         res = np.array(dst.data())[0:len(ref)]
 

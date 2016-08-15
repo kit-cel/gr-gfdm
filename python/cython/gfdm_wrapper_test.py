@@ -11,6 +11,21 @@ from gfdm.pygfdm.filters import get_frequency_domain_filter
 from gfdm.pygfdm.cyclic_prefix import get_raised_cosine_ramp
 
 
+def data_per_volume():
+    '''
+    This is a little funtime activity easter egg trying to estimate data content of the human genome.
+    '''
+    micro_sd_dimensions = [11e-3, 15e-3, 1e-3]  # according to spec
+    micro_sd_volume = micro_sd_dimensions[0] * micro_sd_dimensions[1] * micro_sd_dimensions[2]
+    micro_sd_bits = 200.e9  # use value for some large known mirco SD card size
+    genome_volume = (0.34e-9 ** 3) * 6.e9  # maybe correct? http://hypertextbook.com/facts/1998/StevenChen.shtml
+    genome_bits = 4.e6  # lossless compressed aomunt of data
+    print 'micro SD card volume: ', micro_sd_volume, 'cubic meter'
+    print 'genome volume: ', genome_volume, 'cubic meter'
+    print 'micro SD data per volume', micro_sd_bits / micro_sd_volume, 'bits/(cubic meter)'
+    print 'genome data per volume', genome_bits / genome_volume, 'bits/(cubic meter)'
+
+
 def modulator_test():
     fft_len = 128
     timeslots = 205
@@ -73,6 +88,7 @@ def main():
 
     # resource_mapping_test()
     modulator_test()
+    data_per_volume()
 
 
 if __name__ == '__main__':

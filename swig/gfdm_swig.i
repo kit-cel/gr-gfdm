@@ -25,6 +25,7 @@
 #include "gfdm/advanced_receiver_sb_cc.h"
 #include "gfdm/advanced_receiver_tsb_cc.h"
 #include "gfdm/resource_mapper_kernel_cc.h"
+#include "gfdm/resource_mapper_cc.h"
 %}
 
 %include "gfdm/framer_cc.h"
@@ -52,3 +53,5 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, simple_receiver_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, advanced_receiver_sb_cc);
 %include "gfdm/advanced_receiver_tsb_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, advanced_receiver_tsb_cc);
+%include "gfdm/resource_mapper_cc.h"
+GR_SWIG_BLOCK_MAGIC2(gfdm, resource_mapper_cc);
