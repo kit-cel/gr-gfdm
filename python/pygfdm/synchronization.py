@@ -38,7 +38,7 @@ from filters import get_frequency_domain_filter, gfdm_filter_taps
 from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
 from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, get_root_raised_cosine_ramp
 from mapping import get_data_matrix, map_to_waveform_resources
-from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance, calculate_average_signal_energy, calculate_signal_energy
+from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance, calculate_average_signal_energy, calculate_signal_energy, magnitude_squared
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -144,6 +144,30 @@ def sync_CFO(P_d, P_di):
     print("P_d:{},df:{})".format(P_d[d], d_f))
 
     return (d, d_f)
+
+
+def calculate_packet_average(d, avg_len):
+    s = np.concatenate((d, np.zeros(avg_len - (len(d) % avg_len))))
+    t = np.reshape(s, (-1, avg_len))
+    return np.sum(t, axis=1)
+
+
+def detect_energy_ramps(d, alpha):
+    tr = alpha * np.roll(d, 1)
+    thr = d > tr
+    return np.arange(len(d))[thr]
+
+
+def detect_frame_energy(data, alpha=50., avg_len=32):
+    d = magnitude_squared(data)
+    t = calculate_packet_average(d, avg_len)
+    peaks = detect_energy_ramps(t, alpha)[1:]  # just dump first peak, because it's probably a np.roll artefact.
+    peak_pos = peaks * avg_len
+    return peak_pos
+
+
+def generate_seed(my_str):
+    return abs(hash(my_str))  #% (2 ** 32), seed must be a positive integer.
 
 
 def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len):

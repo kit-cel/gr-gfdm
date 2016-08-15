@@ -128,12 +128,13 @@ def plot_sc_int(x,k_range,m_range,qam_range,j):
     fig.show()
 
 
-def plot_waterfall(symbols, fft_len, overlap=-1, cmap=plt.get_cmap('gnuplot2')):
+def plot_waterfall(symbols, fft_len, overlap=-1, cmap=plt.get_cmap('gnuplot2'), fftshift=True):
     if overlap < 0:
         overlap = fft_len / 4
     Pxx, freqs, bins, im = plt.specgram(symbols, NFFT=fft_len, Fs=fft_len, noverlap=overlap)
 
-    Pxx = np.fft.fftshift(Pxx, axes=0)
+    if fftshift:
+        Pxx = np.fft.fftshift(Pxx, axes=0)
     plt.imshow(10 * np.log10(Pxx.T), cmap=cmap)
     plt.xlabel('FFT bins')
     plt.ylabel('time slots')
