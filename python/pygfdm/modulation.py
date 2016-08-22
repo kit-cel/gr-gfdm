@@ -32,6 +32,7 @@ def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, group_by_su
     :param K: number of subcarriers
     :param oversampling_factor: factor for oversampling
     :param group_by_subcarrier: if True group by time symbol not subcarrier
+    In order to comply with vector-element-sorting used for the efficient impl, this parameter should be 'True'!
     :return: modulation matrix
     [0] Generalized Frequency Division Multiplexing for 5th Generation Cellular Networks
     [1] Generalized frequency division multiplexing: Analysis of an alternative multi-carrier technique for next generation cellular systems
@@ -61,10 +62,10 @@ def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, group_by_su
     return A
 
 
-def transmitMatrix(filtertype, alpha, M, K, N):
+def transmitMatrix(filtertype, alpha, M, K, oversampling_factor=1):
     # replaces old definition.
-    taps = gfdm_filter_taps(filtertype, alpha, M, K, N)
-    return gfdm_modulation_matrix(taps, M, K, N, False)
+    taps = gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor)
+    return gfdm_modulation_matrix(taps, M, K, oversampling_factor, False)
 
 
 def gfdm_tx(x, filtertype, alpha, M, K, L, N):

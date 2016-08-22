@@ -74,7 +74,7 @@ def plotTransmitMatrix(A):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     x, y = np.meshgrid(np.arange(A.shape[-1]), np.arange(A.shape[-2]))
-    ax.plot_wireframe(x, y, np.abs(A),cstride=1,rstride=1)
+    ax.plot_wireframe(x, y, np.abs(A), cstride=1, rstride=1)
     #ax.plot_surface(x, y, np.abs(A), rstride=1, cstride=1, cmap=cm.Greys, linewidth=0, antialiased=False)
     fig.show()
 

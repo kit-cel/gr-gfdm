@@ -67,3 +67,30 @@ def map_to_waveform_resource_grid(syms, active_subcarriers, fft_len, subcarrier_
     frame = np.zeros((fft_len, ts), dtype=np.complex64)
     frame[subcarrier_map, :] = s
     return frame
+
+
+def resource_mapping_test():
+    subcarriers = 8
+    timeslots = 4
+    smap = np.arange(subcarriers)
+    group_tests = [False, True]
+    for g in group_tests:
+        d = np.arange(subcarriers * timeslots, dtype=np.complex64)
+        D = get_data_matrix(d, subcarriers, g)
+        m = map_to_waveform_resource_grid(d, subcarriers, subcarriers, smap, g)
+        if not np.all(D.T == m):
+            raise ValueError('mapping matrices do not match!')
+
+        f = map_to_waveform_resources(d, subcarriers, subcarriers, smap, g)
+        F = reshape_input(d, timeslots, subcarriers, g)
+        if not np.all(f == F):
+            raise ValueError('stacked mapping vectors do not match!')
+
+
+def main():
+    np.set_printoptions(precision=2)
+    resource_mapping_test()
+
+
+if __name__ == '__main__':
+    main()
