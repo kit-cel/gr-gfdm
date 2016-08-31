@@ -29,7 +29,7 @@ import os
 
 
 # the actual classes to be compiled!
-cython_targets = ["modulator_kernel_cc", "add_cyclic_prefix_cc", "resource_mapper_kernel_cc"]
+cython_targets = ["modulator_kernel_cc", "add_cyclic_prefix_cc", "resource_mapper_kernel_cc", "receiver_kernel_cc"]
 # assume those are the only additional libraries to link against.
 libraries = ['fftw3f', 'volk']
 

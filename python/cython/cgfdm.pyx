@@ -80,5 +80,28 @@ cdef class py_resource_mapper_kernel_cc:
         return res
 
 
+cdef class py_receiver_kernel_cc:
+    cdef gfdm_interface.receiver_kernel_cc* kernel
+    def __cinit__(self, int timeslots, int subcarriers, int overlap, np.ndarray freq_taps):
+        self.kernel = new gfdm_interface.receiver_kernel_cc(timeslots, subcarriers, overlap, freq_taps)
+
+    def __del__(self):
+        del self.kernel
+
+    def block_size(self):
+        return self.kernel.block_size()
+
+    def generic_work(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
+        self.kernel.generic_work(<float complex*> outbuf.data, <float complex*> inbuf.data)
+
+    def demodulate(self, np.ndarray[np.complex64_t, ndim=1] samples):
+        if samples.shape[0] != self.block_size():
+            raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
+        self.generic_work(res, samples)
+        return res
+
+
+
 
 
