@@ -27,7 +27,7 @@ from pygfdm.gfdm_modulation import gfdm_modulate_block
 from pygfdm.mapping import get_data_matrix, map_to_waveform_resources
 from pygfdm.utils import get_random_qpsk
 from pygfdm.cyclic_prefix import get_window_len, get_raised_cosine_ramp, add_cyclic_prefix, pinch_block
-from pygfdm.synchronization import get_sync_symbol
+from pygfdm.preamble import get_sync_symbol
 import numpy as np
 
 

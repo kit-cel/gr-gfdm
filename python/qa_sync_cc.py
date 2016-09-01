@@ -24,9 +24,9 @@ from gnuradio import blocks
 import gfdm_swig as gfdm
 import numpy as np
 from pygfdm.utils import calculate_signal_energy, get_complex_noise_vector
-from pygfdm.synchronization import auto_correlate_halfs, generate_test_sync_samples, find_frame_start
+from pygfdm.synchronization import generate_test_sync_samples, find_frame_start
 from pygfdm.synchronization import auto_correlate_signal, abs_integrate, correct_frequency_offset
-from pygfdm.synchronization import cross_correlate_naive, cross_correlate_signal
+from pygfdm.synchronization import cross_correlate_signal
 
 
 class qa_sync_cc(gr_unittest.TestCase):
