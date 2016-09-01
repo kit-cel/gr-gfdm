@@ -35,6 +35,7 @@ namespace gr {
        int d_ic_iter;
        gr::digital::constellation_sptr d_constellation;
        void map_sc_symbols(std::vector< std::vector<gr_complex> > &sc_symbols);
+       void map_symbols_to_constellation_points(gr_complex* symbols);
        void remove_sc_interference(
            std::vector< std::vector<gr_complex> > &sc_symbols,
            std::vector< std::vector<gr_complex> > &sc_fdomain);

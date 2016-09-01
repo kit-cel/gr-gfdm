@@ -95,6 +95,16 @@ namespace gr {
       }
       return noutput_items;
     }
+
+    void advanced_receiver_sb_cc_impl::map_symbols_to_constellation_points(gr_complex* symbols)
+    {
+      unsigned int symbol_tmp = 0;
+      std::vector<gr_complex> const_points = d_constellation->points();
+      for (int i = 0; i < d_kernel->block_size(); ++i) {
+        symbol_tmp = d_constellation->decision_maker(symbols);
+        *symbols++ = const_points[symbol_tmp];
+      }
+    }
     
     void
     advanced_receiver_sb_cc_impl::map_sc_symbols( std::vector< std::vector<gr_complex> > &sc_symbols)
