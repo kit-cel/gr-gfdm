@@ -23,6 +23,11 @@
 import numpy as np
 
 
+def generate_seed(my_string):
+    # this function exists for convenience. Just choose a string for a repeatable preamble. Useful for OTA or similar.
+    return abs(hash(my_string))  # % (2 ** 32), seed must be a positive integer.
+
+
 def get_random_qpsk(nsamples, seed=None, dtype=np.complex):
     if seed:
         np.random.seed(seed)
