@@ -4,11 +4,11 @@ print sys.path
 
 import cgfdm
 import numpy as np
-from gfdm.pygfdm.gfdm_modulation import gfdm_modulate_block
-from gfdm.pygfdm.mapping import get_data_matrix
-from gfdm.pygfdm.utils import get_random_qpsk
-from gfdm.pygfdm.filters import get_frequency_domain_filter
-from gfdm.pygfdm.cyclic_prefix import get_raised_cosine_ramp
+from pygfdm.gfdm_modulation import gfdm_modulate_block
+from pygfdm.mapping import get_data_matrix
+from pygfdm.utils import get_random_qpsk
+from pygfdm.filters import get_frequency_domain_filter
+from pygfdm.cyclic_prefix import get_raised_cosine_ramp
 
 
 def data_per_volume():
