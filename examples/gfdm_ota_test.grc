@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<?grc format='1' created='3.7.11'?>
+<?grc format='1' created='3.7.10'?>
 <flow_graph>
   <timestamp>Tue Jun 14 17:57:04 2016</timestamp>
   <block>
@@ -537,7 +537,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>synchronization.mapped_preamble_gnuradio(seed, 'rrc', .5, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len)</value>
+      <value>pre_module.mapped_preamble(seed, 'rrc', .5, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len)[0]</value>
     </param>
   </block>
   <block>
@@ -949,61 +949,6 @@
     </param>
   </block>
   <block>
-    <key>blocks_vector_insert_x</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(744, 356)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>blocks_vector_insert_x_0</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>offset</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
-    </param>
-    <param>
-      <key>period</key>
-      <value>frame_len + len(frame_gap)</value>
-    </param>
-    <param>
-      <key>vector</key>
-      <value>frame_gap</value>
-    </param>
-  </block>
-  <block>
     <key>digital_chunks_to_symbols_xx</key>
     <param>
       <key>alias</key>
@@ -1060,6 +1005,61 @@
     <param>
       <key>symbol_table</key>
       <value>[1+1j, -1+1j, -1-1j, 1-1j]</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_vector_insert_x</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(744, 356)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>frame_gap_vector_insert</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>offset</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>period</key>
+      <value>frame_len + len(frame_gap)</value>
+    </param>
+    <param>
+      <key>vector</key>
+      <value>frame_gap</value>
     </param>
   </block>
   <block>
@@ -1262,7 +1262,7 @@
     </param>
     <param>
       <key>import</key>
-      <value>from gfdm.pygfdm import synchronization</value>
+      <value>from gfdm.pygfdm import preamble as pre_module</value>
     </param>
   </block>
   <block>
@@ -2519,7 +2519,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -2682,7 +2682,7 @@
   </connection>
   <connection>
     <source_block_id>blocks_multiply_const_vxx_0</source_block_id>
-    <sink_block_id>blocks_vector_insert_x_0</sink_block_id>
+    <sink_block_id>frame_gap_vector_insert</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -2705,14 +2705,14 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>blocks_vector_insert_x_0</source_block_id>
-    <sink_block_id>blocks_throttle_0</sink_block_id>
+    <source_block_id>digital_chunks_to_symbols_xx_0</source_block_id>
+    <sink_block_id>hier_gfdm_transmitter_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>digital_chunks_to_symbols_xx_0</source_block_id>
-    <sink_block_id>hier_gfdm_transmitter_0</sink_block_id>
+    <source_block_id>frame_gap_vector_insert</source_block_id>
+    <sink_block_id>blocks_throttle_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<?grc format='1' created='3.7.11'?>
+<?grc format='1' created='3.7.10'?>
 <flow_graph>
   <timestamp>Wed Jun  1 16:07:48 2016</timestamp>
   <block>
@@ -302,7 +302,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>synchronization.generate_sync_symbol(utils.get_random_qpsk(subcarriers), 'rrc', .5, subcarriers, overlap, cp_len, ramp_len)[0]</value>
+      <value>pre_module.generate_sync_symbol(utils.get_random_qpsk(subcarriers), 'rrc', .5, subcarriers, overlap, cp_len, ramp_len)[0]</value>
     </param>
   </block>
   <block>
@@ -969,8 +969,16 @@
       <value>0</value>
     </param>
     <param>
+      <key>active_subcarriers</key>
+      <value>12</value>
+    </param>
+    <param>
       <key>cp_len</key>
       <value>cp_len</value>
+    </param>
+    <param>
+      <key>fft_len</key>
+      <value>subcarriers</value>
     </param>
     <param>
       <key>filter_taps</key>
@@ -989,8 +997,8 @@
       <value>ramp_len</value>
     </param>
     <param>
-      <key>subcarriers</key>
-      <value>subcarriers</value>
+      <key>subcarrier_map</key>
+      <value>np.arange(12)</value>
     </param>
     <param>
       <key>timeslots</key>
@@ -1122,7 +1130,7 @@
     </param>
     <param>
       <key>import</key>
-      <value>from gfdm.pygfdm import  synchronization</value>
+      <value>from gfdm.pygfdm import  preamble as pre_module</value>
     </param>
   </block>
   <block>

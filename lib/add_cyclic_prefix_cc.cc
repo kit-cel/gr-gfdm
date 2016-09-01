@@ -31,7 +31,10 @@ namespace gr {
     {
       int window_len = block_len + cp_len;
       if(window_taps.size() != (unsigned int) window_len && window_taps.size() != (unsigned int) 2 * ramp_len){
-        throw std::invalid_argument("ERROR: number of window_taps elements MUST be equal to 2*ramp_len OR n_timeslots*n_subcarriers+cp_len!");
+        std::stringstream sstm;
+        sstm << "number of window taps(" << window_taps.size() << ") MUST be equal to 2*ramp_len(";
+        sstm << 2 * ramp_len << ") OR block_len+cp_len (" << window_len << ")!";
+        throw std::invalid_argument(sstm.str().c_str());
       }
 
       d_front_ramp = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * ramp_len, volk_get_alignment());

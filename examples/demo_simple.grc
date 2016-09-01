@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<?grc format='1' created='3.7.11'?>
+<?grc format='1' created='3.7.10'?>
 <flow_graph>
   <timestamp>Thu Apr 14 22:29:02 2016</timestamp>
   <block>
@@ -105,7 +105,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>filters.get_frequency_domain_filter('rrc', 1.0, gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap)</value>
+      <value>filters.get_frequency_domain_filter('rrc', .5, gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap)</value>
     </param>
   </block>
   <block>
@@ -339,7 +339,7 @@
     </param>
     <param>
       <key>value1</key>
-      <value>8</value>
+      <value>9</value>
     </param>
   </block>
   <block>
@@ -403,6 +403,33 @@
     <param>
       <key>widget</key>
       <value>counter_slider</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1016, 76)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>rx_f_taps</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>numpy.conjugate(f_taps)</value>
     </param>
   </block>
   <block>
@@ -511,7 +538,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>2</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -688,7 +715,7 @@
     </param>
     <param>
       <key>samples_per_second</key>
-      <value>4e6</value>
+      <value>1e6</value>
     </param>
     <param>
       <key>type</key>
@@ -782,7 +809,7 @@
     </param>
     <param>
       <key>frequency_taps</key>
-      <value>f_taps</value>
+      <value>rx_f_taps</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -845,7 +872,7 @@
     </param>
     <param>
       <key>frequency_taps</key>
-      <value>f_taps</value>
+      <value>rx_f_taps</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -963,7 +990,7 @@
     </param>
     <param>
       <key>frequency_taps</key>
-      <value>f_taps</value>
+      <value>rx_f_taps</value>
     </param>
     <param>
       <key>_coordinate</key>

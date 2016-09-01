@@ -28,6 +28,7 @@ GR_PYTHON_INSTALL(
     modulation.py
     gfdm_modulation.py
     mapping.py
+    preamble.py
     utils.py
     __init__.py
     DESTINATION ${GR_PYTHON_DIR}/gfdm/pygfdm
