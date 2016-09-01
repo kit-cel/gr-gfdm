@@ -108,18 +108,44 @@ def generate_sync_symbol(pn_symbols, filtertype, alpha, K, L, cp_len, ramp_len):
     return get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
 
 
+def check_preamble_properties(preamble, x_preamble):
+    x_1st = x_preamble[0:len(x_preamble) // 2]
+    x_2nd = x_preamble[-len(x_preamble) // 2:]
+    if not np.all(np.abs(x_1st - x_2nd) < 1e-12):
+        print np.abs(x_1st - x_2nd)
+        raise ValueError('preamble timeslots do not repeat!')
+    from correlation import cross_correlate_naive, auto_correlate_halfs
+    from utils import calculate_signal_energy
+    x_ampl = np.sqrt(calculate_signal_energy(x_preamble))
+    preamble *= x_ampl
+    x_preamble *= x_ampl
+    x_energy = calculate_signal_energy(x_preamble)
+    if np.abs(2. * auto_correlate_halfs(x_preamble) / x_energy) -1. > 1e-10:
+        raise ValueError('auto correlating halfs of preamble fails!')
+
+    print 'normalized preamble xcorr val: ', np.correlate(x_preamble, x_preamble) / x_energy
+    print 'windowed normalized preamble: ', np.correlate(preamble[-len(x_preamble):], x_preamble) / x_energy
+    fxc = np.correlate(preamble, x_preamble, 'full') / x_energy
+    vxc = np.correlate(preamble, x_preamble, 'valid') / x_energy
+    nxc = cross_correlate_naive(preamble, x_preamble) / x_energy
+    import matplotlib.pyplot as plt
+
+    plt.plot(np.abs(fxc))
+    plt.plot(np.abs(vxc))
+    plt.plot(np.abs(nxc))
+    plt.show()
 
 
 def main():
     np.set_printoptions(precision=4, suppress=True)
-    # preamble_auto_corr_test()
-    # sync_test()
     seed = generate_seed('awesome')
-    fft_len = 128
-    active_subcarriers = 96
+    fft_len = 32
+    active_subcarriers = 24
     subcarrier_map = np.arange(fft_len)
     subcarrier_map = np.concatenate((subcarrier_map[0:active_subcarriers//2], subcarrier_map[-active_subcarriers//2:]))
-    preamble, x_preamble = mapped_preamble(seed, 'rrc', .5, active_subcarriers, fft_len, subcarrier_map, 2, fft_len // 2, fft_len // 8)
+    preamble, x_preamble = mapped_preamble(seed, 'rrc', .1, active_subcarriers, fft_len, subcarrier_map, 2, fft_len // 2, fft_len // 8)
+    check_preamble_properties(preamble, x_preamble)
+
 
 if __name__ == '__main__':
     main()

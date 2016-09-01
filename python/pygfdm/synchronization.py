@@ -30,15 +30,14 @@ COMMENT
 '''
 
 import numpy as np
-import commpy as cp
 import matplotlib.pyplot as plt
-import scipy.signal as signal
-from modulation import gfdm_tx, gfdm_tx_fft2, gfdm_modulation_matrix
+from modulation import gfdm_modulation_matrix
 from filters import get_frequency_domain_filter, gfdm_filter_taps
 from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
 from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, get_root_raised_cosine_ramp
 from mapping import get_data_matrix, map_to_waveform_resources
 from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance, calculate_average_signal_energy, calculate_signal_energy, magnitude_squared
+from utils import generate_seed
 from correlation import auto_correlate_halfs, cross_correlate_signal
 from preamble import generate_sync_symbol
 
@@ -218,7 +217,6 @@ def find_frame_start(s, preamble, K, cp_len):
     # THIS PARTS represents the live algorithm!
     # first part of the algorithm. rough STO sync and CFO estimation!
     nm, cfo, abs_corr_vals, corr_vals = auto_correlation_sync(s, K, cp_len)
-    print 'auto correlation nm:', nm, ', cfo:', cfo, ', val:', abs_corr_vals[nm]
 
     # Fix CFO!
     s = correct_frequency_offset(s, cfo / (2. * K))
@@ -227,16 +225,22 @@ def find_frame_start(s, preamble, K, cp_len):
     # ONLY nc required, everything else only used for evaluation!
     nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, abs_corr_vals)
     # ALGORITHM FINISHED!
+    print 'find_frame_start nc: {} (nm: {}), cfo: {:.5f}'.format(nc, nm, cfo), ', abs_corr_val: {:.5f}'.format(abs_corr_vals[nm])
 
     return nc, cfo, abs_corr_vals, corr_vals, napcc, apcc
 
 
 def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo):
     block_len = M * K
-    data = get_random_qpsk(block_len)
+    data = get_random_qpsk(block_len, seed=generate_seed('awesomepayloadblabla'))
     x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
 
-    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
+
+
+    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K, seed=generate_seed('awesome')), 'rrc', alpha, K, L, cp_len, ramp_len)
+    print 'frame energy:', calculate_average_signal_energy(x), 'preamble energy:', calculate_average_signal_energy(preamble)
+    preamble *= np.sqrt(calculate_average_signal_energy(x) / calculate_average_signal_energy(preamble))
+
     frame = np.concatenate((preamble, x))
 
     # simulate Noise and frequency offset!
@@ -249,7 +253,7 @@ def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cf
 
 def sync_test():
     samp_rate = 10e6  # an assumption to work with
-    alpha = .5
+    alpha = .3
     M = 33
     K = 32
     block_len = M * K
@@ -258,28 +262,18 @@ def sync_test():
     ramp_len = cp_len / 2
 
     test_cfo = -.2
-    snr_dB = 0.0
+    snr_dB = 40.0
     false_alarm_probability = 1e-3
     print 'Channel parameters, SNR:', snr_dB, 'dB with a relative subcarrier offset:', test_cfo
-
-
     print 'assumed samp_rate:', samp_rate, ' with sc_bw:', samp_rate / K
 
-    data = get_random_qpsk(block_len)
-    x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
+    frame, x_preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
 
-    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K), 'rrc', alpha, K, L, cp_len, ramp_len)
-    frame = np.concatenate((preamble, x))
-
+    print np.correlate(x_preamble, x_preamble), auto_correlate_halfs(x_preamble)
     print 'frame duration: ', 1e6 * len(frame) / samp_rate, 'us'
     print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
-    # simulate Noise and frequency offset!
-    frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
-    noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
-    # noise_variance = 0.0
-    s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
-    s[block_len:block_len + len(frame)] += frame
     print 'frame start in test vector: ', block_len + cp_len
+    s = frame
 
     s *= 100. / np.sqrt(len(x_preamble))
     nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
@@ -300,7 +294,7 @@ def sync_test():
         plt.plot(peak * thr)
         print 'n exceed thr: ', thr, ':', np.sum(peak)
 
-    # plt.xlim((1000, 1200))
+    plt.xlim((1000, 1200))
     plt.legend()
     plt.show()
 

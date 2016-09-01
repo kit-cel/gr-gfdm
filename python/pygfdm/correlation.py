@@ -26,11 +26,9 @@ Relevant paper section
 
 COMMENT
 [1] describes the algorithm while [0] additionally explains GFDM preamble generation.
-
 '''
 
 import numpy as np
-import scipy.signal as signal
 
 
 def auto_correlate_halfs(s):
@@ -40,27 +38,23 @@ def auto_correlate_halfs(s):
 
 def cross_correlate_naive(s, p):
     # naive implementation of the algorithm described in [0]
-
     p = np.conjugate(p)
     p_len = len(p)
     buf_len = len(s) - p_len + 1
     cc = np.zeros(buf_len, dtype=np.complex)
     for i in range(buf_len):
         cc[i] = np.sum(s[i:i + p_len] * p)
-    # if len(cc) < 20:
-    print len(s), len(p), len(cc)
-    print cc
     return cc
 
 
 def cross_correlate_signal_full(s, p):
-    return signal.correlate(s, p, 'full')
+    return np.correlate(s, p, 'full')
     # return signal.correlate(s, p, 'valid')[0:len(s)-len(p)]
 
 
 def cross_correlate_signal_valid(s, p):
     # scipy.signal.correlate way of doing things!
-    return signal.correlate(s, p, 'valid')
+    return np.correlate(s, p, 'valid')
 
 
 def cross_correlate_signal(s, p):
@@ -145,6 +139,7 @@ def validate_cross_correlation_algorithms():
 
     a = np.array([1., 2., 3., 4.])
     b = np.array([3., 2., 0., 2.])
+
     validate_naive_cross_correlation(a, b, tolerance)
     validate_full_cross_correlation(a, b, tolerance)
     validate_valid_cross_correlation(a, b, tolerance)
