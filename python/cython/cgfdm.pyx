@@ -100,6 +100,9 @@ cdef class py_receiver_kernel_cc:
     def cpp_transform_subcarriers_to_td(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
         self.kernel.transform_subcarriers_to_td(<float complex*> outbuf.data, <float complex*> inbuf.data)
 
+    def cpp_cancel_sc_interference(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] td_inbuf, np.ndarray[np.complex64_t, ndim=1] fd_inbuf):
+        self.kernel.cancel_sc_interference(<float complex*> outbuf.data, <float complex*> td_inbuf.data, <float complex*> fd_inbuf.data);
+
     def demodulate(self, np.ndarray[np.complex64_t, ndim=1] samples):
         if samples.shape[0] != self.block_size():
             raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
@@ -114,12 +117,20 @@ cdef class py_receiver_kernel_cc:
         self.cpp_fft_filter_downsample(res, samples)
         return res
 
-
     def transform_subcarriers_to_td(self, np.ndarray[np.complex64_t, ndim=1] samples):
         if samples.shape[0] != self.block_size():
             raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
         cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
         self.cpp_transform_subcarriers_to_td(res, samples)
+        return res
+
+    def cancel_sc_interference(self, np.ndarray[np.complex64_t, ndim=1] td_in, np.ndarray[np.complex64_t, ndim=1] fd_in):
+        if td_in.shape[0] != self.block_size():
+            raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
+        if td_in.shape[0] != fd_in.shape[0]:
+            raise ValueError("CGFDM: Size of BOTH input arrays MUST be equal to timeslots * active_subcarriers!")
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
+        self.cpp_cancel_sc_interference(res, td_in, fd_in)
         return res
 
 
