@@ -57,7 +57,9 @@ namespace gr {
       ~receiver_kernel_cc();
 
       void generic_work(gfdm_complex* out, const gfdm_complex* in);
-      void fft_filter_downsample(gfdm_complex* out, const gfdm_complex* in);
+      void fft_filter_downsample(gfdm_complex* p_out, const gfdm_complex* p_in);
+      void transform_subcarriers_to_td(gfdm_complex *p_out, const gfdm_complex *p_in);
+
       void filter_superposition(std::vector< std::vector<gfdm_complex> > &out, const gfdm_complex* in);
       void demodulate_subcarrier(std::vector< std::vector<gfdm_complex> > &out, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
       void serialize_output(gfdm_complex out[], std::vector< std::vector<gfdm_complex> > &sc_symbols);
@@ -70,8 +72,8 @@ namespace gr {
     private:
       int d_n_subcarriers;
       int d_n_timeslots;
-      int d_overlap;
       int d_block_len;
+      int d_overlap;
       gfdm_complex* d_filter_taps;
       gfdm_complex* d_ic_filter_taps;
 
@@ -93,10 +95,6 @@ namespace gr {
       gfdm_complex* d_sc_filtered;
 
       void filter_subcarriers_and_downsample_fd(gfdm_complex *p_out, const gfdm_complex *p_in);
-      void transform_subcarriers_to_td(gfdm_complex *p_out, const gfdm_complex *p_in);
-
-
-
 
     };
   } /* namespace gfdm */

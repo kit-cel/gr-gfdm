@@ -94,6 +94,12 @@ cdef class py_receiver_kernel_cc:
     def generic_work(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
         self.kernel.generic_work(<float complex*> outbuf.data, <float complex*> inbuf.data)
 
+    def cpp_fft_filter_downsample(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
+        self.kernel.fft_filter_downsample(<float complex*> outbuf.data, <float complex*> inbuf.data)
+
+    def cpp_transform_subcarriers_to_td(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
+        self.kernel.transform_subcarriers_to_td(<float complex*> outbuf.data, <float complex*> inbuf.data)
+
     def demodulate(self, np.ndarray[np.complex64_t, ndim=1] samples):
         if samples.shape[0] != self.block_size():
             raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
@@ -101,6 +107,20 @@ cdef class py_receiver_kernel_cc:
         self.generic_work(res, samples)
         return res
 
+    def fft_filter_downsample(self, np.ndarray[np.complex64_t, ndim=1] samples):
+        if samples.shape[0] != self.block_size():
+            raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
+        self.cpp_fft_filter_downsample(res, samples)
+        return res
+
+
+    def transform_subcarriers_to_td(self, np.ndarray[np.complex64_t, ndim=1] samples):
+        if samples.shape[0] != self.block_size():
+            raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
+        self.cpp_transform_subcarriers_to_td(res, samples)
+        return res
 
 
 
