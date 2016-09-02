@@ -59,6 +59,7 @@ namespace gr {
       void generic_work(gfdm_complex* out, const gfdm_complex* in);
       void fft_filter_downsample(gfdm_complex* p_out, const gfdm_complex* p_in);
       void transform_subcarriers_to_td(gfdm_complex *p_out, const gfdm_complex *p_in);
+      void cancel_sc_interference(gfdm_complex* p_out, const gfdm_complex* p_td_in, const gfdm_complex* p_fd_in);
 
       void filter_superposition(std::vector< std::vector<gfdm_complex> > &out, const gfdm_complex* in);
       void demodulate_subcarrier(std::vector< std::vector<gfdm_complex> > &out, std::vector< std::vector<gfdm_complex> > &sc_fdomain);

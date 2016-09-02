@@ -247,6 +247,27 @@ namespace gr
     }
 
     void
+    receiver_kernel_cc::cancel_sc_interference(gfdm_complex* p_out, const gfdm_complex* p_td_in, const gfdm_complex* p_fd_in)
+    {
+      for (int k = 0; k < d_n_subcarriers; k++) {
+        //Sum up neighboring subcarriers and then filter with ic_filter_taps
+        int prev_sc = (((k - 1) % d_n_subcarriers) + d_n_subcarriers) % d_n_subcarriers;
+        int next_sc = (((k + 1) % d_n_subcarriers) + d_n_subcarriers) % d_n_subcarriers;
+        int s_prev_sc = (k - 1 + d_n_subcarriers) % d_n_subcarriers;
+        int s_next_sc = (k + 1 + d_n_subcarriers) % d_n_subcarriers;
+        std::cout << "prev: " << prev_sc << "(" << s_prev_sc << "), next: " << next_sc << "(" << s_next_sc << ")\n";
+        ::volk_32f_x2_add_32f((float *) d_sc_fft_in, (float *) (p_td_in + prev_sc * d_n_timeslots),
+                              (float *) (p_td_in + next_sc * d_n_timeslots), 2 * d_n_timeslots);
+        fftwf_execute(d_sc_fft_plan);
+        //Multiply resulting symbols stream with ic_filter_taps in fd
+        ::volk_32fc_x2_multiply_32fc(p_out + k * d_n_timeslots, d_ic_filter_taps, d_sc_fft_out, d_n_timeslots);
+        //Subtract calculated interference from subcarrier k
+        ::volk_32f_x2_subtract_32f((float *) p_out + k * d_n_timeslots, (float *) p_fd_in + k * d_n_timeslots, (float *) p_out + k * d_n_timeslots,
+                                   2 * d_n_timeslots);
+      }
+    }
+
+    void
     receiver_kernel_cc::fft_filter_downsample(gfdm_complex* p_out, const gfdm_complex* p_in)
     {
       memcpy(d_in_fft_in, p_in, sizeof(gfdm_complex) * d_block_len);
