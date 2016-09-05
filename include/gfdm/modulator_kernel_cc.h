@@ -47,6 +47,8 @@ namespace gr {
       ~modulator_kernel_cc();
       void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
       int block_size(){return d_n_subcarriers * d_n_timeslots;};
+      std::vector<gfdm_complex> filter_taps();
+
     private:
       int d_n_timeslots;
       int d_n_subcarriers;
@@ -55,6 +57,7 @@ namespace gr {
       gfdm_complex* d_filter_taps;
 
       fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
+      void initialize_taps_vector(gfdm_complex* filter_taps, std::vector<gfdm_complex> frequency_taps, const int n_timeslots);
 
       gfdm_complex* d_sub_fft_in;
       gfdm_complex* d_sub_fft_out;
@@ -67,6 +70,7 @@ namespace gr {
       // DEBUG function
       const void print_vector(const gfdm_complex* v, const int size);
       static bool complex_compare(gfdm_complex i, gfdm_complex j) { return std::abs(i) < std::abs(j); };
+
     };
 
   } // namespace gfdm

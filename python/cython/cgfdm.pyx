@@ -17,6 +17,9 @@ cdef class py_modulator_kernel_cc:
     def block_size(self):
         return self.kernel.block_size()
 
+    def filter_taps(self):
+        return np.array(self.kernel.filter_taps())
+
     def generic_work(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
         self.kernel.generic_work(<float complex*> outbuf.data, <float complex*> inbuf.data)
 
@@ -90,6 +93,12 @@ cdef class py_receiver_kernel_cc:
 
     def block_size(self):
         return self.kernel.block_size()
+
+    def filter_taps(self):
+        return np.array(self.kernel.filter_taps())
+
+    def ic_filter_taps(self):
+        return np.array(self.kernel.ic_filter_taps())
 
     def generic_work(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
         self.kernel.generic_work(<float complex*> outbuf.data, <float complex*> inbuf.data)

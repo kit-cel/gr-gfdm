@@ -42,8 +42,18 @@ namespace gr
         std::string err_str = sstm.str();
         throw std::invalid_argument(err_str.c_str());
       }
+
+//      gfdm_complex res = gfdm_complex(0.0, 0.0);
+//      volk_32fc_x2_conjugate_dot_prod_32fc(&res, &frequency_taps[0], &frequency_taps[0], frequency_taps.size());
+//      std::cout << "BEFORE energy of taps: " << std::abs(res) << std::endl;
+//      gfdm_complex scaling_factor = gfdm_complex(std::sqrt(std::abs(res) / n_timeslots), 0.0f);
       d_filter_taps = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * n_timeslots * overlap, volk_get_alignment());
-      memcpy(d_filter_taps, &frequency_taps[0], sizeof(gfdm_complex) * n_timeslots * overlap);
+//      volk_32fc_s32fc_multiply_32fc(d_filter_taps, &frequency_taps[0], scaling_factor, n_timeslots * overlap);
+////      memcpy(d_filter_taps, &frequency_taps[0], sizeof(gfdm_complex) * n_timeslots * overlap);
+//
+//      volk_32fc_x2_conjugate_dot_prod_32fc(&res, d_filter_taps, d_filter_taps, n_timeslots * overlap);
+//      std::cout << "AFTER  energy of taps: " << std::abs(res) << std::endl;
+      initialize_taps_vector(d_filter_taps, frequency_taps, n_timeslots);
 
       // first create input and output buffers for a new FFTW plan.
       d_sub_fft_in = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * n_timeslots, volk_get_alignment());
@@ -69,6 +79,27 @@ namespace gr
       fftwf_destroy_plan(d_ifft_plan);
       volk_free(d_ifft_in);
       volk_free(d_ifft_out);
+    }
+
+    void
+    modulator_kernel_cc::initialize_taps_vector(gfdm_complex* filter_taps, std::vector<gfdm_complex> frequency_taps, const int n_timeslots)
+    {
+      gfdm_complex res = gfdm_complex(0.0, 0.0);
+      volk_32fc_x2_conjugate_dot_prod_32fc(&res, &frequency_taps[0], &frequency_taps[0], frequency_taps.size());
+      std::cout << "BEFORE energy of taps: " << std::abs(res) << std::endl;
+
+      const gfdm_complex scaling_factor = gfdm_complex(1. / std::sqrt(std::abs(res) / n_timeslots), 0.0f);
+      volk_32fc_s32fc_multiply_32fc(d_filter_taps, &frequency_taps[0], scaling_factor, frequency_taps.size());
+
+      volk_32fc_x2_conjugate_dot_prod_32fc(&res, d_filter_taps, d_filter_taps, frequency_taps.size());
+      std::cout << "AFTER  energy of taps: " << std::abs(res) << std::endl;
+    }
+
+    std::vector<modulator_kernel_cc::gfdm_complex> modulator_kernel_cc::filter_taps()
+    {
+      std::vector<gfdm_complex> taps(d_n_timeslots * d_overlap);
+      memcpy(&taps[0], d_filter_taps, sizeof(gfdm_complex) * d_n_timeslots * d_overlap);
+      return taps;
     }
 
 

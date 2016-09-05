@@ -69,6 +69,8 @@ namespace gr {
       {
         return d_block_len;
       };
+      std::vector<gfdm_complex> filter_taps();
+      std::vector<gfdm_complex> ic_filter_taps();
 
     private:
       int d_n_subcarriers;
@@ -79,6 +81,7 @@ namespace gr {
       gfdm_complex* d_ic_filter_taps;
 
       fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
+      void initialize_taps_vector(gfdm_complex* filter_taps, std::vector<gfdm_complex> frequency_taps, const int n_timeslots);
 
       fftwf_plan d_in_fft_plan;
       gfdm_complex* d_in_fft_in;

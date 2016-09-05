@@ -76,8 +76,8 @@ def freq_tapered_raised_cosine(t, alpha):
 
 
 def main():
-    sc = 16
-    ts = 8
+    sc = 32
+    ts = 25
     overlap = 2
     alpha = .5
     time_taps = gfdm_filter_taps('rc', alpha, sc, ts)
@@ -87,8 +87,11 @@ def main():
     fig = plt.figure()
     tp = fig.add_subplot('211')
     t = np.arange(0, ts, 1. / sc)
+    time_taps = np.fft.ifftshift(time_taps)
     plt.plot(t, np.abs(time_taps))
-    plt.plot(t, np.abs(freq_tapered_raised_cosine(t - 1. * ts / 2., alpha)))
+    plt.plot(t, np.abs(np.fft.ifftshift(freq_tapered_raised_cosine(t - 1. * ts / 2., alpha))))
+    plt.plot(t, np.roll(np.abs(time_taps), sc))
+    plt.xlim((0, ts))
     plt.xlabel('time samples')
 
     fp = fig.add_subplot('212')
@@ -96,6 +99,10 @@ def main():
     plt.plot(f, np.abs(freq_taps))
     plt.plot(f, np.abs(np.fft.fft(freq_tapered_raised_cosine(t - 1. * ts / 2., alpha))))
     plt.plot(f, np.abs(np.concatenate((freq_taps_sparse[0:len(freq_taps_sparse)/2], np.zeros(sc * ts - len(freq_taps_sparse)), freq_taps_sparse[len(freq_taps_sparse)/2:]))), linestyle='--')
+
+    plt.plot(f, np.abs(np.fft.fftshift(freq_taps)))
+    plt.plot(f, np.roll(np.abs(np.fft.fftshift(freq_taps)), ts))
+    plt.xlim((0, sc))
     plt.xlabel('frequency samples')
     plt.show()
 

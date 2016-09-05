@@ -51,9 +51,10 @@ namespace gr
         throw std::invalid_argument(sstm.str().c_str());
       }
       d_filter_taps = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * n_timeslots * overlap, volk_get_alignment());
-      memcpy(d_filter_taps, &frequency_taps[0], sizeof(gfdm_complex) * n_timeslots * overlap);
-      ::volk_32fc_s32fc_multiply_32fc(d_filter_taps, d_filter_taps, static_cast<gfdm_complex>(1.0 / n_subcarriers),
-                                      n_timeslots * overlap);
+//      memcpy(d_filter_taps, &frequency_taps[0], sizeof(gfdm_complex) * n_timeslots * overlap);
+//      ::volk_32fc_s32fc_multiply_32fc(d_filter_taps, d_filter_taps, static_cast<gfdm_complex>(1.0 / n_subcarriers),
+//                                      n_timeslots * overlap);
+      initialize_taps_vector(d_filter_taps, frequency_taps, n_timeslots);
 
       d_ic_filter_taps = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * n_timeslots, volk_get_alignment());
       memset(d_ic_filter_taps, 0x00, sizeof(gfdm_complex) * n_timeslots);
@@ -100,6 +101,34 @@ namespace gr
 
       volk_free(d_sc_postfilter);
       volk_free(d_sc_filtered);
+    }
+
+    void
+    receiver_kernel_cc::initialize_taps_vector(gfdm_complex* filter_taps, std::vector<gfdm_complex> frequency_taps, const int n_timeslots)
+    {
+      gfdm_complex res = gfdm_complex(0.0, 0.0);
+      volk_32fc_x2_conjugate_dot_prod_32fc(&res, &frequency_taps[0], &frequency_taps[0], frequency_taps.size());
+      std::cout << "BEFORE energy of taps: " << std::abs(res) << std::endl;
+
+      const gfdm_complex scaling_factor = gfdm_complex(1. / std::sqrt(std::abs(res) / n_timeslots), 0.0f);
+      volk_32fc_s32fc_multiply_32fc(d_filter_taps, &frequency_taps[0], scaling_factor, frequency_taps.size());
+
+      volk_32fc_x2_conjugate_dot_prod_32fc(&res, d_filter_taps, d_filter_taps, frequency_taps.size());
+      std::cout << "AFTER  energy of taps: " << std::abs(res) << std::endl;
+    }
+
+    std::vector<receiver_kernel_cc::gfdm_complex> receiver_kernel_cc::filter_taps()
+    {
+      std::vector<gfdm_complex> taps(d_n_timeslots * d_overlap);
+      memcpy(&taps[0], d_filter_taps, sizeof(gfdm_complex) * d_n_timeslots * d_overlap);
+      return taps;
+    }
+
+    std::vector<receiver_kernel_cc::gfdm_complex> receiver_kernel_cc::ic_filter_taps()
+    {
+      std::vector<gfdm_complex> taps(d_n_timeslots);
+      memcpy(&taps[0], d_ic_filter_taps, sizeof(gfdm_complex) * d_n_timeslots);
+      return taps;
     }
 
     fftwf_plan
@@ -251,18 +280,16 @@ namespace gr
     {
       for (int k = 0; k < d_n_subcarriers; k++) {
         //Sum up neighboring subcarriers and then filter with ic_filter_taps
-        int prev_sc = (((k - 1) % d_n_subcarriers) + d_n_subcarriers) % d_n_subcarriers;
-        int next_sc = (((k + 1) % d_n_subcarriers) + d_n_subcarriers) % d_n_subcarriers;
-        int s_prev_sc = (k - 1 + d_n_subcarriers) % d_n_subcarriers;
-        int s_next_sc = (k + 1 + d_n_subcarriers) % d_n_subcarriers;
-        std::cout << "prev: " << prev_sc << "(" << s_prev_sc << "), next: " << next_sc << "(" << s_next_sc << ")\n";
+        int prev_sc = (k - 1 + d_n_subcarriers) % d_n_subcarriers;
+        int next_sc = (k + 1 + d_n_subcarriers) % d_n_subcarriers;
         ::volk_32f_x2_add_32f((float *) d_sc_fft_in, (float *) (p_td_in + prev_sc * d_n_timeslots),
                               (float *) (p_td_in + next_sc * d_n_timeslots), 2 * d_n_timeslots);
         fftwf_execute(d_sc_fft_plan);
         //Multiply resulting symbols stream with ic_filter_taps in fd
-        ::volk_32fc_x2_multiply_32fc(p_out + k * d_n_timeslots, d_ic_filter_taps, d_sc_fft_out, d_n_timeslots);
+        gfdm_complex* p_target = p_out + k * d_n_timeslots;
+        ::volk_32fc_x2_multiply_32fc(p_target, d_ic_filter_taps, d_sc_fft_out, d_n_timeslots);
         //Subtract calculated interference from subcarrier k
-        ::volk_32f_x2_subtract_32f((float *) p_out + k * d_n_timeslots, (float *) p_fd_in + k * d_n_timeslots, (float *) p_out + k * d_n_timeslots,
+        ::volk_32f_x2_subtract_32f((float *) p_target, (float *) p_fd_in + k * d_n_timeslots, (float *) p_target,
                                    2 * d_n_timeslots);
       }
     }
