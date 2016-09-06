@@ -152,6 +152,11 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
     return gfdm_modulate_block(D, H, M, K, overlap, False)
 
 
+def get_random_GFDM_block(ts, sc, overlap, alpha):
+    data = get_random_qpsk(ts*sc)
+    tx_data = gfdm_modulate_fft(data, alpha, ts, sc, overlap)
+    return (data, tx_data)
+
 def implementation_validation():
     M = 33
     K = 32

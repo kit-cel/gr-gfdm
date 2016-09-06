@@ -64,6 +64,12 @@ def randomQAMSymbols(length, M):
         (choices) for i in xrange(length)])
 
 
+def map_qpsk_stream(data):
+    energy = 1./np.sqrt(2)
+    return list(map(lambda x: energy*(np.sign(x.real)+1j*np.sign(x.imag)),data.flatten()))
+
+
+
 def get_zero_f_data(k, K, M):
     data = np.zeros(K)
     data[k] = 1.
