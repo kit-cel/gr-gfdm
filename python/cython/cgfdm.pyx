@@ -34,8 +34,8 @@ cdef class py_modulator_kernel_cc:
 cdef class py_add_cyclic_prefix_cc:
     cdef gfdm_interface.add_cyclic_prefix_cc* kernel
 
-    def __cinit__(self, int ramp_len, int cp_len, int block_len, np.ndarray window_taps):
-        self.kernel = new gfdm_interface.add_cyclic_prefix_cc(ramp_len, cp_len, block_len, window_taps)
+    def __cinit__(self, int block_len, int cp_len, int ramp_len, np.ndarray window_taps):
+        self.kernel = new gfdm_interface.add_cyclic_prefix_cc(block_len, cp_len, ramp_len, window_taps)
 
     def __del__(self):
         del self.kernel
@@ -59,8 +59,8 @@ cdef class py_add_cyclic_prefix_cc:
 
 cdef class py_resource_mapper_kernel_cc:
     cdef gfdm_interface.resource_mapper_kernel_cc* kernel
-    def __cinit__(self, int active_subcarriers, int fft_len, int timeslots, np.ndarray subcarrier_map, bool per_timeslot=True):
-        self.kernel = new gfdm_interface.resource_mapper_kernel_cc(active_subcarriers, fft_len, timeslots, subcarrier_map, per_timeslot)
+    def __cinit__(self, int timeslots, int subcarriers, int active_subcarriers, np.ndarray subcarrier_map, bool per_timeslot=True):
+        self.kernel = new gfdm_interface.resource_mapper_kernel_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot)
 
     def __del__(self):
         del self.kernel
