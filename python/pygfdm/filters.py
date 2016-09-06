@@ -28,9 +28,9 @@ import matplotlib.pyplot as plt
 def gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor=1.):
     N = oversampling_factor
     if filtertype == "rrc":
-        time_h, h = cp.rrcosfilter(M * K * N, alpha, 1., 1. * N * M)
+        time_h, h = cp.rrcosfilter(M * K * N, alpha, 1. * N * K, 1.)
     elif filtertype == "rc":
-        time_h, h = cp.rcosfilter(M * K * N, alpha, 1., 1. * N * M)
+        time_h, h = cp.rcosfilter(M * K * N, alpha, 1. * N * K, 1.)
     return h
 
 
@@ -75,12 +75,17 @@ def freq_tapered_raised_cosine(t, alpha):
     return f
 
 
-def main():
-    sc = 32
-    ts = 25
-    overlap = 2
-    alpha = .5
-    time_taps = gfdm_filter_taps('rc', alpha, sc, ts)
+def check_taps_validity(alpha, ts, sc):
+    time_taps = gfdm_filter_taps('rc', alpha, ts, sc)
+    t = np.arange(0, ts, 1. / sc)
+    alt_time_taps = freq_tapered_raised_cosine(t - 1. * ts / 2., alpha)
+    if not np.all(np.abs(time_taps - alt_time_taps) < 1e-12):
+        print(np.abs(time_taps - alt_time_taps))
+        raise ValueError('RC time domain filter taps differ')
+
+
+def plot_filter(filter_type, alpha, ts, sc, overlap):
+    time_taps = gfdm_filter_taps(filter_type, alpha, ts, sc)
     freq_taps = gfdm_freq_taps(time_taps)
     freq_taps_sparse = gfdm_freq_taps_sparse(freq_taps, ts, overlap)
 
@@ -92,19 +97,35 @@ def main():
     plt.plot(t, np.abs(np.fft.ifftshift(freq_tapered_raised_cosine(t - 1. * ts / 2., alpha))))
     plt.plot(t, np.roll(np.abs(time_taps), sc))
     plt.xlim((0, ts))
-    plt.xlabel('time samples')
+    plt.xlabel('timeslot')
+    plt.grid()
 
     fp = fig.add_subplot('212')
     f = np.arange(0, sc, 1. / ts)
     plt.plot(f, np.abs(freq_taps))
     plt.plot(f, np.abs(np.fft.fft(freq_tapered_raised_cosine(t - 1. * ts / 2., alpha))))
-    plt.plot(f, np.abs(np.concatenate((freq_taps_sparse[0:len(freq_taps_sparse)/2], np.zeros(sc * ts - len(freq_taps_sparse)), freq_taps_sparse[len(freq_taps_sparse)/2:]))), linestyle='--')
+    plt.plot(f, np.abs(np.concatenate((freq_taps_sparse[0:len(freq_taps_sparse) / 2],
+                                       np.zeros(sc * ts - len(freq_taps_sparse)),
+                                       freq_taps_sparse[len(freq_taps_sparse) / 2:]))), linestyle='--')
 
-    plt.plot(f, np.abs(np.fft.fftshift(freq_taps)))
-    plt.plot(f, np.roll(np.abs(np.fft.fftshift(freq_taps)), ts))
+    plt.plot(f, np.roll(np.abs(freq_taps), ts * (sc // 2)))
+    plt.plot(f, np.roll(np.abs(freq_taps), ts * (sc // 2 + 1)))
     plt.xlim((0, sc))
-    plt.xlabel('frequency samples')
+    plt.xlabel('subcarrier')
+    plt.grid()
+
+    plt.gcf().suptitle("GFDM filter: type='{}' with M={}, K={}, L={}".format(filter_type.upper(), ts, sc, overlap), fontsize=16)
     plt.show()
+
+
+def main():
+    ts = 15  # M
+    sc = 64  # K
+    overlap = 2
+    alpha = .5
+    check_taps_validity(alpha, ts, sc)
+
+    plot_filter('rc', alpha, ts, sc, overlap)
 
 
 if __name__ == '__main__':
