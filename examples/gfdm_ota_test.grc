@@ -537,7 +537,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>pre_module.mapped_preamble(seed, 'rrc', .5, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len)[0]</value>
+      <value>pre_module.mapped_preamble(seed, 'rrc', .5, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len)[0] / fft_len</value>
     </param>
   </block>
   <block>
@@ -629,38 +629,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(504, 68)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>subcarrier_map</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>np.arange(active_subcarriers) + (fft_len - active_subcarriers) // 2</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
       <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(504, 132)</value>
+      <value>(504, 68)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1109,10 +1082,6 @@
       <value>cp_len</value>
     </param>
     <param>
-      <key>fft_len</key>
-      <value>fft_len</value>
-    </param>
-    <param>
       <key>filter_taps</key>
       <value>f_taps</value>
     </param>
@@ -1131,6 +1100,10 @@
     <param>
       <key>subcarrier_map</key>
       <value>subcarrier_map</value>
+    </param>
+    <param>
+      <key>subcarriers</key>
+      <value>128</value>
     </param>
     <param>
       <key>timeslots</key>
@@ -1621,11 +1594,11 @@
     </param>
     <param>
       <key>ymax</key>
-      <value>1</value>
+      <value>1. / fft_len</value>
     </param>
     <param>
       <key>ymin</key>
-      <value>-1</value>
+      <value>-1. / fft_len</value>
     </param>
   </block>
   <block>

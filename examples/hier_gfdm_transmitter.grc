@@ -105,7 +105,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>timeslots * fft_len</value>
+      <value>timeslots * subcarriers</value>
     </param>
   </block>
   <block>
@@ -159,7 +159,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>2 * fft_len + cp_len</value>
+      <value>2 * subcarriers + cp_len</value>
     </param>
   </block>
   <block>
@@ -291,49 +291,6 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(488, 12)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>fft_len</value>
-    </param>
-    <param>
-      <key>label</key>
-      <value></value>
-    </param>
-    <param>
-      <key>short_id</key>
-      <value></value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>intx</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>128</value>
-    </param>
-  </block>
-  <block>
-    <key>parameter</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
       <value>(936, 12)</value>
     </param>
     <param>
@@ -419,6 +376,10 @@
   <block>
     <key>gfdm_resource_mapper_cc</key>
     <param>
+      <key>active_subcarriers</key>
+      <value>active_subcarriers</value>
+    </param>
+    <param>
       <key>alias</key>
       <value></value>
     </param>
@@ -433,10 +394,6 @@
     <param>
       <key>_enabled</key>
       <value>True</value>
-    </param>
-    <param>
-      <key>fft_len</key>
-      <value>fft_len</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -459,8 +416,8 @@
       <value>0</value>
     </param>
     <param>
-      <key>active_subcarriers</key>
-      <value>active_subcarriers</value>
+      <key>subcarriers</key>
+      <value>subcarriers</value>
     </param>
     <param>
       <key>per_timeslot</key>
@@ -511,7 +468,7 @@
     </param>
     <param>
       <key>n_subcarriers</key>
-      <value>fft_len</value>
+      <value>subcarriers</value>
     </param>
     <param>
       <key>overlap</key>
@@ -872,6 +829,49 @@
     <param>
       <key>value</key>
       <value>np.arange(110)</value>
+    </param>
+  </block>
+  <block>
+    <key>parameter</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(488, 12)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>subcarriers</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value></value>
+    </param>
+    <param>
+      <key>short_id</key>
+      <value></value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>intx</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>128</value>
     </param>
   </block>
   <block>

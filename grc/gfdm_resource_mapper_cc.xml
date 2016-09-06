@@ -4,18 +4,18 @@
   <key>gfdm_resource_mapper_cc</key>
   <category>GFDM</category>
   <import>import gfdm</import>
-  <make>gfdm.resource_mapper_cc($active_subcarriers, $fft_len, $timeslots, $subcarrier_map, $per_timeslot)</make>
+  <make>gfdm.resource_mapper_cc($timeslots, $subcarriers, $active_subcarriers, $subcarrier_map, $per_timeslot)</make>
 
   <param>
-    <name>active subcarriers</name>
+    <name>Active subcarriers</name>
     <key>active_subcarriers</key>
     <value>0</value>
     <type>int</type>
   </param>
 
   <param>
-    <name>FFT length</name>
-    <key>fft_len</key>
+    <name>Subcarriers</name>
+    <key>subcarriers</key>
     <value>0</value>
     <type>int</type>
   </param>

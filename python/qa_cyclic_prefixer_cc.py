@@ -35,10 +35,10 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
 
     def test_001_init(self):
         # check if prefixer is properly ctor'ed / dtor'ed
-        prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(4 * 2))
-        prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(16 * 8 + 4))
+        prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 4, np.arange(4 * 2))
+        prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 4, np.arange(16 * 8 + 4))
         try:
-            prefixer = gfdm.cyclic_prefixer_cc(4, 4, 16 * 8, np.arange(16 * 8))
+            prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 4, np.arange(16 * 8))
             raise ValueError('invalid parameter set, but passed anyway!')
         except:
             # expected behavior!
@@ -51,7 +51,7 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
         data = np.arange(block_len, dtype=np.complex) + 1
         ref = add_cyclic_prefix(data, cp_len)
 
-        prefixer = gfdm.cyclic_prefixer_cc(cp_len, 0, block_len, np.ones(block_len + cp_len))
+        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, 0, np.ones(block_len + cp_len))
         src = blocks.vector_source_c(data)
         dst = blocks.vector_sink_c()
         self.tb.connect(src, prefixer, dst)
@@ -76,7 +76,7 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
         data = np.tile(data, n_reps)
         ref = np.tile(ref, n_reps)
         print "input is: ", len(data), " -> " , len(ref)
-        prefixer = gfdm.cyclic_prefixer_cc(cp_len, ramp_len, block_len, window_taps)
+        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, ramp_len, window_taps)
         src = blocks.vector_source_c(data)
         dst = blocks.vector_sink_c()
         self.tb.connect(src, prefixer, dst)
