@@ -38,18 +38,17 @@ namespace gr {
     /*
      * The private constructor
      */
-    resource_mapper_cc_impl::resource_mapper_cc_impl(int active_subcarriers, int fft_len, int timeslots, std::vector<int> subcarrier_map, bool per_timeslot)
+    resource_mapper_cc_impl::resource_mapper_cc_impl(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot)
       : gr::block("resource_mapper_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex)))
     {
-      d_kernel = resource_mapper_kernel_cc::sptr(new resource_mapper_kernel_cc(active_subcarriers, fft_len, timeslots, subcarrier_map, per_timeslot));
+      d_kernel = resource_mapper_kernel_cc::sptr(new resource_mapper_kernel_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot));
 
       set_relative_rate(1.0 * d_kernel->input_vector_size() / d_kernel->output_vector_size());
       set_fixed_rate(true);
       set_output_multiple(d_kernel->output_vector_size());
-
-    }
+      }
 
     /*
      * Our virtual destructor.

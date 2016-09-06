@@ -33,7 +33,7 @@ namespace gr {
       resource_mapper_kernel_cc::sptr d_kernel;
 
      public:
-      resource_mapper_cc_impl(int active_subcarriers, int fft_len, int timeslots, std::vector<int>subcarrier_map, bool per_timeslot);
+      resource_mapper_cc_impl(int timeslots, int subcarriers, int active_subcarriers, std::vector<int>subcarrier_map, bool per_timeslot);
       ~resource_mapper_cc_impl();
 
       // Where all the action really happens

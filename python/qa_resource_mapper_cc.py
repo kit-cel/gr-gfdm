@@ -36,20 +36,20 @@ class qa_resource_mapper_cc(gr_unittest.TestCase):
     def test_001_t(self):
         # set up fg
         n_frames = 3
-        active = 110
-        fft_len = 128
+        active_subcarriers = 110
+        subcarriers = 128
         timeslots = 205
-        smap = np.arange(active) + (fft_len - active) // 2
+        smap = np.arange(active_subcarriers) + (subcarriers - active_subcarriers) // 2
 
-        data = get_random_qpsk(active * timeslots)
-        ref = map_to_waveform_resources(data, active, fft_len, smap, True)
+        data = get_random_qpsk(active_subcarriers * timeslots)
+        ref = map_to_waveform_resources(data, active_subcarriers, subcarriers, smap, True)
         for i in range(n_frames - 1):
-            d = get_random_qpsk(active * timeslots)
+            d = get_random_qpsk(active_subcarriers * timeslots)
             data = np.concatenate((data, d))
-            ref = np.concatenate((ref, map_to_waveform_resources(d, active, fft_len, smap, True)))
+            ref = np.concatenate((ref, map_to_waveform_resources(d, active_subcarriers, subcarriers, smap, True)))
 
         src = blocks.vector_source_c(data)
-        mapper = gfdm.resource_mapper_cc(active, fft_len, timeslots, smap, True)
+        mapper = gfdm.resource_mapper_cc(timeslots, subcarriers, active_subcarriers, smap, True)
         snk = blocks.vector_sink_c()
         self.tb.connect(src, mapper, snk)
         self.tb.run()

@@ -46,7 +46,7 @@ namespace gr {
        * class. gfdm::resource_mapper_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int active_subcarriers, int fft_len, int timeslots, std::vector<int>subcarrier_map, bool per_timeslot);
+      static sptr make(int timeslots, int subcarriers, int active_subcarriers, std::vector<int>subcarrier_map, bool per_timeslot);
     };
 
   } // namespace gfdm

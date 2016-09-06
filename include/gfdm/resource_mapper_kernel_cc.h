@@ -41,17 +41,17 @@ namespace gr {
       typedef std::complex<float> gfdm_complex;
       typedef boost::shared_ptr<resource_mapper_kernel_cc> sptr;
 
-      resource_mapper_kernel_cc(int active_subcarriers, int fft_len, int timeslots, std::vector<int> subcarrier_map, bool per_timeslot = true);
+      resource_mapper_kernel_cc(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot = true);
       ~resource_mapper_kernel_cc();
       int input_vector_size(){ return d_active_subcarriers * d_timeslots;};
-      int output_vector_size(){ return d_fft_len * d_timeslots;};
+      int output_vector_size(){ return d_subcarriers * d_timeslots;};
       void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
     private:
-      int d_active_subcarriers;
-      int d_fft_len;
       int d_timeslots;
-      bool d_per_timeslot;
+      int d_subcarriers;
+      int d_active_subcarriers;
       std::vector<int> d_subcarrier_map;
+      bool d_per_timeslot;
 
       void map_per_timeslot(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
       void map_per_subcarrier(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);

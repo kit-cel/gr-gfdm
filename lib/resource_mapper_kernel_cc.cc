@@ -26,12 +26,12 @@
 namespace gr {
   namespace gfdm {
 
-    resource_mapper_kernel_cc::resource_mapper_kernel_cc(int active_subcarriers, int fft_len, int timeslots, std::vector<int> subcarrier_map, bool per_timeslot)
-        : d_active_subcarriers(active_subcarriers), d_fft_len(fft_len), d_timeslots(timeslots), d_per_timeslot(per_timeslot)
+    resource_mapper_kernel_cc::resource_mapper_kernel_cc(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot)
+        : d_active_subcarriers(active_subcarriers), d_subcarriers(subcarriers), d_timeslots(timeslots), d_per_timeslot(per_timeslot)
     {
-      if (active_subcarriers > fft_len){
+      if (active_subcarriers > subcarriers){
         std::stringstream sstm;
-        sstm << "active_subcarriers(" << active_subcarriers << ") MUST be smaller or equal to fft_len(" << fft_len << ")!";
+        sstm << "active_subcarriers(" << active_subcarriers << ") MUST be smaller or equal to subcarriers(" << subcarriers << ")!";
         std::string err_str = sstm.str();
         throw std::invalid_argument(err_str.c_str());
       }
@@ -49,8 +49,8 @@ namespace gr {
       if (*std::min_element(subcarrier_map.begin(), subcarrier_map.end()) < 0){
         throw std::invalid_argument("All subcarrier indices MUST be greater or equal to ZERO!");
       }
-      if (*std::max_element(subcarrier_map.begin(), subcarrier_map.end()) > fft_len){
-        throw std::invalid_argument("All subcarrier indices MUST be smaller or equal to fft_len!");
+      if (*std::max_element(subcarrier_map.begin(), subcarrier_map.end()) > subcarriers){
+        throw std::invalid_argument("All subcarrier indices MUST be smaller or equal to subcarriers!");
       }
       d_subcarrier_map = subcarrier_map;
     }
