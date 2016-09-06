@@ -251,6 +251,13 @@ namespace gr
       }
     }
 
+    void receiver_kernel_cc::vectorize_2d(std::vector< std::vector<gfdm_complex> > &out_vector, const gfdm_complex* p_in)
+    {
+      for (int k = 0; k < d_n_subcarriers; ++k) {
+        memcpy(&out_vector[k][0], p_in + k * d_n_timeslots, sizeof(gfdm_complex) * d_n_timeslots);
+      }
+    }
+
     void
     receiver_kernel_cc::remove_sc_interference(std::vector<std::vector<gfdm_complex> > &sc_symbols,
                                                std::vector<std::vector<gfdm_complex> > &sc_fdomain)
@@ -268,17 +275,16 @@ namespace gr
         //Multiply resulting symbols stream with ic_filter_taps in fd
         ::volk_32fc_x2_multiply_32fc(&sc_symbols[k][0], &d_ic_filter_taps[0], &d_sc_fft_out[0], d_n_timeslots);
         //Subtract calculated interference from subcarrier k
-        ::volk_32f_x2_subtract_32f((float *) &sc_tmp[0], (float *) &sc_fdomain[k][0], (float *) &sc_symbols[k][0],
+        ::volk_32f_x2_subtract_32f((float *) &sc_symbols[k][0], (float *) &sc_fdomain[k][0], (float *) &sc_symbols[k][0],
                                    2 * d_n_timeslots);
-        memcpy(&sc_symbols[k][0], &sc_tmp[0], sizeof(gfdm_complex) * d_n_timeslots);
-
       }
     }
 
     void
     receiver_kernel_cc::cancel_sc_interference(gfdm_complex* p_out, const gfdm_complex* p_td_in, const gfdm_complex* p_fd_in)
     {
-      for (int k = 0; k < d_n_subcarriers; k++) {
+      // apply to all subcarriers!
+      for (int k = 0; k < d_n_subcarriers; ++k) {
         //Sum up neighboring subcarriers and then filter with ic_filter_taps
         int prev_sc = (k - 1 + d_n_subcarriers) % d_n_subcarriers;
         int next_sc = (k + 1 + d_n_subcarriers) % d_n_subcarriers;
@@ -286,10 +292,9 @@ namespace gr
                               (float *) (p_td_in + next_sc * d_n_timeslots), 2 * d_n_timeslots);
         fftwf_execute(d_sc_fft_plan);
         //Multiply resulting symbols stream with ic_filter_taps in fd
-        gfdm_complex* p_target = p_out + k * d_n_timeslots;
-        ::volk_32fc_x2_multiply_32fc(p_target, d_ic_filter_taps, d_sc_fft_out, d_n_timeslots);
+        ::volk_32fc_x2_multiply_32fc(d_sc_postfilter, d_ic_filter_taps, d_sc_fft_out, d_n_timeslots);
         //Subtract calculated interference from subcarrier k
-        ::volk_32f_x2_subtract_32f((float *) p_target, (float *) p_fd_in + k * d_n_timeslots, (float *) p_target,
+        ::volk_32f_x2_subtract_32f((float *) (p_out + k * d_n_timeslots), (float *) (p_fd_in + k * d_n_timeslots), (float *) d_sc_postfilter,
                                    2 * d_n_timeslots);
       }
     }

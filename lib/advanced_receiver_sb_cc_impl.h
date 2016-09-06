@@ -24,34 +24,57 @@
 #include <gfdm/advanced_receiver_sb_cc.h>
 #include <gfdm/receiver_kernel_cc.h>
 
-namespace gr {
-  namespace gfdm {
+namespace gr
+{
+  namespace gfdm
+  {
 
     class advanced_receiver_sb_cc_impl : public advanced_receiver_sb_cc
     {
-     private:
-       int d_n_subcarriers;
-       int d_n_timeslots;
-       int d_ic_iter;
-       gr::digital::constellation_sptr d_constellation;
-       void map_sc_symbols(std::vector< std::vector<gr_complex> > &sc_symbols);
-       void map_symbols_to_constellation_points(gr_complex* symbols);
-       void remove_sc_interference(
-           std::vector< std::vector<gr_complex> > &sc_symbols,
-           std::vector< std::vector<gr_complex> > &sc_fdomain);
-       receiver_kernel_cc::sptr d_kernel;
-       std::vector< std::vector<gr_complex> > d_sc_fdomain;
-       std::vector< std::vector<gr_complex> > d_sc_symbols;
+    private:
+      int d_n_subcarriers;
+      int d_n_timeslots;
+      int d_ic_iter;
+      gr::digital::constellation_sptr d_constellation;
 
-     public:
-      advanced_receiver_sb_cc_impl(int n_timeslots, int n_subcarriers, int overlap, int ic_iter, std::vector< gr_complex > frequency_taps, gr::digital::constellation_sptr constellation);
+      void map_sc_symbols(std::vector<std::vector<gr_complex> > &sc_symbols);
+
+      void map_symbols_to_constellation_points(gr_complex *p_out, const gr_complex *p_in);
+
+      void remove_sc_interference(std::vector<std::vector<gr_complex> > &sc_symbols,
+                                  std::vector<std::vector<gr_complex> > &sc_fdomain);
+
+      void demodulate_block_ic_array(gr_complex *p_out, const gr_complex *p_in);
+
+      gr_complex* d_freq_block;
+      gr_complex* d_ic_time_buffer;
+      gr_complex* d_ic_freq_buffer;
+
+      receiver_kernel_cc::sptr d_kernel;
+      std::vector<std::vector<gr_complex> > d_sc_fdomain;
+      std::vector<std::vector<gr_complex> > d_sc_symbols;
+      std::vector<std::vector<gr_complex> > d_ic_syms;
+
+      void demodulate_block_ic_vector(gr_complex *p_out, const gr_complex *p_in);
+
+      void check_if_equal(const std::vector<std::vector<gr_complex> > &first,
+                          const std::vector<std::vector<gr_complex> > &second);
+
+
+    public:
+      advanced_receiver_sb_cc_impl(int n_timeslots, int n_subcarriers, int overlap, int ic_iter,
+                                   std::vector<gr_complex> frequency_taps,
+                                   gr::digital::constellation_sptr constellation);
+
       ~advanced_receiver_sb_cc_impl();
-      void set_ic(int ic_iter){d_ic_iter = ic_iter;}
+
+      void set_ic(int ic_iter)
+      { d_ic_iter = ic_iter; }
 
       // Where all the action really happens
       int work(int noutput_items,
-         gr_vector_const_void_star &input_items,
-         gr_vector_void_star &output_items);
+               gr_vector_const_void_star &input_items,
+               gr_vector_void_star &output_items);
     };
 
   } // namespace gfdm

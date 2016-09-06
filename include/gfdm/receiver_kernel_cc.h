@@ -64,6 +64,7 @@ namespace gr {
       void filter_superposition(std::vector< std::vector<gfdm_complex> > &out, const gfdm_complex* in);
       void demodulate_subcarrier(std::vector< std::vector<gfdm_complex> > &out, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
       void serialize_output(gfdm_complex out[], std::vector< std::vector<gfdm_complex> > &sc_symbols);
+      void vectorize_2d(std::vector< std::vector<gfdm_complex> > &out_vector, const gfdm_complex* p_in);
       void remove_sc_interference(std::vector< std::vector<gfdm_complex> > &sc_symbols, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
       int block_size()
       {
