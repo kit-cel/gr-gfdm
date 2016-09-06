@@ -33,7 +33,8 @@ def get_random_qpsk(nsamples, seed=None, dtype=np.complex):
         np.random.seed(seed)
     d = np.random.randint(0, 2, 2 * nsamples) * -2. + 1.
     d = np.reshape(d, (2, -1))
-    d = d[0] + 1j * d[1]
+    energy = 1./np.sqrt(2)
+    d = (d[0] + 1j * d[1])*energy
     return d.astype(dtype=dtype)
 
 
