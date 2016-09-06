@@ -25,7 +25,7 @@ import gfdm_swig as gfdm
 from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.gfdm_modulation import gfdm_modulate_block
 from pygfdm.mapping import get_data_matrix, map_to_waveform_resources
-from pygfdm.utils import get_random_qpsk
+from pygfdm.utils import get_random_qpsk, calculate_signal_energy
 from pygfdm.cyclic_prefix import get_window_len, get_raised_cosine_ramp, add_cyclic_prefix, pinch_block
 from pygfdm.preamble import get_sync_symbol
 import numpy as np
@@ -51,6 +51,7 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         block_len = M * K
         window_len = get_window_len(cp_len, M, K)
         taps = get_frequency_domain_filter('rrc', alpha, M, K, L)
+        taps /= np.sqrt(calculate_signal_energy(taps) / M)
         window_taps = get_raised_cosine_ramp(ramp_len, window_len)
         pn_symbols = get_random_qpsk(K)
         H_preamble = get_frequency_domain_filter('rrc', alpha, 2, K, L)
@@ -74,7 +75,7 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         src = blocks.vector_source_c(data)
         mapper = gfdm.resource_mapper_cc(active, K, M, smap, True)
         mod = gfdm.simple_modulator_cc(M, K, L, taps)
-        prefixer = gfdm.cyclic_prefixer_cc(cp_len, ramp_len, block_len, window_taps)
+        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, ramp_len, window_taps)
         preambler = blocks.vector_insert_c(preamble, window_len + len(preamble), 0)
         gapper = blocks.vector_insert_c(frame_gap, frame_len + len(frame_gap), 0)
         dst = blocks.vector_sink_c()

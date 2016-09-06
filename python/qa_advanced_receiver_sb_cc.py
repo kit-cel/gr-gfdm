@@ -38,23 +38,26 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
     def test_001_t(self):
         self.gfdm_var = gfdm_var = struct({'subcarriers': 64, 'timeslots': 8, 'alpha': 0.5, 'overlap': 2,})
         self.gfdm_constellation = gfdm_constellation = digital.constellation_qpsk().base()
-        self.f_taps = f_taps = filters.get_frequency_domain_filter('rrc', 1.0, gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap)
-        self.random_bits = blocks.vector_source_b(map(int, numpy.random.randint(0, len(gfdm_constellation.points()), 100 * gfdm_var.timeslots * gfdm_var.subcarriers)), False)
+        self.f_taps = f_taps = filters.get_frequency_domain_filter('rrc', 1.0, gfdm_var.timeslots, gfdm_var.subcarriers,
+                                                                   gfdm_var.overlap)
+        self.random_bits = blocks.vector_source_b(map(int, numpy.random.randint(0, len(gfdm_constellation.points()),
+                                                                                100 * gfdm_var.timeslots * gfdm_var.subcarriers)),
+                                                  False)
         self.bits_to_symbols = digital.chunks_to_symbols_bc((gfdm_constellation.points()), 1)
         self.mod = gfdm.simple_modulator_cc(gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap, f_taps)
-        self.scale = blocks.multiply_const_vcc((1. / gfdm_var.subcarriers,))
-        self.demod = gfdm.advanced_receiver_sb_cc(gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap, 64, f_taps, gfdm_constellation)
+        self.demod = gfdm.advanced_receiver_sb_cc(gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap, 64,
+                                                  f_taps, gfdm_constellation)
         self.tx_symbols = blocks.vector_sink_c()
         self.rx_symbols = blocks.vector_sink_c()
         self.tb.connect((self.random_bits, 0), (self.bits_to_symbols, 0))
         self.tb.connect((self.bits_to_symbols, 0), (self.tx_symbols, 0))
         self.tb.connect((self.bits_to_symbols, 0), (self.mod, 0))
-        self.tb.connect((self.mod, 0), (self.scale, 0))
-        self.tb.connect((self.scale, 0), (self.demod, 0))
+        self.tb.connect((self.mod, 0), (self.demod, 0))
         self.tb.connect((self.demod, 0), (self.rx_symbols, 0))
         self.tb.run()
         ref = numpy.array(self.tx_symbols.data())
         res = numpy.array(self.rx_symbols.data())
+        # more or less make sure all symbols have their correct sign.
         self.assertComplexTuplesAlmostEqual(ref, res, 2)
 
 

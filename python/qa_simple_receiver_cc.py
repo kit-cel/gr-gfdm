@@ -24,33 +24,36 @@ from gnuradio import blocks
 import gfdm_swig as gfdm
 from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.gfdm_receiver import gfdm_demodulate_block
-from pygfdm.utils import get_random_qpsk
+from pygfdm.utils import get_random_qpsk, calculate_signal_energy
 import numpy as np
 
-class qa_simple_receiver_cc (gr_unittest.TestCase):
 
-    def setUp (self):
-        self.tb = gr.top_block ()
+class qa_simple_receiver_cc(gr_unittest.TestCase):
+    def setUp(self):
+        self.tb = gr.top_block()
 
-    def tearDown (self):
+    def tearDown(self):
         self.tb = None
 
-    def test_001_t (self):
+    def test_001_t(self):
         alpha = .5
         M = 8
         K = 4
         L = 2
         taps = get_frequency_domain_filter('rrc', alpha, M, K, L)
+        taps /= np.sqrt(calculate_signal_energy(taps) / M)
         data = get_random_qpsk(M * K)
         src = blocks.vector_source_c(data)
         mod = gfdm.simple_receiver_cc(M, K, L, taps)
         dst = blocks.vector_sink_c()
 
         self.tb.connect(src, mod, dst)
-        self.tb.run ()
+        self.tb.run()
         res = np.array(dst.data())
 
         ref = gfdm_demodulate_block(data, taps, K, M, L)
+        # print calculate_signal_energy(ref), calculate_signal_energy(res)
+        res *= np.sqrt(calculate_signal_energy(ref) / calculate_signal_energy(res))
         self.assertComplexTuplesAlmostEqual(ref, res, 5)
 
     def test_002_big_data(self):
@@ -83,9 +86,9 @@ class qa_simple_receiver_cc (gr_unittest.TestCase):
         # res /= M * K
         # print "MAXIMUM result value: ", np.max(abs(res))
 
-        self.assertComplexTuplesAlmostEqual(ref, res, 2)
-
+        self.assertComplexTuplesAlmostEqual(ref, res, 4)
 
 
 if __name__ == '__main__':
-    gr_unittest.run(qa_simple_receiver_cc, "qa_simple_receiver_cc.xml")
+    # gr_unittest.run(qa_simple_receiver_cc, "qa_simple_receiver_cc.xml")
+    gr_unittest.run(qa_simple_receiver_cc)
