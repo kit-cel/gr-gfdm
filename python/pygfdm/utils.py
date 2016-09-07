@@ -33,7 +33,8 @@ def get_random_qpsk(nsamples, seed=None, dtype=np.complex):
         np.random.seed(seed)
     d = np.random.randint(0, 2, 2 * nsamples) * -2. + 1.
     d = np.reshape(d, (2, -1))
-    d = d[0] + 1j * d[1]
+    energy = 1./np.sqrt(2)
+    d = (d[0] + 1j * d[1])*energy
     return d.astype(dtype=dtype)
 
 
@@ -61,6 +62,12 @@ def randomQAMSymbols(length, M):
     return np.array(
         [np.random.choice(choices) + 1j * np.random.choice
         (choices) for i in xrange(length)])
+
+
+def map_qpsk_stream(data):
+    energy = 1./np.sqrt(2)
+    return list(map(lambda x: energy*(np.sign(x.real)+1j*np.sign(x.imag)),data.flatten()))
+
 
 
 def get_zero_f_data(k, K, M):

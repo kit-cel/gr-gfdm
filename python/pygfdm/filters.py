@@ -28,9 +28,9 @@ import matplotlib.pyplot as plt
 def gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor=1.):
     N = oversampling_factor
     if filtertype == "rrc":
-        time_h, h = cp.rrcosfilter(M * K * N, alpha, 1. * N * K, 1.)
+        time_h, h = cp.rrcosfilter(M * K * N, alpha, 1. * K * N, 1.)
     elif filtertype == "rc":
-        time_h, h = cp.rcosfilter(M * K * N, alpha, 1. * N * K, 1.)
+        time_h, h = cp.rcosfilter(M * K * N, alpha, 1. * K * N, 1. )
     return h
 
 
