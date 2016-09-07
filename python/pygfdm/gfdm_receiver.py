@@ -117,8 +117,6 @@ def gfdm_demodulate_block(R, H, K, M, L):
     D_2 = gfdm_filter_subcarriers(D_1, H, K, M, L)
     D_3 = gfdm_superposition_subcarriers(D_2, K, M, L)
     D_4 = gfdm_transform_subcarriers_to_tdomain(D_3, K, M, L)
-    print(D_4)
-    print(D_4.shape)
     return get_data_stream(D_4)
 
 
