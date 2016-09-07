@@ -51,9 +51,6 @@ namespace gr
         throw std::invalid_argument(sstm.str().c_str());
       }
       d_filter_taps = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * n_timeslots * overlap, volk_get_alignment());
-//      memcpy(d_filter_taps, &frequency_taps[0], sizeof(gfdm_complex) * n_timeslots * overlap);
-//      ::volk_32fc_s32fc_multiply_32fc(d_filter_taps, d_filter_taps, static_cast<gfdm_complex>(1.0 / n_subcarriers),
-//                                      n_timeslots * overlap);
       initialize_taps_vector(d_filter_taps, frequency_taps, n_timeslots);
 
       d_ic_filter_taps = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * n_timeslots, volk_get_alignment());
