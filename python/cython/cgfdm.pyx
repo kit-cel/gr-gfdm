@@ -142,6 +142,3 @@ cdef class py_receiver_kernel_cc:
         self.cpp_cancel_sc_interference(res, td_in, fd_in)
         return res
 
-
-
-
