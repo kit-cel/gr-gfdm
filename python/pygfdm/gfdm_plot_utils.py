@@ -138,3 +138,24 @@ def plot_waterfall(symbols, fft_len, overlap=-1, cmap=plt.get_cmap('gnuplot2'), 
     plt.imshow(10 * np.log10(Pxx.T), cmap=cmap)
     plt.xlabel('FFT bins')
     plt.ylabel('time slots')
+
+
+def plot_magnitude_phase(f, frequency_taps, ext_label=''):
+    ax = plt.gca()
+    p, = ax.plot(f, np.abs(frequency_taps), label='magnitude' + ext_label)
+    ax.plot(f, np.angle(frequency_taps), label='phase' + ext_label, linestyle='--', color=p.get_color())
+
+
+def get_default_colormap():
+    # viridis is desired but not always available
+    maps = get_available_colormaps()
+    if 'viridis' in maps:
+        return 'viridis'
+    elif 'jet' in maps:
+        return 'jet'
+    else:
+        return 'gnuplot2'
+
+
+def get_available_colormaps():
+    return sorted(m for m in plt.cm.datad if not m.endswith("_r"))

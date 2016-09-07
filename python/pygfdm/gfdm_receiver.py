@@ -22,9 +22,13 @@
 import numpy as np
 from modulation import gfdm_modulation_matrix
 from mapping import get_data_stream
-from filters import get_frequency_domain_filter
+from filters import get_frequency_domain_filter, gfdm_freq_taps, gfdm_filter_taps, gfdm_freq_taps_sparse
+from utils import get_random_qpsk, calculate_average_signal_energy
 import matplotlib.pyplot as plt
 
+'''
+[0] Low Complexity GFDM Receiver Based On Sparse Frequency Domain Processing
+'''
 
 def gfdm_transform_input_to_fd(R):
     '''
@@ -99,3 +103,96 @@ def gfdm_gr_receiver(data, filtertype, alpha, M, K, overlap, compat_mode=True):
 def gfdm_demodulate_fft(data, alpha, M, K, overlap):
     H = get_frequency_domain_filter('rrc', alpha, M, K, overlap)
     return gfdm_demodulate_block(data, H.conj(), K, M, overlap)
+
+
+def get_repetition_matrix(timeslots, overlap):
+    '''
+    [0] has a good representation of the matrices.
+    '''
+    im = np.identity(timeslots)
+    r = np.tile(im, overlap)
+    r = r.T
+    return r
+
+
+def get_permutation_matrix(timeslots, subcarriers, overlap):
+    im = np.identity(overlap * timeslots / 2)
+    zm = np.zeros((overlap * timeslots / 2, (subcarriers - 1) * overlap * timeslots / 2))
+    p0 = np.hstack((im, zm))
+    p1 = np.hstack((zm, im))
+    p = np.vstack((p0, p1))
+    return p.T
+
+
+def get_nth_sc_permutation_matrix(sc, timeslots, subcarriers, overlap):
+    p0 = get_permutation_matrix(timeslots, subcarriers, overlap)
+    pn = np.roll(p0, sc * timeslots, axis=0)
+    return pn
+
+
+def gfdm_rx_to_fd(rx):
+    return np.fft.fft(rx)
+
+
+def gfdm_rx_sc_bins(rx, sc_num, timeslots, overlap):
+    sc = np.roll(rx, int(overlap * timeslots // 2 - timeslots * sc_num))
+    return np.fft.fftshift(sc[:overlap * timeslots])
+
+
+def gfdm_downsample_fft(rx, overlap):
+    # this would be equivalent! np.fft.ifft(rx)[::overlap]
+    return np.fft.ifft(np.sum(np.reshape(rx, (overlap, -1)), axis=0)) / overlap
+
+
+def gfdm_demodulate_fft_loop(rx, timeslots, subcarriers, overlap, sparse_freq_taps):
+    frx = gfdm_rx_to_fd(rx)
+    rxdata = np.zeros((subcarriers, timeslots), dtype=rx.dtype)
+    for sc in range(subcarriers):
+        sc_syms = gfdm_rx_sc_bins(frx, sc, timeslots, overlap)
+        filtered = sc_syms * sparse_freq_taps / (1. * subcarriers)
+        downsampled = gfdm_downsample_fft(filtered, overlap)
+        downsampled *= overlap  # this is weird, but GR compat please!
+        rxdata[sc, :] = downsampled
+    return rxdata.flatten()
+
+
+def main():
+    '''
+    This is a comparison for 3 different demodulation approaches.
+    matched filter matrix being the 'benchmark'
+    The other two should converge towards the matrix approach for overlap -> subcarriers
+    Actually, there's a bug in the 'GR' approach, thus it only works for overlap==2
+    '''
+    timeslots = 25
+    subcarriers = 16
+    overlap = 2
+    time_taps = gfdm_filter_taps('rrc', .5, timeslots, subcarriers, 1)
+    freq_taps = gfdm_freq_taps(time_taps)
+    sparse_freq_taps = gfdm_freq_taps_sparse(freq_taps, timeslots, overlap)
+    A = gfdm_modulation_matrix(time_taps, timeslots, subcarriers, 1, True)
+    Ainv = np.linalg.inv(A)
+    Amf = np.conjugate(A).T
+
+    tx_syms = get_random_qpsk(timeslots * subcarriers)
+    rx_syms = A.dot(tx_syms)
+
+    mf_matrix_rx = Amf.dot(rx_syms)
+    inv_matrix_rx = Ainv.dot(rx_syms)
+    gr_res = gfdm_demodulate_block(rx_syms, sparse_freq_taps, subcarriers, timeslots, overlap)
+    fft_res = gfdm_demodulate_fft_loop(rx_syms, timeslots, subcarriers, overlap, sparse_freq_taps)
+
+    mf_matrix_rx *= np.sqrt(calculate_average_signal_energy(fft_res) / calculate_average_signal_energy(mf_matrix_rx))
+    inv_matrix_rx *= np.sqrt(calculate_average_signal_energy(fft_res) / calculate_average_signal_energy(inv_matrix_rx))
+    gr_res *= np.sqrt(calculate_average_signal_energy(fft_res) / calculate_average_signal_energy(gr_res))
+
+    print 'compare demodulation accuracy for different approaches'
+    for e in range(11):
+        em = 10 ** (-1. * e)
+        matrixvsloop = np.all(np.abs(fft_res - mf_matrix_rx) < em)
+        grvsmatrix = np.all(np.abs(gr_res - mf_matrix_rx) < em)
+        grvsloop = np.all(np.abs(gr_res - fft_res) < em)
+        print 'error margin {:.1e}\tMFmatriXvsGR: {}\tMFmatriXvsLoop: {}\tGRvsLoop: {}'.format(em, grvsmatrix, matrixvsloop, grvsloop)
+
+
+if __name__ == '__main__':
+    main()

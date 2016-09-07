@@ -129,8 +129,32 @@ def gfdm_tx_fft2(x, filtertype, alpha, M, K, L, N):
     return x_t
 
 
+def check_matrix_invertibility(A, Ainv, err_margin=1e-10):
+    '''
+    Use this function to get an idea if the chosen parameters (timeslots, subcarriers) result in an invertible matrix.
+    This is a 'hands-on' approach at estimating if a given matrix is invertible.
+    The idea is that given an invertible matrix, if multiplied with its inverse, the result should be an almost perfect identity matrix.
+    Imperfections are caused be numerical errors.
+    Maximum deviation from the identity matrix is used as a measure.
+    '''
+    Icheck = A.dot(Ainv)
+    msize = np.shape(Icheck)[0]
+    Iexact = np.identity(msize, dtype=A.dtype)
+    Idev = np.abs(Icheck - Iexact)
+    if not np.all(Idev < err_margin):
+        m = np.max(np.max(Idev))
+        cond_number = np.linalg.cond(A)
+        print('Inversion failed, maximum deviation', m, ' exceeds error margin', err_margin)
+        print('Matrix condition number {:.2f} results in approx. {:.2f}bit precision loss'.format(cond_number, np.log10(cond_number)))
+        print(np.abs(Icheck[0:10, 0:10]))
+        return False
+    return True
+
+
 def main():
-    print 'This is main: currently nothing to do here.'
+    A = transmitMatrix('rrc', .5, 9, 16)
+    Ainv = np.linalg.inv(A)
+    check_matrix_invertibility(A, Ainv)
 
 
 if __name__ == '__main__':
