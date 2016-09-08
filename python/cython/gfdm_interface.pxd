@@ -32,3 +32,12 @@ cdef extern from "receiver_kernel_cc.h" namespace "gr::gfdm":
         void fft_filter_downsample(float complex* p_out, const float complex* p_in);
         void transform_subcarriers_to_td(float complex* p_out, const float complex* p_in);
         void cancel_sc_interference(float complex* p_out, const float complex* p_td_in, const float complex* p_fd_in);
+
+cdef extern from "detect_frame_energy_kernel_cl.h" namespace "gr::gfdm":
+    cdef cppclass detect_frame_energy_kernel_cl:
+        detect_frame_energy_kernel_cl(float, int) except +
+        int average_len();
+        float alpha();
+        void set_alpha(float);
+        long detect_frame(const float complex* p_in, const int ninput_items);
+

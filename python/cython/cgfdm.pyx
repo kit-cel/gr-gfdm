@@ -44,7 +44,7 @@ cdef class py_add_cyclic_prefix_cc:
         return self.kernel.block_size()
 
     def frame_size(self):
-            return self.kernel.frame_size()
+        return self.kernel.frame_size()
 
     def generic_work(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
         self.kernel.generic_work(<float complex*> outbuf.data, <float complex*> inbuf.data)
@@ -142,3 +142,23 @@ cdef class py_receiver_kernel_cc:
         self.cpp_cancel_sc_interference(res, td_in, fd_in)
         return res
 
+cdef class py_detect_frame_energy_kernel_cl:
+    cdef gfdm_interface.detect_frame_energy_kernel_cl* kernel
+
+    def __cinit__(self, float alpha, int average_len):
+        self.kernel = new gfdm_interface.detect_frame_energy_kernel_cl(alpha, average_len)
+
+    def __del__(self):
+        del self.kernel
+
+    def average_len(self):
+        return self.kernel.average_len()
+
+    def alpha(self):
+        return self.kernel.alpha()
+
+    def set_alpha(self, float alpha):
+        self.kernel.set_alpha(alpha)
+
+    def detect_frame(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
+        return self.kernel.detect_frame(<float complex*> inbuf.data, inbuf.shape[0])

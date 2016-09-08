@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Johannes Demel.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,13 +42,14 @@ namespace gr {
 
       detect_frame_energy_kernel_cl(float alpha, int average_len);
       ~detect_frame_energy_kernel_cl();
-      long detect_frame();
+      long detect_frame(const gfdm_complex* p_in, const int ninput_items);
       int average_len(){ return d_average_len;};
       float alpha(){ return d_alpha;};
       void set_alpha(float alpha){d_alpha = alpha;};
     private:
       float d_alpha;
       int d_average_len;
+
     };
 
   } // namespace gfdm

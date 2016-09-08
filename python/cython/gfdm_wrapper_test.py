@@ -80,11 +80,22 @@ def main():
     print np.all(np.abs(ref - res) < err_margin)
 
     window_taps = get_raised_cosine_ramp(4, M * K + 4)
-    cpler = cgfdm.py_add_cyclic_prefix_cc(4, 4, M * K, window_taps)
+    cpler = cgfdm.py_add_cyclic_prefix_cc(M * K, 4, 4, window_taps)
     print cpler.block_size()
     print cpler.frame_size()
     block = cpler.add_cyclic_prefix(in_buf)
     print np.shape(block)
+
+    energy_detector = cgfdm.py_detect_frame_energy_kernel_cl(50.3, 8)
+    print 'energy_detector: alpha', energy_detector.alpha(), ', average_len', energy_detector.average_len()
+    n_alpha = 47.11
+    energy_detector.set_alpha(n_alpha)
+    print 'energy_detector: alpha', energy_detector.alpha(), 'expected after reset', n_alpha
+
+    syms = np.concatenate((np.ones(20), np.ones(8) * 2 * n_alpha)).astype(dtype=np.complex64)
+    print syms
+    pos = energy_detector.detect_frame(syms)
+    print 'frame pos:', pos
 
     # resource_mapping_test()
     modulator_test()
