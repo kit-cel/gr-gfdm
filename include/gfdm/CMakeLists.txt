@@ -38,5 +38,6 @@ install(FILES
     advanced_receiver_sb_cc.h
     advanced_receiver_tsb_cc.h
     resource_mapper_kernel_cc.h
-    resource_mapper_cc.h DESTINATION include/gfdm
+    resource_mapper_cc.h
+    detect_frame_energy_kernel_cl.h DESTINATION include/gfdm
 )

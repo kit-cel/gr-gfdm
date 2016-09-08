@@ -42,7 +42,8 @@ list(APPEND gfdm_sources
     advanced_receiver_sb_cc_impl.cc
     advanced_receiver_tsb_cc_impl.cc
     resource_mapper_kernel_cc.cc
-    resource_mapper_cc_impl.cc)
+    resource_mapper_cc_impl.cc
+    detect_frame_energy_kernel_cl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)
