@@ -28,5 +28,6 @@ install(FILES
     gfdm_simple_receiver_cc.xml
     gfdm_advanced_receiver_sb_cc.xml
     gfdm_advanced_receiver_tsb_cc.xml
-    gfdm_resource_mapper_cc.xml DESTINATION share/gnuradio/grc/blocks
+    gfdm_resource_mapper_cc.xml
+    gfdm_frame_energy_detector_cc.xml DESTINATION share/gnuradio/grc/blocks
 )
