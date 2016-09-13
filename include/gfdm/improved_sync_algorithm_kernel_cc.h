@@ -44,7 +44,6 @@ namespace gr {
       ~improved_sync_algorithm_kernel_cc();
 
       int detect_frame_start(const gr_complex *p_in, int ninput_size);
-      int detect_frame_start_simple(const gr_complex *p_in, int ninput_size);
       int max_ninput_size() const { return d_max_ninput_size;};
 
       // The following public functions are mainly a debugging interface to Python!

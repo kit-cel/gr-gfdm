@@ -40,5 +40,6 @@ install(FILES
     resource_mapper_kernel_cc.h
     resource_mapper_cc.h
     detect_frame_energy_kernel_cl.h
-    frame_energy_detector_cc.h DESTINATION include/gfdm
+    frame_energy_detector_cc.h
+    auto_cross_corr_multicarrier_sync_cc.h DESTINATION include/gfdm
 )
