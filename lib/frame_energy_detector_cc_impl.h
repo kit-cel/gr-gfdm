@@ -30,8 +30,6 @@ namespace gr {
     class frame_energy_detector_cc_impl : public frame_energy_detector_cc
     {
      private:
-      enum stage {SEARCHING, DETECTED, REMAINS};
-      stage d_detector_stage;
       int d_frame_len;
       int d_backoff_len;
       pmt::pmt_t d_tag_key;

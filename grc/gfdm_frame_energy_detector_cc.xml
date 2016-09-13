@@ -5,11 +5,9 @@
   <category>GFDM</category>
   <import>import gfdm</import>
   <make>gfdm.frame_energy_detector_cc($alpha, $average_len, $frame_len, $backoff_len, $tag_key)</make>
-  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
-       Sub-nodes:
-       * name
-       * key (makes the value accessible as $keyname, e.g. in the make node)
-       * type -->
+
+  <callback>set_alpha($alpha)</callback>
+  <callback>set_backoff_len($backoff_len)</callback>
   <param>
     <name>Alpha</name>
     <key>alpha</key>

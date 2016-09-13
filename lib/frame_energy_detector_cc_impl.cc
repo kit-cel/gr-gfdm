@@ -45,7 +45,7 @@ namespace gr
             : gr::block("frame_energy_detector_cc",
                         gr::io_signature::make(1, 1, sizeof(gr_complex)),
                         gr::io_signature::make(1, 1, sizeof(gr_complex))),
-              d_frame_len(frame_len), d_backoff_len(backoff_len), d_remaining_frame(0), d_detector_stage(SEARCHING)
+              d_frame_len(frame_len), d_backoff_len(backoff_len), d_remaining_frame(0)
     {
       d_tag_key = pmt::string_to_symbol(tag_key);
       d_tag_srcid = pmt::string_to_symbol(name());
@@ -75,87 +75,33 @@ namespace gr
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
 
-//      std::cout << "noutputitems: " << noutput_items << ", ninput_items: " << ninput_items[0] << std::endl;
-
-      int available_items = d_kernel->average_len() * (ninput_items[0] / d_kernel->average_len());
+      int available_items = d_kernel->average_len() * (noutput_items / d_kernel->average_len());
       int consumed_items = 0;
       int produced_items = 0;
 
-
       if(d_remaining_frame > 0){
-        int out_items = std::min(d_remaining_frame, noutput_items);
-        std::cout << "frame_stage! " << out_items << std::endl;
-        memcpy(out, in, sizeof(gr_complex) * out_items);
-        out += out_items;
-        in += out_items;
-        d_remaining_frame -= out_items;
-        consumed_items += out_items;
-        produced_items += out_items;
-        available_items = d_kernel->average_len() * ((available_items - out_items) / d_kernel->average_len());
+        int copy_items = std::min(d_remaining_frame, available_items);
+        memcpy(out, in, sizeof(gr_complex) * copy_items);
+        in += copy_items;
+        d_remaining_frame -= copy_items;
+        consumed_items += copy_items;
+        produced_items += copy_items;
+        available_items -= copy_items;
       }
 
-      if(available_items > 0){
-        int frame_pos = d_kernel->detect_frame(in, available_items);
-        if(frame_pos > -1){
-          int backoff_start = 0;
-          if(d_backoff_len > -1){ // only output detected frames!
-            backoff_start = std::max(frame_pos - d_backoff_len, 0);
-            add_item_tag(0, nitems_written(0) + produced_items, d_tag_key, d_tag_value, d_tag_srcid);
-          }
-          else{
-            add_item_tag(0, nitems_written(0) + produced_items + frame_pos, d_tag_key, d_tag_value, d_tag_srcid);
-          }
+      available_items = d_kernel->average_len() * (available_items / d_kernel->average_len());
 
-          d_remaining_frame = d_frame_len + 2 * d_backoff_len;
-          int avail_items = std::min(d_remaining_frame, available_items - backoff_start);
-          memcpy(out, in + backoff_start, sizeof(gr_complex) * avail_items);
+      int frame_pos = d_kernel->detect_frame(in, available_items);
 
-
-
-          d_remaining_frame -= avail_items;
-          produced_items += avail_items;
-        }
-        if(d_backoff_len < 0){
-          memcpy(out, in, sizeof(gr_complex) * noutput_items);
-        }
+      if(frame_pos > -1){
+        d_remaining_frame = d_frame_len + 2 * d_backoff_len;
+        int tag_pos = std::max(0, frame_pos - d_backoff_len);
+        add_item_tag(0, nitems_written(0) + produced_items, d_tag_key, d_tag_value, d_tag_srcid);
+        consumed_items += tag_pos;
+      }
+      else{
         consumed_items += available_items;
       }
-
-
-
-//      if(d_remaining_frame > 0){
-//        int avail_items = std::min(d_remaining_frame, noutput_items);
-//        std::cout << "frame_stage! " << avail_items << std::endl;
-//        memcpy(out, in, sizeof(gr_complex) * avail_items);
-//        d_remaining_frame -= avail_items;
-//        consumed_items = avail_items;
-//        noutput_items = avail_items;
-//      }
-//      else{
-//        int frame_pos = d_kernel->detect_frame(in, noutput_items);
-//
-//        if(d_backoff_len < 0){
-//          memcpy(out, in, sizeof(gr_complex) * noutput_items);
-//          if(frame_pos > -1){
-//            add_item_tag(0, nitems_written(0) + frame_pos, d_tag_key, d_tag_value, d_tag_srcid);
-//          }
-//        }
-//        else{
-//          if(frame_pos > -1){
-//            int backoff_start = std::max(frame_pos - d_backoff_len, 0);
-//            int avail_items = std::min(d_frame_len + 2 * d_backoff_len, noutput_items - backoff_start);
-//            memcpy(out, in + backoff_start, sizeof(gr_complex) * avail_items);
-//            add_item_tag(0, nitems_written(0), d_tag_key, d_tag_value, d_tag_srcid);
-//            d_remaining_frame = d_frame_len + 2 * d_backoff_len - avail_items;
-//            consumed_items = backoff_start + avail_items;
-//            noutput_items = avail_items;
-//          }
-//          else{
-//            noutput_items = 0;
-//          }
-//        }
-//      }
-
 
       // Tell runtime system how many input items we consumed on
       // each input stream.
