@@ -37,7 +37,7 @@ class qa_frame_energy_detector_cc(gr_unittest.TestCase):
         average_len = 8
         frame_len = 25
         backoff_len = average_len
-        tag_key = 'key lalalala'
+        tag_key = 'enertest'
         detector = gfdm.frame_energy_detector_cc(alpha, average_len, frame_len, backoff_len, tag_key)
 
         self.assertEqual(backoff_len, detector.backoff_len())
@@ -54,8 +54,8 @@ class qa_frame_energy_detector_cc(gr_unittest.TestCase):
         alpha = 3.
         average_len = 8
         frame_len = 25
-        backoff_len = -1
-        tag_key = 'key lalalala'
+        backoff_len = 0
+        tag_key = 'enertest'
         # set up fg
         detector = gfdm.frame_energy_detector_cc(alpha, average_len, frame_len, backoff_len, tag_key)
 
@@ -70,24 +70,23 @@ class qa_frame_energy_detector_cc(gr_unittest.TestCase):
         # check data
         res = snk.data()
         # make sure output is a multiple of average_len!
-        self.assertTrue(len(res) % average_len == 0)
+        self.assertTrue(len(res) == frame_len)
         tags = snk.tags()
 
         for t in tags:
             print 'srcid {}, key {}, offset {}, value {}'.format(t.srcid, t.key, t.offset, t.value)
 
         p = tags[0].offset
-        e = average_len * (50 // average_len)
-        self.assertEqual(p, e)
+        self.assertEqual(p, 0)
 
-        self.assertComplexTuplesAlmostEqual(res, data[0:len(res)])
+        self.assertComplexTuplesAlmostEqual(res, data[48:48 + len(res)])
 
     def test_003_frame_detect(self):
         alpha = 3.
         average_len = 8
         frame_len = 25
         backoff_len = 4
-        tag_key = 'key lalalala'
+        tag_key = 'enertest'
         # set up fg
         detector = gfdm.frame_energy_detector_cc(alpha, average_len, frame_len, backoff_len, tag_key)
 
@@ -101,7 +100,6 @@ class qa_frame_energy_detector_cc(gr_unittest.TestCase):
 
         # check data
         res = np.array(snk.data())
-        # make sure output is a multiple of average_len!
         tags = snk.tags()
 
         for t in tags:
@@ -120,7 +118,7 @@ class qa_frame_energy_detector_cc(gr_unittest.TestCase):
         average_len = 8
         frame_len = 25
         backoff_len = 2 * average_len
-        tag_key = 'key lalalala'
+        tag_key = 'enertest'
         # set up fg
         detector = gfdm.frame_energy_detector_cc(alpha, average_len, frame_len, backoff_len, tag_key)
 
@@ -156,7 +154,7 @@ class qa_frame_energy_detector_cc(gr_unittest.TestCase):
         average_len = 32
         frame_len = 5000
         backoff_len = 2 * average_len
-        tag_key = 'key lalalala'
+        tag_key = 'enertest'
         # set up fg
         detector = gfdm.frame_energy_detector_cc(alpha, average_len, frame_len, backoff_len, tag_key)
 
@@ -185,10 +183,6 @@ class qa_frame_energy_detector_cc(gr_unittest.TestCase):
         fl = frame_len + 2 * backoff_len
         self.assertEqual(int(v), int(fl))
         self.assertComplexTuplesAlmostEqual(res[0:len(test_frame)], test_frame)
-
-
-
-
 
 
 if __name__ == '__main__':
