@@ -178,6 +178,40 @@ namespace gr {
       return rnc;
     }
 
+    int
+    improved_sync_algorithm_kernel_cc::detect_frame_start_simple(const gr_complex *p_in, int ninput_size)
+    {
+//      d_abs_auto_corr_vals, d_auto_corr_vals
+      const int p_len = 2 * d_n_subcarriers;
+      const int buf_len = ninput_size - p_len;
+      gr_complex val = gr_complex(0.0, 0.0);
+      gr_complex* 
+      for (int i = 0; i < buf_len; ++i) {
+        // correlate over half preamble length
+        // ATTENTION: second array is conjugated! Not first!
+        volk_32fc_x2_conjugate_dot_prod_32fc(&val, p_in + p_len / 2, p_in, p_len / 2);
+        *corr_vals++ = val;
+        ++p_in;
+      }
+
+      volk_32fc_magnitude_squared_32f(d_abs_auto_corr_vals, d_auto_corr_vals, buf_len);
+
+//    oac = auto_correlate_signal(rx, subcarriers)
+//    # this 2 divisor is up to debate. Seems necessary for larger cp_len relative to fft_len
+//    ac = np.roll(oac, cp_len // 2)
+//
+//    nm = np.argmax(np.abs(ac))
+//    cfo = np.angle(ac[nm]) / np.pi
+//
+//    s = correct_frequency_offset(rx, cfo / (2. * subcarriers))
+//    xc = np.correlate(s, x_preamble, 'valid')
+//    cc = multiply_valid(np.abs(ac), np.abs(xc))
+//    nc = np.argmax(np.abs(cc))
+//
+//    return nc, cfo, cc
+      return 0;
+    }
+
     std::vector<float> improved_sync_algorithm_kernel_cc::auto_corr_integrate(std::vector<gr_complex> in_vec)
     {
       std::vector<float> res(in_vec.size() - 2 * d_n_subcarriers);

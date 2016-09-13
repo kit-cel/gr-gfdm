@@ -209,7 +209,6 @@ def calculate_threshold_factor(false_alarm_prob):
     return np.sqrt(-(4 / np.pi) * np.log(false_alarm_prob))
 
 
-
 def find_frame_start(s, preamble, K, cp_len):
     # initialization part
     preamble = initialize_sync_algorithm(preamble, K)
@@ -225,9 +224,33 @@ def find_frame_start(s, preamble, K, cp_len):
     # ONLY nc required, everything else only used for evaluation!
     nc, napcc, apcc = improved_cross_correlation_peak(s, preamble, abs_corr_vals)
     # ALGORITHM FINISHED!
-    print 'find_frame_start nc: {} (nm: {}), cfo: {:.5f}'.format(nc, nm, cfo), ', abs_corr_val: {:.5f}'.format(abs_corr_vals[nm])
+    print 'find_frame_start nc: {} (nm: {}), cfo: {:.5f}, abs_corr_val: {:.5f}'.format(nc, nm, cfo, abs_corr_vals[nm])
 
     return nc, cfo, abs_corr_vals, corr_vals, napcc, apcc
+
+
+def multiply_valid(first, second):
+    if len(first) >= len(second):
+        return first[:-(len(first) - len(second))] * second
+    else:
+        return first * second[:-(len(second) - len(first))]
+
+
+def simplified_sync_algo(rx, x_preamble, subcarriers, cp_len):
+    x_preamble = initialize_sync_algorithm(x_preamble, subcarriers)
+    oac = auto_correlate_signal(rx, subcarriers)
+    # this 2 divisor is up to debate. Seems necessary for larger cp_len relative to fft_len
+    ac = np.roll(oac, cp_len // 2)
+
+    nm = np.argmax(np.abs(ac))
+    cfo = np.angle(ac[nm]) / np.pi
+
+    s = correct_frequency_offset(rx, cfo / (2. * subcarriers))
+    xc = np.correlate(s, x_preamble, 'valid')
+    cc = multiply_valid(np.abs(ac), np.abs(xc))
+    nc = np.argmax(np.abs(cc))
+
+    return nc, cfo, cc
 
 
 def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo):
