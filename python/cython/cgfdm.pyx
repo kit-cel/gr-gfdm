@@ -162,3 +162,17 @@ cdef class py_detect_frame_energy_kernel_cl:
 
     def detect_frame(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
         return self.kernel.detect_frame(<float complex*> inbuf.data, inbuf.shape[0])
+
+cdef class py_auto_cross_corr_multicarrier_sync_cc:
+    cdef gfdm_interface.auto_cross_corr_multicarrier_sync_cc* kernel
+
+    def __cinit__(self, int subcarriers, int cp_len, np.ndarray preamble):
+        self.kernel = new gfdm_interface.auto_cross_corr_multicarrier_sync_cc(subcarriers, cp_len, preamble)
+
+    def __del__(self):
+        del self.kernel
+
+    def detect_frame(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
+        nc = self.kernel.detect_frame_start(<float complex*> inbuf.data, inbuf.shape[0])
+        cfo = self.kernel.last_cfo()
+        return nc, cfo

@@ -25,6 +25,7 @@
 #include <complex>
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <stdexcept>
 
 namespace gr {
   namespace gfdm {
@@ -43,6 +44,7 @@ namespace gr {
       ~auto_cross_corr_multicarrier_sync_cc();
 
       int detect_frame_start(const gfdm_complex *p_in, int ninput_size);
+      float last_cfo(){return d_last_cfo;};
     private:
       int d_subcarriers;
       int d_cp_len;
@@ -54,9 +56,12 @@ namespace gr {
       gfdm_complex* d_xcorr;
       float* d_abs_xcorr;
 
+      float d_last_cfo;
+
       int find_peak(float* vals, const int ninput_size);
       float calculate_normalized_cfo(const gfdm_complex corr_val);
       void cross_correlate_preamble(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
+      void fixed_lag_auto_correlate(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
       void adjust_buffer_size(const int ninput_size);
     };
 

@@ -22,6 +22,7 @@
 #include <gfdm/auto_cross_corr_multicarrier_sync_cc.h>
 #include <volk/volk.h>
 #include <string.h>  // memset requires this include?!
+#include <iostream>
 
 namespace gr {
   namespace gfdm {
@@ -69,36 +70,42 @@ namespace gr {
       adjust_buffer_size(ninput_size); // make sure we don't try to write to some random memory.
       const int p_len = 2 * d_subcarriers;
       const int buf_len = ninput_size - p_len;
-      gfdm_complex val = gfdm_complex(0.0, 0.0);
-      gfdm_complex* auto_temp = d_auto_corr;
-      for (int i = 0; i < buf_len; ++i) {
-        // correlate over half preamble length
-        // ATTENTION: second array is conjugated! Not first!
-        volk_32fc_x2_conjugate_dot_prod_32fc(&val, p_in + p_len / 2, p_in, p_len / 2);
-        *auto_temp++ = val;
-        ++p_in;
-      }
+
+      fixed_lag_auto_correlate(d_auto_corr, p_in, ninput_size);
 
       volk_32fc_magnitude_squared_32f(d_abs_auto_corr, d_auto_corr, buf_len);
       const int nm = find_peak(d_abs_auto_corr, buf_len);
-
-      float cfo = calculate_normalized_cfo(d_auto_corr[nm]);
+      d_last_cfo = calculate_normalized_cfo(d_auto_corr[nm]);
 
       // don forget! : ac = np.roll(oac, cp_len // 2) -> aka move left
       const int pos_correction_factor = d_cp_len / 2;
       const int xc_start = nm + pos_correction_factor - d_subcarriers;
-      //    xc = np.correlate(s, x_preamble, 'valid')
-//    cc = multiply_valid(np.abs(ac), np.abs(xc))
-//    nc = np.argmax(np.abs(cc))
-
 
       cross_correlate_preamble(d_xcorr, p_in + xc_start, 4 * d_subcarriers);
       volk_32fc_magnitude_squared_32f(d_abs_xcorr, d_xcorr, 2 * d_subcarriers);
+
       volk_32f_x2_multiply_32f(d_abs_xcorr, d_abs_xcorr, d_abs_auto_corr + xc_start, 2 * d_subcarriers);
-      const int nc = xc_start + find_peak(d_abs_xcorr, 2 * d_subcarriers);
+      const int p_nc = find_peak(d_abs_xcorr, 2 * d_subcarriers);
+      const int nc = xc_start + p_nc;
 
       return nc;
     }
+
+    void
+    auto_cross_corr_multicarrier_sync_cc::fixed_lag_auto_correlate(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size)
+    {
+      const int p_len = 2 * d_subcarriers;
+      const int buf_len = ninput_size - p_len;
+      gfdm_complex val = gfdm_complex(0.0, 0.0);
+      for (int i = 0; i < buf_len; ++i) {
+        // correlate over half preamble length
+        // ATTENTION: second array is conjugated! Not first!
+        volk_32fc_x2_conjugate_dot_prod_32fc(&val, p_in + p_len / 2, p_in, p_len / 2);
+        *p_out++ = val;
+        ++p_in;
+      }
+    }
+
 
     int
     auto_cross_corr_multicarrier_sync_cc::find_peak(float* vals, const int ninput_size)
@@ -121,6 +128,7 @@ namespace gr {
       const int buf_len = ninput_size - p_len;
       for(int i = 0; i < buf_len; ++i){
         volk_32fc_x2_conjugate_dot_prod_32fc(p_out++, p_in++, d_preamble, p_len);
+//        std::cout << "res: " << *(p_out - 1) << ",\tin: " << *(p_in - 1) << ",\tp: " << d_preamble[i] << std::endl;
       }
     }
 

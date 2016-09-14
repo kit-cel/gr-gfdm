@@ -6,9 +6,11 @@ import cgfdm
 import numpy as np
 from pygfdm.gfdm_modulation import gfdm_modulate_block
 from pygfdm.mapping import get_data_matrix
-from pygfdm.utils import get_random_qpsk
+from pygfdm.utils import get_random_qpsk, calculate_awgn_noise_variance, get_complex_noise_vector
 from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.cyclic_prefix import get_raised_cosine_ramp
+from pygfdm.synchronization import find_frame_start, simplified_sync_algo
+from pygfdm.preamble import mapped_preamble
 
 
 def data_per_volume():
@@ -46,7 +48,7 @@ def resource_mapping_test():
     fft_len = 128
     timeslots = 205
     smap = np.arange(active) + (active - active) // 2
-    mapper = cgfdm.py_resource_mapper_kernel_cc(active, fft_len, timeslots, smap, True)
+    mapper = cgfdm.py_resource_mapper_kernel_cc(timeslots, fft_len, active, smap, True)
 
     N = 10
     for i in range(N):
@@ -56,50 +58,103 @@ def resource_mapping_test():
         mapper.map_to_resources(data)
 
 
-def main():
-    np.set_printoptions(precision=2, suppress=True)
-    err_margin = 1e-5
+def cp_test():
     M = 5
     K = 16
-    L = 2
-    taps = get_frequency_domain_filter('rrc', .5, M, K, L)
-    kernel = cgfdm.py_modulator_kernel_cc(M, K, L, taps)
-    print kernel.block_size()
-    in_buf = get_random_qpsk(M * K).astype(dtype=np.complex64)
-    out_buf = np.zeros(kernel.block_size(), dtype=np.complex64)
-    print type(in_buf[0])
-    kernel.generic_work(out_buf, in_buf)
-    res = kernel.modulate(in_buf)
-    # print np.reshape(res, (M, -1))
-
-    D = get_data_matrix(in_buf, K, group_by_subcarrier=False)
-    ref = gfdm_modulate_block(D, taps, M, K, L, False)
-    # print np.reshape(ref, (M, -1))
-
-    print np.all(np.abs(out_buf - res) < err_margin)
-    print np.all(np.abs(ref - res) < err_margin)
 
     window_taps = get_raised_cosine_ramp(4, M * K + 4)
     cpler = cgfdm.py_add_cyclic_prefix_cc(M * K, 4, 4, window_taps)
     print cpler.block_size()
     print cpler.frame_size()
+    in_buf = get_random_qpsk(M * K, dtype=np.complex64)
     block = cpler.add_cyclic_prefix(in_buf)
     print np.shape(block)
 
+
+def energy_detector_test():
     energy_detector = cgfdm.py_detect_frame_energy_kernel_cl(50.3, 8)
     print 'energy_detector: alpha', energy_detector.alpha(), ', average_len', energy_detector.average_len()
     n_alpha = 47.11
     energy_detector.set_alpha(n_alpha)
     print 'energy_detector: alpha', energy_detector.alpha(), 'expected after reset', n_alpha
-
     syms = np.concatenate((np.ones(20), np.ones(8) * 2 * n_alpha)).astype(dtype=np.complex64)
     print syms
     pos = energy_detector.detect_frame(syms)
     print 'frame pos:', pos
 
+
+def modulate_gfdm_frame(tx_symbols, params):
+    mapper = cgfdm.py_resource_mapper_kernel_cc(params['timeslots'], params['fft_len'], params['active_subcarriers'],
+                                               params['subcarrier_map'])
+    taps = get_frequency_domain_filter(params['prototype_type'], params['prototype_alpha'], params['timeslots'],
+                                       params['fft_len'], params['overlap'])
+    kernel = cgfdm.py_modulator_kernel_cc(params['timeslots'], params['fft_len'], params['overlap'], taps)
+    win_filt = get_raised_cosine_ramp(params['filter_len'], params['timeslots'] * params['fft_len'] + params['cp_len'])
+    cpler = cgfdm.py_add_cyclic_prefix_cc(params['timeslots'] * params['fft_len'], params['cp_len'], params['filter_len'],
+                                         win_filt)
+
+    syms = mapper.map_to_resources(tx_symbols)
+    frame = kernel.modulate(syms.flatten())
+    frame = cpler.add_cyclic_prefix(frame)
+    return frame
+
+
+def preamble_sync_test():
+    seed = 4711
+    timeslots = 9
+    subcarriers = 32
+    active_subcarriers = 20
+    cp_len = 16
+    filter_len = 8
+    overlap = 2
+    subcarrier_map = np.concatenate((np.arange(0, active_subcarriers // 2), np.arange(subcarriers - active_subcarriers // 2, subcarriers)))
+    print subcarrier_map
+
+    snr_db = 5.
+    offset = 1000
+    preamble, x_preamble = mapped_preamble(seed, 'rrc', .5, active_subcarriers, subcarriers, subcarrier_map, overlap,
+                           cp_len, filter_len)
+
+    noise_variance = calculate_awgn_noise_variance(preamble, snr_db)
+    rx = get_complex_noise_vector(len(preamble) + 2 * offset, noise_variance)
+    rx[offset:offset + len(preamble)] += preamble
+    print('frame offset', offset, 'with cp_len', cp_len)
+    xc = np.correlate(rx, x_preamble, 'valid')
+    # xc *= np.max(np.abs(rx)) / np.max(np.abs(xc))
+    # xc /= calculate_average_signal_energy(tx)
+    peak = np.argmax(np.abs(xc))
+    print('frame located @{}'.format(peak))
+
+    nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(rx, x_preamble, subcarriers,
+                                                                      cp_len)
+    print('find frame start res @{} and cfo: {}'.format(nc, cfo))
+    s_nm, s_cfo, simple_ac = simplified_sync_algo(rx, x_preamble, subcarriers, cp_len)
+    print('simple algo res @{} and cfo: {}'.format(s_nm, s_cfo))
+    sync_kernel = cgfdm.py_auto_cross_corr_multicarrier_sync_cc(subcarriers, cp_len, x_preamble)
+    kpos, kcfo = sync_kernel.detect_frame(rx.astype(dtype=np.complex64))
+
+    print('kernel: nc={}, cfo={}'.format(kpos, kcfo))
+
+    assert(kpos == s_nm)
+    assert(np.abs(s_cfo - kcfo) < 1e-7)
+
+
+def main():
+    np.set_printoptions(precision=2, suppress=True)
+    # data_per_volume()
+    err_margin = 1e-5
+    M = 5
+    K = 16
+    L = 2
+
+    # cp_test()
     # resource_mapping_test()
-    modulator_test()
-    data_per_volume()
+    # modulator_test()
+    # energy_detector_test()
+    preamble_sync_test()
+
+
+
 
 
 if __name__ == '__main__':

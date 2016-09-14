@@ -41,3 +41,8 @@ cdef extern from "detect_frame_energy_kernel_cl.h" namespace "gr::gfdm":
         void set_alpha(float);
         long detect_frame(const float complex* p_in, const int ninput_items);
 
+cdef extern from "auto_cross_corr_multicarrier_sync_cc.h" namespace "gr::gfdm":
+    cdef cppclass auto_cross_corr_multicarrier_sync_cc:
+        auto_cross_corr_multicarrier_sync_cc(int, int, vector[float complex]) except +
+        int detect_frame_start(const float complex* p_in, const int ninput_size);
+        float last_cfo()

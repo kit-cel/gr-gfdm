@@ -249,7 +249,7 @@ def simplified_sync_algo(rx, x_preamble, subcarriers, cp_len):
     xc = np.correlate(s, x_preamble, 'valid')
     cc = multiply_valid(np.abs(ac), np.abs(xc))
     nc = np.argmax(np.abs(cc))
-
+    print 'simplified: nc: {} (nm: {}), cfo: {:.5f}, abs_corr_val: {:.5f}'.format(nc, nm, cfo, np.abs(ac[nm]))
     return nc, cfo, cc
 
 
