@@ -45,7 +45,8 @@ list(APPEND gfdm_sources
     resource_mapper_cc_impl.cc
     detect_frame_energy_kernel_cl.cc
     frame_energy_detector_cc_impl.cc
-    auto_cross_corr_multicarrier_sync_cc.cc)
+    auto_cross_corr_multicarrier_sync_cc.cc
+    simple_preamble_sync_cc_impl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)

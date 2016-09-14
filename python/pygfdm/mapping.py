@@ -69,10 +69,14 @@ def map_to_waveform_resource_grid(syms, active_subcarriers, fft_len, subcarrier_
     return frame
 
 
+def get_subcarrier_map(subcarriers, active_subcarriers):
+    return np.concatenate((np.arange(0, active_subcarriers // 2), np.arange(subcarriers - active_subcarriers // 2, subcarriers)))
+
+
 def resource_mapping_test():
     subcarriers = 8
     timeslots = 4
-    smap = np.arange(subcarriers)
+    smap = get_subcarrier_map(subcarriers, subcarriers)
     group_tests = [False, True]
     for g in group_tests:
         d = np.arange(subcarriers * timeslots, dtype=np.complex64)

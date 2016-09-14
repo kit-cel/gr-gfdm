@@ -27,6 +27,7 @@
 #include "gfdm/resource_mapper_kernel_cc.h"
 #include "gfdm/resource_mapper_cc.h"
 #include "gfdm/frame_energy_detector_cc.h"
+#include "gfdm/simple_preamble_sync_cc.h"
 %}
 
 %include "gfdm/framer_cc.h"
@@ -58,3 +59,5 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, advanced_receiver_tsb_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, resource_mapper_cc);
 %include "gfdm/frame_energy_detector_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, frame_energy_detector_cc);
+%include "gfdm/simple_preamble_sync_cc.h"
+GR_SWIG_BLOCK_MAGIC2(gfdm, simple_preamble_sync_cc);

@@ -87,7 +87,7 @@ namespace gr {
       volk_32f_x2_multiply_32f(d_abs_xcorr, d_abs_xcorr, d_abs_auto_corr + xc_start, 2 * d_subcarriers);
       const int p_nc = find_peak(d_abs_xcorr, 2 * d_subcarriers);
       const int nc = xc_start + p_nc;
-
+//      std::cout << "nc: " << nc << "(" << nm + pos_correction_factor << "), cfo: " << d_last_cfo << std::endl;
       return nc;
     }
 

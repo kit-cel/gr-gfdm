@@ -45,6 +45,8 @@ namespace gr {
 
       int detect_frame_start(const gfdm_complex *p_in, int ninput_size);
       float last_cfo(){return d_last_cfo;};
+      int subcarriers(){ return d_subcarriers;};
+      int cp_len(){ return d_cp_len;};
     private:
       int d_subcarriers;
       int d_cp_len;
