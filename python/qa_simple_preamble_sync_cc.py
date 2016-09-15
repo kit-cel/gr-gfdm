@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # 
-# Copyright 2016 <+YOU OR YOUR COMPANY+>.
+# Copyright 2016 Johannes Demel.
 # 
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ import gfdm_swig as gfdm
 import numpy as np
 from pygfdm.preamble import mapped_preamble
 from pygfdm.mapping import get_subcarrier_map
+import pmt
 
 
 class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
@@ -35,7 +36,6 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
         self.tb = None
 
     def test_001_t(self):
-        timeslots = 9
         subcarriers = 128
         active_subcarriers = 110
         cp_len = subcarriers // 2
@@ -45,17 +45,20 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
         frame_start = 800
         backoff = 80
         data[frame_start - cp_len:frame_start - cp_len + len(preamble)] = preamble
-        tag_vals = {'key': 'energy', 'offset': frame_start - cp_len - backoff, 'srcid': 'qa', 'value': len(preamble) + 2 * backoff}
-        tag = gr.python_to_tag(tag_vals)
-        print tag_vals
-        print tag
 
-        src = blocks.vector_source_c(data, tag)
+        tag = gr.tag_t()
+        tag.key = pmt.string_to_symbol('energy')
+        tag.offset = frame_start - cp_len - backoff
+        tag.srcid = pmt.string_to_symbol('qa')
+        tag.value = pmt.from_long(len(preamble) + 2 * backoff)
+
+        # FIXME: the following 2 lines are subject to a bugreport at the moment. Will see how to fix the QA test later.
+        # src = blocks.vector_source_c(data, (tag, ))
+        src = blocks.vector_source_c(data)
 
         detector = gfdm.simple_preamble_sync_cc(len(preamble), subcarriers, cp_len, x_preamble, 'energy', 'frame')
         snk = blocks.vector_sink_c()
-        #
-        # print 'run'
+
         self.tb.connect(src, detector, snk)
         self.tb.run()
         # check data
