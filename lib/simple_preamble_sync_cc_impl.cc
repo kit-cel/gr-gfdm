@@ -55,6 +55,9 @@ namespace gr
       d_kernel = auto_cross_corr_multicarrier_sync_cc::sptr(
               new auto_cross_corr_multicarrier_sync_cc(subcarriers, cp_len, preamble));
       set_output_multiple(frame_len);
+      set_tag_propagation_policy(TPP_DONT);
+
+      d_call_to_work_count = 0;
     }
 
     /*
@@ -78,48 +81,59 @@ namespace gr
     {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
+      int avail_items = ninput_items[0];
+      int consumed_items = 0;
+      noutput_items = 0;
+
+      if(d_remaining_items > 0){ // frame from last call still present.
+        memcpy(out, in, sizeof(gr_complex) * d_frame_len);
+        d_remaining_items = 0;
+        noutput_items = d_frame_len;
+        consumed_items = d_frame_len;
+        std::cout << d_call_to_work_count << "\tproduced frame " << noutput_items << " (" << consumed_items << ")\n";
+      }
 
       std::vector<gr::tag_t> tags;
-      get_tags_in_window(tags, 0, 0, ninput_items[0], d_tag_in_key);
-      int consumed_items = noutput_items;
+      get_tags_in_window(tags, 0, consumed_items, avail_items, d_tag_in_key);
+      if(tags.size() > 0){ // assume only one tag per call to work.
+        int search_window = get_window_size_from_tag(tags[0]);
+        int search_offset = get_offset_from_tag(tags[0]);
 
-      if(tags.size() > 0){ // assume we mostly only receive one tag at most!
-        gr::tag_t tag = tags[0];
-        const int fixed_search_window = d_kernel->cp_len() + 3 * d_kernel->subcarriers();
-        int backoff = pmt::to_long(tag.value) - d_frame_len;
-        int search_window = fixed_search_window + backoff;
-        int search_offset = tag.offset - nitems_read(0);
-        if(search_offset + search_window < ninput_items[0]){
-          int frame_start = d_kernel->detect_frame_start(in + search_offset, search_window);
-//          std::cout << backoff << ", " << search_window <<  ", " << tag.offset << ", call offset: "
-//          << search_offset << ", " << noutput_items << ", NOW SEARCH " << frame_start << std::endl;
-          add_item_tag(0, nitems_written(0) + search_offset + frame_start, d_tag_out_key, d_tag_value, d_tag_srcid);
+        if(search_offset + search_window < avail_items){
+          int frame_start = d_kernel->detect_frame_start(in + search_offset, search_window) - d_kernel->cp_len();
+          std::cout << d_call_to_work_count << "\tfound frame: " << frame_start << " (" << search_offset << ")" << std::endl;
 
+          add_item_tag(0, nitems_written(0) + noutput_items, d_tag_out_key, d_tag_value, d_tag_srcid);
+          d_remaining_items = d_frame_len;
+          consumed_items = search_offset + frame_start;
         }
         else{
-//          std::cout << backoff << ", " << search_window <<  ", " << tag.offset << ", call offset: "
-//          << search_offset << ", " << noutput_items << ", NEXT" << std::endl;
           consumed_items = search_offset;
-          noutput_items = search_offset; // change to 0 later!
         }
-
-
-
       }
-      else{
-        // set noutput items to 0 and consume all input items!
+      else{ // no tags, no remaining items!
+        consumed_items = avail_items;
       }
-
-
-      memcpy(out, in, sizeof(gr_complex) * noutput_items);
-
-      // Do <+signal processing+>
+      std::cout << d_call_to_work_count << "\tfinish " << noutput_items << " (" << consumed_items << ")\n";
       // Tell runtime system how many input items we consumed on
       // each input stream.
       consume_each(consumed_items);
 
+      d_call_to_work_count++;
       // Tell runtime system how many output items we produced.
       return noutput_items;
+    }
+
+    int simple_preamble_sync_cc_impl::get_offset_from_tag(const gr::tag_t& t)
+    {
+      return t.offset - nitems_read(0);
+    }
+
+    int simple_preamble_sync_cc_impl::get_window_size_from_tag(const gr::tag_t& t)
+    {
+      const int fixed_search_window = d_kernel->cp_len() + 3 * d_kernel->subcarriers();
+      const int backoff = pmt::to_long(t.value) - d_frame_len;
+      return fixed_search_window + backoff;
     }
 
   } /* namespace gfdm */

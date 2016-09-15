@@ -376,7 +376,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1088, 544)</value>
+      <value>(1088, 600)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -439,7 +439,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1216, 544)</value>
+      <value>(1216, 600)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -1577,7 +1577,7 @@
     </param>
     <param>
       <key>srate</key>
-      <value>1.</value>
+      <value>1. * samp_rate</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -2523,7 +2523,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1088, 464)</value>
+      <value>(1088, 488)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2699,12 +2699,6 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>blocks_throttle_0</source_block_id>
-    <sink_block_id>uhd_usrp_sink_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
     <source_block_id>digital_chunks_to_symbols_xx_0</source_block_id>
     <sink_block_id>hier_gfdm_transmitter_0</sink_block_id>
     <source_key>0</source_key>
@@ -2713,6 +2707,12 @@
   <connection>
     <source_block_id>frame_gap_vector_insert</source_block_id>
     <sink_block_id>blocks_throttle_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>frame_gap_vector_insert</source_block_id>
+    <sink_block_id>uhd_usrp_sink_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

@@ -40,6 +40,10 @@ namespace gr {
 
       int d_remaining_items;
 
+      int d_call_to_work_count;
+
+      int get_offset_from_tag(const gr::tag_t& t);
+      int get_window_size_from_tag(const gr::tag_t& t);
 
      public:
       simple_preamble_sync_cc_impl(int frame_len, int subcarriers, int cp_len, std::vector<gr_complex> preamble, const std::string& in_key, const std::string& out_key);
