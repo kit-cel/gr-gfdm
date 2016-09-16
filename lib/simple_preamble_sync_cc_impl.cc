@@ -90,7 +90,7 @@ namespace gr
         d_remaining_items = 0;
         noutput_items = d_frame_len;
         consumed_items = d_frame_len;
-        std::cout << d_call_to_work_count << "\tproduced frame " << noutput_items << " (" << consumed_items << ")\n";
+//        std::cout << d_call_to_work_count << "\tproduced frame " << noutput_items << " (" << consumed_items << ")\n";
       }
 
       std::vector<gr::tag_t> tags;
@@ -101,7 +101,7 @@ namespace gr
 
         if(search_offset + search_window < avail_items){
           int frame_start = d_kernel->detect_frame_start(in + search_offset, search_window) - d_kernel->cp_len();
-          std::cout << d_call_to_work_count << "\tfound frame: " << frame_start << " (" << search_offset << ")" << std::endl;
+//          std::cout << d_call_to_work_count << "\tfound frame: " << frame_start << " (" << search_offset << ")" << std::endl;
 
           add_item_tag(0, nitems_written(0) + noutput_items, d_tag_out_key, d_tag_value, d_tag_srcid);
           d_remaining_items = d_frame_len;
@@ -114,12 +114,15 @@ namespace gr
       else{ // no tags, no remaining items!
         consumed_items = avail_items;
       }
-      std::cout << d_call_to_work_count << "\tfinish " << noutput_items << " (" << consumed_items << ")\n";
+//      std::cout << d_call_to_work_count << "\tfinish " << noutput_items << " (" << consumed_items << ")\n";
       // Tell runtime system how many input items we consumed on
       // each input stream.
       consume_each(consumed_items);
 
       d_call_to_work_count++;
+//      if(d_call_to_work_count > 10){
+//        return -1;
+//      }
       // Tell runtime system how many output items we produced.
       return noutput_items;
     }

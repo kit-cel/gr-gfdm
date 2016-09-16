@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from modulation import gfdm_modulation_matrix, gfdm_tx_fft2
 from filters import gfdm_filter_taps, get_frequency_domain_filter
-from mapping import get_data_matrix
+from mapping import get_data_matrix, map_to_waveform_resource_grid, get_subcarrier_map
 from utils import get_random_samples, get_random_qpsk, get_zero_f_data
 
 
@@ -156,6 +156,14 @@ def get_random_GFDM_block(ts, sc, overlap, alpha):
     data = get_random_qpsk(ts*sc)
     tx_data = gfdm_modulate_fft(data, alpha, ts, sc, overlap)
     return (data, tx_data)
+
+
+def modulate_mapped_gfdm_block(data, ts, sc, active_sc, overlap, alpha):
+    smap = get_subcarrier_map(sc, active_sc)
+    dm = map_to_waveform_resource_grid(data, active_sc, sc, smap).T
+    H = get_frequency_domain_filter('rrc', alpha, ts, sc, overlap)
+    return gfdm_modulate_block(dm, H, ts, sc, overlap, False)
+
 
 def implementation_validation():
     M = 33

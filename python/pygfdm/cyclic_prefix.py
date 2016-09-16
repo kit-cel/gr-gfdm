@@ -81,6 +81,13 @@ def add_cyclic_prefix(data, cp_len):
     return add_cyclic_starfix(data, cp_len, 0)
 
 
+def pinch_cp_add_block(data, timeslots, subcarriers, cp_len, ramp_len):
+    window_len = get_window_len(cp_len, timeslots, subcarriers)
+    window = get_root_raised_cosine_ramp(ramp_len, window_len)
+    d = add_cyclic_prefix(data, cp_len)
+    return pinch_block(d, window)
+
+
 def plot_window_ramps():
     n_subcarriers = 16
     n_timeslots = 15

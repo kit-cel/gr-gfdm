@@ -46,9 +46,12 @@ namespace gr {
       int average_len(){ return d_average_len;};
       float alpha(){ return d_alpha;};
       void set_alpha(float alpha){d_alpha = alpha;};
+      void set_initial_energy_value(const float e){d_block_energy = e;};
     private:
       float d_alpha;
       int d_average_len;
+
+      float d_block_energy;
 
     };
 

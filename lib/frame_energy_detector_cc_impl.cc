@@ -100,7 +100,7 @@ namespace gr
         consumed_items += tag_pos;
       }
       else{
-        consumed_items += available_items - d_kernel->average_len();
+        consumed_items += available_items;
       }
 
       // Tell runtime system how many input items we consumed on
