@@ -35,12 +35,9 @@ namespace gr {
       pmt::pmt_t d_tag_out_key;
       pmt::pmt_t d_tag_srcid;
       pmt::pmt_t d_tag_value;
-
       auto_cross_corr_multicarrier_sync_cc::sptr d_kernel;
 
       int d_remaining_items;
-
-      int d_call_to_work_count;
 
       int get_offset_from_tag(const gr::tag_t& t);
       int get_window_size_from_tag(const gr::tag_t& t);

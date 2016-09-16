@@ -28,7 +28,6 @@ from pygfdm.mapping import get_subcarrier_map
 from pygfdm.gfdm_modulation import modulate_mapped_gfdm_block
 from pygfdm.utils import get_random_qpsk
 from pygfdm.cyclic_prefix import pinch_cp_add_block
-import pmt
 
 
 class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
@@ -39,7 +38,7 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
         self.tb = None
 
     def test_001_t(self):
-        n_frames = 100
+        n_frames = 20
         timeslots = 9
         subcarriers = 128
         active_subcarriers = 110
@@ -60,20 +59,9 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
             frame = np.concatenate((preamble, frame))
             ref = np.concatenate((ref, frame))
             data = np.concatenate((data, frame, frame_gap))
-        # data = np.zeros(4000, dtype=np.complex)
-        # frame_start = 800
+
         backoff = 80
-        # data[frame_start - cp_len:frame_start - cp_len + len(preamble)] = preamble
-        print 'qa', len(data)
 
-        # tag = gr.tag_t()
-        # tag.key = pmt.string_to_symbol('energy')
-        # tag.offset = frame_start - cp_len - backoff
-        # tag.srcid = pmt.string_to_symbol('qa')
-        # tag.value = pmt.from_long(len(preamble) + 2 * backoff)
-
-        # FIXME: the following 2 lines are subject to a bugreport at the moment. Will see how to fix the QA test later.
-        # src = blocks.vector_source_c(data, (tag, ))
         src = blocks.vector_source_c(data)
         e_detector = gfdm.frame_energy_detector_cc(20., 32, frame_len, backoff, 'energy')
         detector = gfdm.simple_preamble_sync_cc(frame_len, subcarriers, cp_len, x_preamble, 'energy', 'frame')
@@ -88,13 +76,6 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
             print 'srcid {}, key {}, offset {}, value {}'.format(t.srcid, t.key, t.offset, t.value)
 
         self.assertComplexTuplesAlmostEqual(res, ref, 5)
-        # rtags = snk.tags()
-        # for t in rtags:
-        #     print gr.tag_to_python(t)
-        # import matplotlib.pyplot as plt
-        # plt.plot(np.abs(data))
-        # plt.plot(np.abs(res))
-        # plt.show()
 
 
 if __name__ == '__main__':
