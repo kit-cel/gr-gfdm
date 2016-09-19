@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Johannes Demel.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,11 +27,80 @@ namespace gr {
   namespace gfdm {
 
     resource_demapper_kernel_cc::resource_demapper_kernel_cc(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot)
+        : d_timeslots(timeslots), d_subcarriers(subcarriers), d_active_subcarriers(active_subcarriers), d_per_timeslot(per_timeslot)
     {
+      if (active_subcarriers > subcarriers){
+        std::stringstream sstm;
+        sstm << "active_subcarriers(" << active_subcarriers << ") MUST be smaller or equal to subcarriers(" << subcarriers << ")!";
+        std::string err_str = sstm.str();
+        throw std::invalid_argument(err_str.c_str());
+      }
+      if (int(subcarrier_map.size()) != active_subcarriers){
+        std::stringstream sstm;
+        sstm << "number of subcarrier_map entries(" << subcarrier_map.size() << ") MUST be equal to active_subcarriers(";
+        sstm << active_subcarriers << ")!";
+        std::string err_str = sstm.str();
+        throw std::invalid_argument(err_str.c_str());
+      }
+      std::sort(subcarrier_map.begin(), subcarrier_map.end());
+      if ( !(adjacent_find(subcarrier_map.begin(), subcarrier_map.end()) == subcarrier_map.end()) ){
+        throw std::invalid_argument("All entries in subcarrier_map MUST be unique!");
+      }
+      if (*std::min_element(subcarrier_map.begin(), subcarrier_map.end()) < 0){
+        throw std::invalid_argument("All subcarrier indices MUST be greater or equal to ZERO!");
+      }
+      if (*std::max_element(subcarrier_map.begin(), subcarrier_map.end()) > subcarriers){
+        throw std::invalid_argument("All subcarrier indices MUST be smaller or equal to subcarriers!");
+      }
+      d_subcarrier_map = subcarrier_map;
     }
 
     resource_demapper_kernel_cc::~resource_demapper_kernel_cc()
     {
+    }
+
+    void
+    resource_demapper_kernel_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int noutput_size)
+    {
+      if (noutput_size > output_vector_size()){
+        std::stringstream sstm;
+        sstm << "output vector size(" << noutput_size << ") MUST not exceed active_subcarriers * timeslots(" << d_active_subcarriers * d_timeslots << ")!";
+        throw std::invalid_argument(sstm.str().c_str());
+      }
+      memset(p_out, 0x0, sizeof(gfdm_complex) * noutput_size);
+      if(d_per_timeslot){
+        demap_per_timeslot(p_out, p_in, noutput_size);
+      }
+      else{
+        demap_per_subcarrier(p_out, p_in, noutput_size);
+      }
+    }
+
+    void
+    resource_demapper_kernel_cc::demap_per_timeslot(gfdm_complex* p_out, const gfdm_complex* p_in, const int noutput_size)
+    {
+      for(int i = 0; i < noutput_size; ++i){
+        int tidx = i / d_active_subcarriers;
+        int sidx = d_subcarrier_map.at(i % d_active_subcarriers);
+        *p_out++ = p_in[d_timeslots * sidx + tidx];
+      }
+    }
+
+    void
+    resource_demapper_kernel_cc::demap_per_subcarrier(gfdm_complex* p_out, const gfdm_complex* p_in, const int noutput_size)
+    {
+      int sym_ctr = 0;
+      for(int i = 0; i < d_active_subcarriers; ++i){
+        int sidx = d_subcarrier_map.at(i);
+        for(int tidx = 0; tidx < d_timeslots; ++tidx){
+          int idx = d_timeslots * sidx + tidx;
+          *p_out++ = p_in[idx];
+          sym_ctr++;
+          if(sym_ctr > noutput_size){
+            return;
+          }
+        }
+      }
     }
 
   } /* namespace gfdm */

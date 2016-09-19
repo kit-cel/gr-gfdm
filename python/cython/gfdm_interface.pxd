@@ -22,6 +22,13 @@ cdef extern from "resource_mapper_kernel_cc.h" namespace "gr::gfdm":
         int output_vector_size()
         void generic_work(float complex* p_out, const float complex* p_in, const int ninput_size);
 
+cdef extern from "resource_demapper_kernel_cc.h" namespace "gr::gfdm":
+    cdef cppclass resource_demapper_kernel_cc:
+        resource_demapper_kernel_cc(int, int, int, vector[int], bool) except +
+        int input_vector_size()
+        int output_vector_size()
+        void generic_work(float complex* p_out, const float complex* p_in, const int noutput_size);
+
 cdef extern from "receiver_kernel_cc.h" namespace "gr::gfdm":
     cdef cppclass receiver_kernel_cc:
         receiver_kernel_cc(int, int, int, vector[float complex]) except +

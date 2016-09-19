@@ -27,7 +27,7 @@ namespace gr {
   namespace gfdm {
 
     resource_mapper_kernel_cc::resource_mapper_kernel_cc(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot)
-        : d_active_subcarriers(active_subcarriers), d_subcarriers(subcarriers), d_timeslots(timeslots), d_per_timeslot(per_timeslot)
+        : d_timeslots(timeslots), d_subcarriers(subcarriers), d_active_subcarriers(active_subcarriers), d_per_timeslot(per_timeslot)
     {
       if (active_subcarriers > subcarriers){
         std::stringstream sstm;

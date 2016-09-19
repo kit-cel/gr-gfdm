@@ -48,14 +48,22 @@ def resource_mapping_test():
     fft_len = 128
     timeslots = 205
     smap = np.arange(active) + (active - active) // 2
-    mapper = cgfdm.py_resource_mapper_kernel_cc(timeslots, fft_len, active, smap, True)
+    per_timeslot = True
+    mapper = cgfdm.py_resource_mapper_kernel_cc(timeslots, fft_len, active, smap, per_timeslot)
+    demapper = cgfdm.py_resource_demapper_kernel_cc(timeslots, fft_len, active, smap, per_timeslot)
+
+    assert mapper.input_vector_size() == demapper.output_vector_size()
+    assert mapper.output_vector_size() == demapper.input_vector_size()
 
     N = 10
     for i in range(N):
         data = np.random.randn(2, active * timeslots)
         data = data[0] + 1j * data[1]
         data = data.astype(dtype=np.complex64)
-        mapper.map_to_resources(data)
+        tx = mapper.map_to_resources(data)
+        rd = demapper.demap_from_resources(tx, len(data))
+        assert len(data) == len(rd)
+        assert np.all(np.abs(data - rd) < 1e-10)
 
 
 def cp_test():
@@ -148,10 +156,10 @@ def main():
     L = 2
 
     # cp_test()
-    # resource_mapping_test()
+    resource_mapping_test()
     # modulator_test()
     # energy_detector_test()
-    preamble_sync_test()
+    # preamble_sync_test()
 
 
 

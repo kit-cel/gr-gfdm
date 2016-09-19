@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2016 Johannes Demel.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,15 +30,32 @@ namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief Demap symbols from
+     * \brief Demap symbols from demodulated frame.
      *
      */
     class resource_demapper_kernel_cc
     {
     public:
+      typedef std::complex<float> gfdm_complex;
+      typedef boost::shared_ptr<resource_demapper_kernel_cc> sptr;
+
       resource_demapper_kernel_cc(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot);
       ~resource_demapper_kernel_cc();
+
+      int input_vector_size(){ return d_subcarriers * d_timeslots;};
+      int output_vector_size(){ return d_active_subcarriers * d_timeslots;};
+      void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int noutput_size);
+
     private:
+      int d_timeslots;
+      int d_subcarriers;
+      int d_active_subcarriers;
+      std::vector<int> d_subcarrier_map;
+      bool d_per_timeslot;
+
+      void demap_per_timeslot(gfdm_complex* p_out, const gfdm_complex* p_in, const int noutput_size);
+      void demap_per_subcarrier(gfdm_complex* p_out, const gfdm_complex* p_in, const int noutput_size);
+
     };
 
   } // namespace gfdm
