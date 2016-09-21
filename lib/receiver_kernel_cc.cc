@@ -135,7 +135,7 @@ namespace gr
       filename += "/.gr_fftw_wisdom";
       FILE *fpr = fopen(filename.c_str(), "r");
       if (fpr != 0) {
-        int r = fftwf_import_wisdom_from_file(fpr);
+        fftwf_import_wisdom_from_file(fpr);
         fclose(fpr);
       }
 

@@ -27,7 +27,7 @@ namespace gr {
   namespace gfdm {
 
     add_cyclic_prefix_cc::add_cyclic_prefix_cc(int block_len, int cp_len, int cs_len, int ramp_len, std::vector<gfdm_complex> window_taps)
-            : d_ramp_len(ramp_len), d_cp_len(cp_len), d_cs_len(cs_len), d_block_len(block_len)
+            : d_block_len(block_len), d_cp_len(cp_len), d_cs_len(cs_len), d_ramp_len(ramp_len)
     {
       int window_len = block_len + cp_len + cs_len;
       if(window_taps.size() != (unsigned int) window_len && window_taps.size() != (unsigned int) 2 * ramp_len){

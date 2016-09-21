@@ -71,7 +71,7 @@ def cp_test():
     K = 16
 
     window_taps = get_raised_cosine_ramp(4, M * K + 4)
-    cpler = cgfdm.py_add_cyclic_prefix_cc(M * K, 4, 4, window_taps)
+    cpler = cgfdm.py_add_cyclic_prefix_cc(M * K, 4, 0, 4, window_taps)
     print cpler.block_size()
     print cpler.frame_size()
     in_buf = get_random_qpsk(M * K, dtype=np.complex64)
@@ -155,11 +155,11 @@ def main():
     K = 16
     L = 2
 
-    # cp_test()
+    cp_test()
     resource_mapping_test()
-    # modulator_test()
-    # energy_detector_test()
-    # preamble_sync_test()
+    modulator_test()
+    energy_detector_test()
+    preamble_sync_test()
 
 
 

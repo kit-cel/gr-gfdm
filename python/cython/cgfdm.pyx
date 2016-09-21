@@ -34,8 +34,8 @@ cdef class py_modulator_kernel_cc:
 cdef class py_add_cyclic_prefix_cc:
     cdef gfdm_interface.add_cyclic_prefix_cc* kernel
 
-    def __cinit__(self, int block_len, int cp_len, int ramp_len, np.ndarray window_taps):
-        self.kernel = new gfdm_interface.add_cyclic_prefix_cc(block_len, cp_len, ramp_len, window_taps)
+    def __cinit__(self, int block_len, int cp_len, int cs_len, int ramp_len, np.ndarray window_taps):
+        self.kernel = new gfdm_interface.add_cyclic_prefix_cc(block_len, cp_len, cs_len, ramp_len, window_taps)
 
     def __del__(self):
         del self.kernel
