@@ -2,7 +2,7 @@
 <block>
   <name>GFDM Preamble Generator</name>
   <key>variable_preamble_generator</key>
-  <category>GFDM</category>
+    <category>[GFDM]</category>
   <import>import gfdm</import>
   <var_make>self.$(id) = $(id) = gfdm.preamble_generator($nsubcarrier, $filter_alpha, $sync_fft_len).base()</var_make>
   <var_value>gfdm.preamble_generator($nsubcarrier, $filter_alpha, $sync_fft_len)</var_value>

@@ -2,7 +2,7 @@
 <block>
   <name>GFDM Resource Demapper</name>
   <key>gfdm_resource_demapper_cc</key>
-  <category>GFDM</category>
+  <category>[GFDM]</category>
   <import>import gfdm</import>
   <make>gfdm.resource_demapper_cc($timeslots, $subcarriers, $active_subcarriers, $subcarrier_map, $per_timeslot)</make>
 

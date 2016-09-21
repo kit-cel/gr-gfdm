@@ -862,7 +862,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>2</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1593,7 +1593,7 @@
     </param>
     <param>
       <key>tr_mode</key>
-      <value>qtgui.TRIG_MODE_TAG</value>
+      <value>qtgui.TRIG_MODE_NORM</value>
     </param>
     <param>
       <key>tr_slope</key>
@@ -1621,11 +1621,11 @@
     </param>
     <param>
       <key>ymax</key>
-      <value>1. / fft_len</value>
+      <value>1.</value>
     </param>
     <param>
       <key>ymin</key>
-      <value>-1. / fft_len</value>
+      <value>-1.</value>
     </param>
   </block>
   <block>
