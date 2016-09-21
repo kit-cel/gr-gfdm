@@ -42,8 +42,7 @@ namespace gr {
                                                      std::vector<gr_complex> window_taps)
             : gr::block("cyclic_prefixer_cc",
                                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                                      gr::io_signature::make(1, 1, sizeof(gr_complex))),
-              d_cp_len(cp_len)
+                                      gr::io_signature::make(1, 1, sizeof(gr_complex)))
     {
       // all the work is done in the kernel!
       d_kernel = add_cyclic_prefix_cc::sptr(

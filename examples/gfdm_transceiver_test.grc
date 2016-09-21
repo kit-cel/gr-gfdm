@@ -2062,7 +2062,7 @@
     </param>
     <param>
       <key>fftsize</key>
-      <value>fft_len</value>
+      <value>fft_len * 2</value>
     </param>
     <param>
       <key>_coordinate</key>
