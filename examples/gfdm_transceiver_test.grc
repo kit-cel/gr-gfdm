@@ -492,7 +492,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>usrp_rate / 512.</value>
+      <value>usrp_rate / 8.</value>
     </param>
   </block>
   <block>
@@ -740,7 +740,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(16, 352)</value>
+      <value>(8, 352)</value>
     </param>
     <param>
       <key>_rotation</key>

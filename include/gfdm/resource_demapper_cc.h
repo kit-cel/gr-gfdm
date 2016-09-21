@@ -19,8 +19,8 @@
  */
 
 
-#ifndef INCLUDED_GFDM_RESOURCE_MAPPER_CC_H
-#define INCLUDED_GFDM_RESOURCE_MAPPER_CC_H
+#ifndef INCLUDED_GFDM_RESOURCE_DEMAPPER_CC_H
+#define INCLUDED_GFDM_RESOURCE_DEMAPPER_CC_H
 
 #include <gfdm/api.h>
 #include <gnuradio/block.h>
@@ -29,28 +29,28 @@ namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief Take timeslots * active_subcarriers items and map them on a vector for GFDM modulation.
+     * \brief Demap info symbols from GFDM frame.
      * \ingroup gfdm
      *
      */
-    class GFDM_API resource_mapper_cc : virtual public gr::block
+    class GFDM_API resource_demapper_cc : virtual public gr::block
     {
      public:
-      typedef boost::shared_ptr<resource_mapper_cc> sptr;
+      typedef boost::shared_ptr<resource_demapper_cc> sptr;
 
       /*!
-       * \brief Return a shared_ptr to a new instance of gfdm::resource_mapper_cc.
+       * \brief Return a shared_ptr to a new instance of gfdm::resource_demapper_cc.
        *
-       * To avoid accidental use of raw pointers, gfdm::resource_mapper_cc's
+       * To avoid accidental use of raw pointers, gfdm::resource_demapper_cc's
        * constructor is in a private implementation
-       * class. gfdm::resource_mapper_cc::make is the public interface for
+       * class. gfdm::resource_demapper_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int timeslots, int subcarriers, int active_subcarriers, std::vector<int>subcarrier_map, bool per_timeslot);
+      static sptr make(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot);
     };
 
   } // namespace gfdm
 } // namespace gr
 
-#endif /* INCLUDED_GFDM_RESOURCE_MAPPER_CC_H */
+#endif /* INCLUDED_GFDM_RESOURCE_DEMAPPER_CC_H */
 

@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<block>
+  <name>GFDM Resource Demapper</name>
+  <key>gfdm_resource_demapper_cc</key>
+  <category>GFDM</category>
+  <import>import gfdm</import>
+  <make>gfdm.resource_demapper_cc($timeslots, $subcarriers, $active_subcarriers, $subcarrier_map, $per_timeslot)</make>
+
+  <param>
+    <name>Active subcarriers</name>
+    <key>active_subcarriers</key>
+    <value>0</value>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>Subcarriers</name>
+    <key>subcarriers</key>
+    <value>0</value>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>timeslots</name>
+    <key>timeslots</key>
+    <value>0</value>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>subcarrier map</name>
+    <key>subcarrier_map</key>
+    <type>raw</type>
+  </param>
+
+  <param>
+    <name>per timeslot</name>
+    <key>per_timeslot</key>
+    <value>True</value>
+    <type>bool</type>
+  </param>
+
+  <sink>
+    <name>in</name>
+    <type>complex</type>
+  </sink>
+
+  <source>
+    <name>out</name>
+    <type>complex</type>
+  </source>
+</block>
