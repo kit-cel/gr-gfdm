@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 Andrej Rode.
+ * Copyright 2016 Andrej Rode, Johannes Demel.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,39 +32,26 @@ namespace gr
     class advanced_receiver_sb_cc_impl : public advanced_receiver_sb_cc
     {
     private:
-      int d_n_subcarriers;
       int d_n_timeslots;
+      int d_n_subcarriers;
       int d_ic_iter;
       gr::digital::constellation_sptr d_constellation;
-
-      void map_sc_symbols(std::vector<std::vector<gr_complex> > &sc_symbols);
+      std::vector<int> d_subcarrier_map;
 
       void map_symbols_to_constellation_points(gr_complex *p_out, const gr_complex *p_in);
 
-      void remove_sc_interference(std::vector<std::vector<gr_complex> > &sc_symbols,
-                                  std::vector<std::vector<gr_complex> > &sc_fdomain);
-
       void demodulate_block_ic_array(gr_complex *p_out, const gr_complex *p_in);
 
-      gr_complex* d_freq_block;
-      gr_complex* d_ic_time_buffer;
-      gr_complex* d_ic_freq_buffer;
+      gr_complex *d_freq_block;
+      gr_complex *d_ic_time_buffer;
+      gr_complex *d_ic_freq_buffer;
 
       receiver_kernel_cc::sptr d_kernel;
-      std::vector<std::vector<gr_complex> > d_sc_fdomain;
-      std::vector<std::vector<gr_complex> > d_sc_symbols;
-      std::vector<std::vector<gr_complex> > d_ic_syms;
-
-      void demodulate_block_ic_vector(gr_complex *p_out, const gr_complex *p_in);
-
-      void check_if_equal(const std::vector<std::vector<gr_complex> > &first,
-                          const std::vector<std::vector<gr_complex> > &second);
-
 
     public:
       advanced_receiver_sb_cc_impl(int n_timeslots, int n_subcarriers, int overlap, int ic_iter,
                                    std::vector<gr_complex> frequency_taps,
-                                   gr::digital::constellation_sptr constellation);
+                                   gr::digital::constellation_sptr constellation, std::vector<int> subcarrier_map);
 
       ~advanced_receiver_sb_cc_impl();
 

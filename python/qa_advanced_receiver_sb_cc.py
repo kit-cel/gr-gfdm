@@ -23,6 +23,8 @@ from gnuradio import blocks, digital
 import gfdm_swig as gfdm
 from pygfdm import filters, utils
 from pygfdm.gfdm_receiver import gfdm_demodulate_block
+from pygfdm.mapping import get_subcarrier_map
+from pygfdm.utils import get_random_qpsk
 import numpy as np
 
 
@@ -57,7 +59,7 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         src = blocks.vector_source_c(data)
         gfdm_constellation = digital.constellation_qpsk().base()
         mod = gfdm.advanced_receiver_sb_cc(M, K, L, 0,
-                                           taps, gfdm_constellation)
+                                           taps, gfdm_constellation, np.arange(K))
         dst = blocks.vector_sink_c()
 
         self.tb.connect(src, mod, dst)
@@ -80,7 +82,7 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         self.bits_to_symbols = digital.chunks_to_symbols_bc((gfdm_constellation.points()), 1)
         self.mod = gfdm.simple_modulator_cc(gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap, f_taps)
         self.demod = gfdm.advanced_receiver_sb_cc(gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap, 64,
-                                                  f_taps, gfdm_constellation)
+                                                  f_taps, gfdm_constellation, np.arange(gfdm_var.subcarriers))
         self.tx_symbols = blocks.vector_sink_c()
         self.rx_symbols = blocks.vector_sink_c()
         self.tb.connect((self.random_bits, 0), (self.bits_to_symbols, 0))
@@ -93,6 +95,29 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         res = np.array(self.rx_symbols.data())
         # more or less make sure all symbols have their correct sign.
         self.assertComplexTuplesAlmostEqual(ref, res, 2)
+
+    def test_003_active_subcarriers(self):
+        n_frames = 1
+        timeslots = 9
+        subcarriers = 32
+        active_subcarriers = 20
+        overlap = 2
+        f_taps = filters.get_frequency_domain_filter('rrc', .5, timeslots, subcarriers, overlap)
+        gfdm_constellation = digital.constellation_qpsk().base()
+        subcarrier_map = get_subcarrier_map(subcarriers, active_subcarriers)
+
+        data = get_random_qpsk(n_frames * timeslots * active_subcarriers)
+        src = blocks.vector_source_c(data)
+        mapper = gfdm.resource_mapper_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, True)
+        mod = gfdm.simple_modulator_cc(timeslots, subcarriers, overlap, f_taps)
+        demod = gfdm.advanced_receiver_sb_cc(timeslots, subcarriers, overlap, 64, f_taps, gfdm_constellation, subcarrier_map)
+        demapper = gfdm.resource_demapper_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, True)
+        snk = blocks.vector_sink_c()
+        self.tb.connect(src, mapper, mod, demod, demapper, snk)
+        self.tb.run()
+
+        res = np.array(snk.data())
+        self.assertComplexTuplesAlmostEqual(data, res, 2)
 
 
 if __name__ == '__main__':

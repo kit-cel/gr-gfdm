@@ -847,6 +847,10 @@
       <key>subcarriers</key>
       <value>gfdm_var.subcarriers</value>
     </param>
+    <param>
+      <key>subcarrier_map</key>
+      <value>numpy.arange(gfdm_var.subcarriers)</value>
+    </param>
   </block>
   <block>
     <key>gfdm_advanced_receiver_tsb_cc</key>

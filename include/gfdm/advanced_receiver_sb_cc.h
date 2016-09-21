@@ -27,8 +27,10 @@
 #include <gnuradio/digital/api.h>
 #include <gnuradio/digital/constellation.h>
 
-namespace gr {
-  namespace gfdm {
+namespace gr
+{
+  namespace gfdm
+  {
 
     /*!
      * \brief advanced receiver working as sync block
@@ -37,7 +39,7 @@ namespace gr {
      */
     class GFDM_API advanced_receiver_sb_cc : virtual public gr::sync_block
     {
-     public:
+    public:
       typedef boost::shared_ptr<advanced_receiver_sb_cc> sptr;
 
       /*!
@@ -48,8 +50,11 @@ namespace gr {
        * class. gfdm::advanced_receiver_sb_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int n_timeslots, int n_subcarriers, int overlap, int ic_iter, std::vector< gr_complex > frequency_taps, gr::digital::constellation_sptr constellation);
-      virtual void set_ic(int ic_iter){};
+      static sptr make(int n_timeslots, int n_subcarriers, int overlap, int ic_iter,
+                       std::vector<gr_complex> frequency_taps, gr::digital::constellation_sptr constellation,
+                       std::vector<int> subcarrier_map);
+
+      virtual void set_ic(int ic_iter) = 0;
     };
 
   } // namespace gfdm
