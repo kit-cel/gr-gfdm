@@ -46,7 +46,7 @@ namespace gr {
        * class. gfdm::cyclic_prefixer_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int cp_length, int ramp_len, int block_len, std::vector<gr_complex> window_taps);
+      static sptr make(int block_len, int cp_len, int cs_len, int ramp_len, std::vector<gr_complex> window_taps);
     };
 
   } // namespace gfdm

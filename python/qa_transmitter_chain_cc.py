@@ -26,7 +26,7 @@ from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.gfdm_modulation import gfdm_modulate_block
 from pygfdm.mapping import get_data_matrix, map_to_waveform_resources
 from pygfdm.utils import get_random_qpsk, calculate_signal_energy
-from pygfdm.cyclic_prefix import get_window_len, get_raised_cosine_ramp, add_cyclic_prefix, pinch_block
+from pygfdm.cyclic_prefix import get_window_len, get_raised_cosine_ramp, add_cyclic_prefix, pinch_block, add_cyclic_starfix
 from pygfdm.preamble import get_sync_symbol
 import numpy as np
 
@@ -47,9 +47,10 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         K = 16
         L = 2
         cp_len = 8
+        cs_len = 4
         ramp_len = 4
         block_len = M * K
-        window_len = get_window_len(cp_len, M, K)
+        window_len = get_window_len(cp_len, M, K, cs_len)
         taps = get_frequency_domain_filter('rrc', alpha, M, K, L)
         taps /= np.sqrt(calculate_signal_energy(taps) / M)
         window_taps = get_raised_cosine_ramp(ramp_len, window_len)
@@ -67,7 +68,7 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
             dd = map_to_waveform_resources(d, active, K, smap)
             D = get_data_matrix(dd, K, group_by_subcarrier=False)
             b = gfdm_modulate_block(D, taps, M, K, L, False)
-            b = add_cyclic_prefix(b, cp_len)
+            b = add_cyclic_starfix(b, cp_len, cs_len)
             b = pinch_block(b, window_taps)
             ref = np.concatenate((ref, frame_gap, preamble, b))
             data = np.concatenate((data, d))
@@ -75,7 +76,7 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         src = blocks.vector_source_c(data)
         mapper = gfdm.resource_mapper_cc(active, K, M, smap, True)
         mod = gfdm.simple_modulator_cc(M, K, L, taps)
-        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, ramp_len, window_taps)
+        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, cs_len, ramp_len, window_taps)
         preambler = blocks.vector_insert_c(preamble, window_len + len(preamble), 0)
         gapper = blocks.vector_insert_c(frame_gap, frame_len + len(frame_gap), 0)
         dst = blocks.vector_sink_c()

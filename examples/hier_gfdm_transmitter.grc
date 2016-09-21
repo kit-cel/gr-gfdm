@@ -186,7 +186,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>block_len + cp_len</value>
+      <value>block_len + cp_len + cs_len</value>
     </param>
   </block>
   <block>
@@ -291,6 +291,49 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(216, 84)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>cs_len</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value></value>
+    </param>
+    <param>
+      <key>short_id</key>
+      <value></value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>intx</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>16</value>
+    </param>
+  </block>
+  <block>
+    <key>parameter</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(936, 12)</value>
     </param>
     <param>
@@ -333,6 +376,10 @@
       <value>cp_len</value>
     </param>
     <param>
+      <key>cs_length</key>
+      <value>cs_len</value>
+    </param>
+    <param>
       <key>comment</key>
       <value></value>
     </param>
@@ -346,7 +393,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(744, 200)</value>
+      <value>(744, 192)</value>
     </param>
     <param>
       <key>_rotation</key>

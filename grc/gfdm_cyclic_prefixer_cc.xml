@@ -3,10 +3,16 @@
   <key>gfdm_cyclic_prefixer_cc</key>
   <category>[GFDM]</category>
   <import>import gfdm</import>
-  <make>gfdm.cyclic_prefixer_cc($block_len, $cp_length, $ramp_len, $window_taps)</make>
+  <make>gfdm.cyclic_prefixer_cc($block_len, $cp_length, $cs_length, $ramp_len, $window_taps)</make>
   <param>
     <name>CP length</name>
     <key>cp_length</key>
+    <value>0</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>CS length</name>
+    <key>cs_length</key>
     <value>0</value>
     <type>int</type>
   </param>

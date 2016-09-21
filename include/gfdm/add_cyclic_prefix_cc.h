@@ -41,14 +41,15 @@ namespace gr {
       typedef std::complex<float> gfdm_complex;
       typedef boost::shared_ptr<add_cyclic_prefix_cc> sptr;
 
-      add_cyclic_prefix_cc(int block_len, int cp_len, int ramp_len, std::vector<gfdm_complex> window_taps);
+      add_cyclic_prefix_cc(int block_len, int cp_len, int cs_len, int ramp_len, std::vector<gfdm_complex> window_taps);
       ~add_cyclic_prefix_cc();
       void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
       int block_size(){ return d_block_len;};
-      int frame_size(){ return block_size() + d_cp_len;};
+      int frame_size(){ return block_size() + d_cp_len + d_cs_len;};
     private:
       int d_block_len;
       int d_cp_len;
+      int d_cs_len;
       int d_ramp_len;
 
       gfdm_complex* d_front_ramp;

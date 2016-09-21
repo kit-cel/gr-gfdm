@@ -36,7 +36,7 @@ namespace gr
       add_cyclic_prefix_cc::sptr d_kernel;
 
     public:
-      cyclic_prefixer_cc_impl(int block_len, int cp_len, int ramp_len,
+      cyclic_prefixer_cc_impl(int block_len, int cp_len, int cs_len, int ramp_len,
                               std::vector<gr_complex> window_taps);
 
       ~cyclic_prefixer_cc_impl();

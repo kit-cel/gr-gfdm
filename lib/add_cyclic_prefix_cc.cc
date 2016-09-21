@@ -26,10 +26,10 @@
 namespace gr {
   namespace gfdm {
 
-    add_cyclic_prefix_cc::add_cyclic_prefix_cc(int block_len, int cp_len, int ramp_len, std::vector<gfdm_complex> window_taps)
-            : d_ramp_len(ramp_len), d_cp_len(cp_len), d_block_len(block_len)
+    add_cyclic_prefix_cc::add_cyclic_prefix_cc(int block_len, int cp_len, int cs_len, int ramp_len, std::vector<gfdm_complex> window_taps)
+            : d_ramp_len(ramp_len), d_cp_len(cp_len), d_cs_len(cs_len), d_block_len(block_len)
     {
-      int window_len = block_len + cp_len;
+      int window_len = block_len + cp_len + cs_len;
       if(window_taps.size() != (unsigned int) window_len && window_taps.size() != (unsigned int) 2 * ramp_len){
         std::stringstream sstm;
         sstm << "number of window taps(" << window_taps.size() << ") MUST be equal to 2*ramp_len(";
@@ -40,7 +40,7 @@ namespace gr {
       d_front_ramp = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * ramp_len, volk_get_alignment());
       d_back_ramp = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * ramp_len, volk_get_alignment());
       memcpy(d_front_ramp, &window_taps[0], sizeof(gfdm_complex) * ramp_len);
-      memcpy(d_back_ramp, &window_taps[block_len + cp_len - ramp_len], sizeof(gfdm_complex) * ramp_len);
+      memcpy(d_back_ramp, &window_taps[window_taps.size() - ramp_len], sizeof(gfdm_complex) * ramp_len);
     }
 
     add_cyclic_prefix_cc::~add_cyclic_prefix_cc()
@@ -55,9 +55,10 @@ namespace gr {
       const int cp_start = block_size() - d_cp_len;
       memcpy(p_out, p_in + cp_start, sizeof(gfdm_complex) * d_cp_len);
       memcpy(p_out + d_cp_len, p_in, sizeof(gfdm_complex) * block_size());
+      memcpy(p_out + d_cp_len + block_size(), p_in, sizeof(gfdm_complex) * d_cs_len);
 
       if(d_ramp_len > 0){
-        const int tail_start = block_size() + d_cp_len - d_ramp_len;
+        const int tail_start = block_size() + d_cp_len + d_cs_len - d_ramp_len;
         volk_32fc_x2_multiply_32fc(p_out, p_out, d_front_ramp, d_ramp_len);
         volk_32fc_x2_multiply_32fc(p_out + tail_start, p_out + tail_start, d_back_ramp, d_ramp_len);
       }

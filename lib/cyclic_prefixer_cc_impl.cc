@@ -29,16 +29,16 @@ namespace gr {
   namespace gfdm {
 
     cyclic_prefixer_cc::sptr
-    cyclic_prefixer_cc::make(int block_len, int cp_len, int ramp_len, std::vector<gr_complex> window_taps)
+    cyclic_prefixer_cc::make(int block_len, int cp_len, int cs_len, int ramp_len, std::vector<gr_complex> window_taps)
     {
       return gnuradio::get_initial_sptr
-              (new cyclic_prefixer_cc_impl(block_len, cp_len, ramp_len, window_taps));
+              (new cyclic_prefixer_cc_impl(block_len, cp_len, cs_len, ramp_len, window_taps));
     }
 
     /*
      * The private constructor
      */
-    cyclic_prefixer_cc_impl::cyclic_prefixer_cc_impl(int block_len, int cp_len, int ramp_len,
+    cyclic_prefixer_cc_impl::cyclic_prefixer_cc_impl(int block_len, int cp_len, int cs_len, int ramp_len,
                                                      std::vector<gr_complex> window_taps)
             : gr::block("cyclic_prefixer_cc",
                                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -47,7 +47,7 @@ namespace gr {
     {
       // all the work is done in the kernel!
       d_kernel = add_cyclic_prefix_cc::sptr(
-              new add_cyclic_prefix_cc(block_len, cp_len, ramp_len, window_taps));
+              new add_cyclic_prefix_cc(block_len, cp_len, cs_len, ramp_len, window_taps));
 
       // set block properties!
       set_relative_rate(1.0 * d_kernel->frame_size() / d_kernel->block_size());

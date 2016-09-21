@@ -23,7 +23,7 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import gfdm_swig as gfdm
 import numpy as np
-from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len
+from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, add_cyclic_starfix
 
 
 class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
@@ -35,10 +35,10 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
 
     def test_001_init(self):
         # check if prefixer is properly ctor'ed / dtor'ed
-        prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 4, np.arange(4 * 2))
-        prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 4, np.arange(16 * 8 + 4))
+        prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 0, 4, np.arange(4 * 2))
+        prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 0, 4, np.arange(16 * 8 + 4))
         try:
-            prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 4, np.arange(16 * 8))
+            prefixer = gfdm.cyclic_prefixer_cc(16 * 8, 4, 0, 4, np.arange(16 * 8))
             raise ValueError('invalid parameter set, but passed anyway!')
         except:
             # expected behavior!
@@ -51,7 +51,7 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
         data = np.arange(block_len, dtype=np.complex) + 1
         ref = add_cyclic_prefix(data, cp_len)
 
-        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, 0, np.ones(block_len + cp_len))
+        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, 0, 0, np.ones(block_len + cp_len))
         src = blocks.vector_source_c(data)
         dst = blocks.vector_sink_c()
         self.tb.connect(src, prefixer, dst)
@@ -62,27 +62,31 @@ class qa_cyclic_prefixer_cc(gr_unittest.TestCase):
         print
 
     def test_003_block_pinching(self):
-        n_reps = 1000
+        n_reps = 1
         n_subcarriers = 8
         n_timeslots = 8
         block_len = n_subcarriers * n_timeslots
         cp_len = 8
         ramp_len = 4
-        window_len = get_window_len(cp_len, n_timeslots, n_subcarriers)
+        cs_len = ramp_len * 2
+        window_len = get_window_len(cp_len, n_timeslots, n_subcarriers, cs_len)
         window_taps = get_raised_cosine_ramp(ramp_len, window_len)
         data = np.arange(block_len, dtype=np.complex) + 1
-        ref = add_cyclic_prefix(data, cp_len)
+        ref = add_cyclic_starfix(data, cp_len, cs_len)
         ref = pinch_block(ref, window_taps)
         data = np.tile(data, n_reps)
         ref = np.tile(ref, n_reps)
         print "input is: ", len(data), " -> " , len(ref)
-        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, ramp_len, window_taps)
+        # short_window = np.concatenate((window_taps[0:ramp_len], window_taps[-ramp_len:]))
+        prefixer = gfdm.cyclic_prefixer_cc(block_len, cp_len, cs_len, ramp_len, window_taps)
         src = blocks.vector_source_c(data)
         dst = blocks.vector_sink_c()
         self.tb.connect(src, prefixer, dst)
         self.tb.run()
 
         res = np.array(dst.data())
+        print ref[-10:]
+        print res[-10:]
 
         self.assertComplexTuplesAlmostEqual(res, ref, 4)
 

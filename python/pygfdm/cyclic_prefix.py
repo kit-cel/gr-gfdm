@@ -33,8 +33,8 @@ import scipy.signal as signal
 import matplotlib.pyplot as plt
 
 
-def get_window_len(cp_len, n_timeslots, n_subcarriers):
-    return n_timeslots * n_subcarriers + cp_len
+def get_window_len(cp_len, n_timeslots, n_subcarriers, cs_len=0):
+    return n_timeslots * n_subcarriers + cp_len + cs_len
 
 
 def fourth_order_polynomial(x):
