@@ -147,6 +147,32 @@ def preamble_sync_test():
     assert(np.abs(s_cfo - kcfo) < 1e-7)
 
 
+def equalize(rx_frame, H):
+    F = np.fft.fft(rx_frame)
+    E = F / H
+    return np.fft.ifft(E)
+
+
+def estimate_preamble_aided_channel(rx, preamble, smap):
+    P = np.fft.fft(preamble)
+    return np.fft.fft(rx)[smap] / P[smap]
+
+
+def interpolate_subcarriers(H, fft_len, smap):
+    t = np.zeros(fft_len, dtype=np.complex)
+    t[smap] = H
+    return t
+
+
+def interpolate_channel(est_H, frame_len, fft_len, cp_len, smap):
+    t = interpolate_subcarriers(est_H, fft_len, smap)
+    est_time = np.fft.ifft(t)
+    est_time = est_time[0:cp_len]
+    H_frame = np.fft.fft(est_time, frame_len)
+    return H_frame
+
+
+
 def main():
     np.set_printoptions(precision=2, suppress=True)
     # data_per_volume()
