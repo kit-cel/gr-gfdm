@@ -29,20 +29,24 @@ namespace gr {
     class remove_prefix_cc_impl : public remove_prefix_cc
     {
      private:
-       int d_fft_len;
+       int d_frame_len;
+       int d_block_len;
+       int d_offset;
        int d_sync_fft_len;
        int d_cp_length;
-       int d_block_len;
+
        int d_block_left;
-       std::string d_gfdm_sync_tag_key;
-       std::string d_gfdm_len_tag_key;
+//       std::string d_gfdm_sync_tag_key;
+       pmt::pmt_t d_tag_key;
 
      public:
-      remove_prefix_cc_impl(int sync_fft_len, int fft_len, int cp_length, const std::string& gfdm_sync_tag_key, const std::string& gfdm_len_tag_key);
+      remove_prefix_cc_impl(int frame_len, int block_len, int offset, const std::string& gfdm_sync_tag_key);
       ~remove_prefix_cc_impl();
 
       // Where all the action really happens
       void forecast (int noutput_items, gr_vector_int &ninput_items_required);
+      int fixed_rate_ninput_to_noutput(int ninput);
+      int fixed_rate_noutput_to_ninput(int noutput);
 
       int general_work(int noutput_items,
            gr_vector_int &ninput_items,

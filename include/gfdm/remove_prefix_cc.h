@@ -29,7 +29,7 @@ namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief <+description of block+>
+     * \brief extract block_len items from frame_len chunks of items, marked with a tag plus offset
      * \ingroup gfdm
      *
      */
@@ -46,7 +46,7 @@ namespace gr {
        * class. gfdm::remove_prefix_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int sync_fft_len, int fft_len, int cp_length, const std::string& gfdm_sync_tag_key = "gfdm_sync", const std::string& gfdm_len_tag_key = "gfdm_frame");
+      static sptr make(int frame_len, int block_len, int offset, const std::string& gfdm_sync_tag_key);
     };
 
   } // namespace gfdm

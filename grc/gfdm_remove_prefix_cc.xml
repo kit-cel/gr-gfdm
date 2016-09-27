@@ -3,34 +3,30 @@
   <key>gfdm_remove_prefix_cc</key>
   <category>[GFDM]</category>
   <import>import gfdm</import>
-  <make>gfdm.remove_prefix_cc($sync_fft_len, $fft_len, $cp_length, $gfdm_sync_tag_key, $gfdm_len_tag_key)</make>
+  <make>gfdm.remove_prefix_cc($frame_len, $block_len, $offset, $gfdm_sync_tag_key)</make>
+
   <param>
-    <name>Sync_fft_len</name>
-    <key>sync_fft_len</key>
+    <name>Frame length</name>
+    <key>frame_len</key>
     <type>int</type>
   </param>
   <param>
-    <name>Fft_len</name>
-    <key>fft_len</key>
+    <name>Block length</name>
+    <key>block_len</key>
     <type>int</type>
   </param>
   <param>
-    <name>Cp_length</name>
-    <key>cp_length</key>
+    <name>Offset</name>
+    <key>offset</key>
     <type>int</type>
   </param>
   <param>
-    <name>Gfdm_sync_tag_key</name>
+    <name>Tag key</name>
     <key>gfdm_sync_tag_key</key>
-    <value> "gfdm_sync"</value>
+    <value>"frame_start"</value>
     <type>string</type>
   </param>
-  <param>
-    <name>Gfdm_len_tag_key</name>
-    <key>gfdm_len_tag_key</key>
-    <value> "gfdm_frame"</value>
-    <type>string</type>
-  </param>
+
   <sink>
     <name>in</name>
     <type>complex</type>

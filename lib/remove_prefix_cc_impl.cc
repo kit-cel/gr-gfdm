@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2016 Andrej Rode.
+ * Copyright 2016 Andrej Rode, Johannes Demel.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,28 +30,28 @@ namespace gr {
   namespace gfdm {
 
     remove_prefix_cc::sptr
-    remove_prefix_cc::make(int sync_fft_len, int fft_len, int cp_length,const std::string& gfdm_sync_tag_key, const std::string& gfdm_len_tag_key)
+    remove_prefix_cc::make(int frame_len, int block_len, int offset, const std::string& gfdm_sync_tag_key)
     {
       return gnuradio::get_initial_sptr
-        (new remove_prefix_cc_impl(sync_fft_len, fft_len, cp_length,gfdm_sync_tag_key, gfdm_len_tag_key));
+        (new remove_prefix_cc_impl(frame_len, block_len, offset, gfdm_sync_tag_key));
     }
 
     /*
      * The private constructor
      */
-    remove_prefix_cc_impl::remove_prefix_cc_impl(int sync_fft_len, int fft_len, int cp_length,const std::string& gfdm_sync_tag_key, const std::string& gfdm_len_tag_key)
+    remove_prefix_cc_impl::remove_prefix_cc_impl(int frame_len, int block_len, int offset, const std::string& gfdm_sync_tag_key)
       : gr::block("remove_prefix_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
-      d_sync_fft_len(sync_fft_len),
-      d_cp_length(cp_length),
-      d_fft_len(fft_len),
-      d_block_len(fft_len+sync_fft_len+2*cp_length),
-      d_gfdm_sync_tag_key(gfdm_sync_tag_key),
-      d_gfdm_len_tag_key(gfdm_len_tag_key),
+      d_frame_len(frame_len),
+      d_block_len(block_len),
+      d_offset(offset),
       d_block_left(0)
     {
-      set_output_multiple(d_fft_len);
+      d_tag_key = pmt::string_to_symbol(gfdm_sync_tag_key);
+      set_output_multiple(block_len);
+      set_fixed_rate(true);
+      set_relative_rate(1. * block_len / frame_len);
       set_tag_propagation_policy(TPP_DONT);
     }
 
@@ -65,7 +65,19 @@ namespace gr {
     void
     remove_prefix_cc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
-      ninput_items_required[0] = noutput_items+d_sync_fft_len+d_cp_length*2;
+      ninput_items_required[0] = fixed_rate_noutput_to_ninput(noutput_items);
+    }
+
+    int
+    remove_prefix_cc_impl::fixed_rate_ninput_to_noutput(int ninput)
+    {
+      return (ninput / d_frame_len) * d_block_len;
+    }
+
+    int
+    remove_prefix_cc_impl::fixed_rate_noutput_to_ninput(int noutput)
+    {
+      return (noutput / d_block_len) * d_frame_len;
     }
 
     int
@@ -76,41 +88,29 @@ namespace gr {
     {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
-      std::vector< tag_t > sync_tags(1);
-      noutput_items = 0;
-      if (d_block_left>0){
-        std::memcpy(&out[0],&in[0],sizeof(gr_complex)*d_block_left);
-        noutput_items += d_block_left;
-      }
-      get_tags_in_range(sync_tags,0,nitems_read(0),nitems_read(0)+ninput_items[0]-1, pmt::string_to_symbol(d_gfdm_sync_tag_key));
-      
-      if (sync_tags.size() > 0)
-      {
-        for (std::vector<tag_t>::iterator it = sync_tags.begin();it != sync_tags.end();++it)
-        {
-          int sync_start = it->offset - nitems_read(0);
-          int block_start = sync_start + d_sync_fft_len + d_cp_length;
-          if (ninput_items[0] - block_start >= d_fft_len){
-            std::memcpy(&out[noutput_items],&in[block_start],sizeof(gr_complex)*(d_fft_len));
-            add_item_tag(0, nitems_written(0)+noutput_items,
-                pmt::string_to_symbol(d_gfdm_len_tag_key),
-                pmt::from_long(d_fft_len));
-            noutput_items += d_fft_len;
-            d_block_left = 0;
-          }else{
-            std::memcpy(&out[noutput_items],&in[block_start],sizeof(gr_complex)*(ninput_items[0]-block_start));
-            add_item_tag(0, nitems_written(0)+noutput_items,
-                pmt::string_to_symbol(d_gfdm_len_tag_key),
-                pmt::from_long(d_fft_len));
-            noutput_items += ninput_items[0] - sync_start - d_sync_fft_len - d_cp_length;
-            d_block_left = d_fft_len - (ninput_items[0] - block_start); 
-          }
-        }
+      // This general_work relies on the scheduler in several ways!
+      // due to fixed rate and correct forecast return values, ninput_items is a multiple of d_frame_len
+      // also, noutput_items is a multiple of d_block_len.
+      // Just crash if that doesn't hold true. (hopefully)
+
+      int frames = ninput_items[0] / d_frame_len;
+      int blocks = noutput_items / d_block_len;
+      int avail_items = std::min(blocks, frames) * d_frame_len;
+      int consumed_items = 0;
+      int produced_items = 0;
+
+      std::vector<tag_t> tags;
+      get_tags_in_window(tags, 0, 0, avail_items, d_tag_key);
+      for (int i = 0; i < tags.size(); ++i) {
+        memcpy(out, in + d_offset, sizeof(gr_complex) * d_block_len);
+        consumed_items += d_frame_len;
+        produced_items += d_block_len;
+        in += d_frame_len;
+        out += d_block_len;
       }
 
-      consume_each (ninput_items[0]);
-
-      return noutput_items;
+      consume_each (consumed_items);
+      return produced_items;
     }
 
   } /* namespace gfdm */

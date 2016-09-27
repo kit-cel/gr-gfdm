@@ -43,7 +43,6 @@ add_subdirectory(pygfdm)
 
 set(GR_TEST_TARGET_DEPS gnuradio-gfdm)
 set(GR_TEST_PYTHON_DIRS ${CMAKE_BINARY_DIR}/swig)
-#GR_ADD_TEST(qa_framer_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_framer_cc.py)
 GR_ADD_TEST(qa_modulator_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_modulator_cc.py)
 GR_ADD_TEST(qa_sync_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_sync_cc.py)
 GR_ADD_TEST(qa_cyclic_prefixer_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_cyclic_prefixer_cc.py)
@@ -56,3 +55,4 @@ GR_ADD_TEST(qa_resource_mapper_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DI
 GR_ADD_TEST(qa_frame_energy_detector_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_frame_energy_detector_cc.py)
 GR_ADD_TEST(qa_simple_preamble_sync_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_simple_preamble_sync_cc.py)
 GR_ADD_TEST(qa_resource_demapper_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_resource_demapper_cc.py)
+GR_ADD_TEST(qa_remove_prefix_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_remove_prefix_cc.py)
