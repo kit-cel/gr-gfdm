@@ -35,7 +35,7 @@ from modulation import gfdm_tx, gfdm_tx_fft2
 from utils import get_random_qpsk, generate_seed
 from mapping import map_to_waveform_resources
 from mapping import get_data_matrix
-from cyclic_prefix import add_cyclic_prefix, get_raised_cosine_ramp, get_window_len, pinch_block
+from cyclic_prefix import add_cyclic_prefix, get_raised_cosine_ramp, get_window_len, pinch_block, add_cyclic_starfix
 from filters import get_frequency_domain_filter
 from gfdm_modulation import gfdm_modulate_block
 
@@ -97,8 +97,8 @@ def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
     pn_symbols = np.concatenate((pn_symbols, pn_symbols))
     D = get_data_matrix(pn_symbols, K, group_by_subcarrier=True) # careful here! group by subcarrier is correct!
     symbol = x_symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=False)
-    symbol = add_cyclic_prefix(symbol, cp_len)
-    window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K))
+    symbol = add_cyclic_starfix(symbol, cp_len, ramp_len)
+    window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K, ramp_len))
     symbol = pinch_block(symbol, window_ramp)
     return symbol, x_symbol
 
