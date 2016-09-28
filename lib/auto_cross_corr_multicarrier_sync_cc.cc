@@ -28,7 +28,7 @@ namespace gr {
   namespace gfdm {
 
     auto_cross_corr_multicarrier_sync_cc::auto_cross_corr_multicarrier_sync_cc(int subcarriers, int cp_len, std::vector<gfdm_complex> preamble):
-      d_subcarriers(subcarriers), d_cp_len(cp_len)
+      d_subcarriers(subcarriers), d_cp_len(cp_len), d_last_cfo(0.0f)
     {
       if(int(preamble.size()) != 2 * subcarriers){
         throw std::runtime_error("ERROR: preamble.size() MUST be equal to 2 * n_subcarriers!");
@@ -118,7 +118,7 @@ namespace gr {
     float
     auto_cross_corr_multicarrier_sync_cc::calculate_normalized_cfo(const gfdm_complex corr_val)
     {
-      return std::arg(corr_val) / M_PI;
+      return std::arg(corr_val) / (2.0 * M_PI);
     }
 
     void

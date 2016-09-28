@@ -51,4 +51,10 @@
     <name>out</name>
     <type>complex</type>
   </source>
+
+  <source>
+    <name>cfo</name>
+    <type>message</type>
+    <optional>1</optional>
+  </source>
 </block>
