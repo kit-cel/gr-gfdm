@@ -291,8 +291,6 @@ def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cf
     data = get_random_qpsk(block_len, seed=generate_seed('awesomepayloadblabla'))
     x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
 
-
-
     preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K, seed=generate_seed('awesome')), 'rrc', alpha, K, L, cp_len, ramp_len)
     print 'frame energy:', calculate_average_signal_energy(x), 'preamble energy:', calculate_average_signal_energy(preamble)
     preamble *= np.sqrt(calculate_average_signal_energy(x) / calculate_average_signal_energy(preamble))
@@ -337,6 +335,7 @@ def sync_test():
     s *= 100. / np.sqrt(len(x_preamble))
     nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
     print 'FOUND FRAMESTART nc:', nc, np.abs(napcc[nc]), abs_corr_vals[nc]
+    snc, scfo, scc = simplified_sync_algo(s, x_preamble, K, cp_len)
     # print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
     thr = calculate_threshold_factor(false_alarm_probability) * np.sum(apcc[nc - K:nc + K]) / (2 * K)
     print 'threshold: ', thr
