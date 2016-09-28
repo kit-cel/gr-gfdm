@@ -210,6 +210,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(784, 196)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>complex_info_symbols_per_frame</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>timeslots * active_subcarriers</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(648, 12)</value>
     </param>
     <param>
@@ -594,6 +621,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(1208, 124)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>preamble_len</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>len(preamble)</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(776, 12)</value>
     </param>
     <param>
@@ -688,6 +742,33 @@
     <param>
       <key>value</key>
       <value>abs(hash('awesome')) % (2**32)</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(576, 196)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>subcarrier_bw</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>samp_rate / fft_len</value>
     </param>
   </block>
   <block>
@@ -805,6 +886,33 @@
     <param>
       <key>value</key>
       <value>39</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(680, 196)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>used_bw</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>subcarrier_bw * active_subcarriers</value>
     </param>
   </block>
   <block>
@@ -1376,7 +1484,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>frame_len</key>
@@ -1491,7 +1599,7 @@
     </param>
     <param>
       <key>subcarriers</key>
-      <value>128</value>
+      <value>fft_len</value>
     </param>
     <param>
       <key>timeslots</key>

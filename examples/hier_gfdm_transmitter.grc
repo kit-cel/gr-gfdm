@@ -143,7 +143,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -159,7 +159,34 @@
     </param>
     <param>
       <key>value</key>
-      <value>2 * subcarriers + cp_len</value>
+      <value>2 * subcarriers + cp_len + cs_len</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1184, 132)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>preamble_len</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>len(preamble)</value>
     </param>
   </block>
   <block>

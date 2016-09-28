@@ -1161,7 +1161,7 @@
     </param>
     <param>
       <key>subcarriers</key>
-      <value>128</value>
+      <value>fft_len</value>
     </param>
     <param>
       <key>timeslots</key>
