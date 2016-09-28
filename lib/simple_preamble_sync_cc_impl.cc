@@ -24,6 +24,7 @@
 
 #include <gnuradio/io_signature.h>
 #include "simple_preamble_sync_cc_impl.h"
+#include <volk/volk.h>
 
 namespace gr
 {
@@ -48,6 +49,7 @@ namespace gr
                         gr::io_signature::make(1, 1, sizeof(gr_complex)),
                         gr::io_signature::make(1, 1, sizeof(gr_complex))), d_frame_len(frame_len), d_remaining_items(0)
     {
+      d_correct_cfo = false;
       d_tag_in_key = pmt::string_to_symbol(in_key);
       d_tag_out_key = pmt::string_to_symbol(out_key);
       d_tag_srcid = pmt::string_to_symbol(name());
@@ -84,7 +86,16 @@ namespace gr
       noutput_items = 0;
 
       if(d_remaining_items > 0){ // frame from last call still present.
-        memcpy(out, in, sizeof(gr_complex) * d_frame_len);
+
+        if(d_correct_cfo){
+          std::cout << "correct CFO: " << d_kernel->last_cfo() << std::endl;
+//          remove_cfo(out, in, d_kernel->last_cfo(), d_frame_len);
+          memcpy(out, in, sizeof(gr_complex) * d_frame_len);
+        }
+        else{
+          memcpy(out, in, sizeof(gr_complex) * d_frame_len);
+        }
+
         d_remaining_items = 0;
         noutput_items = d_frame_len;
         consumed_items = d_frame_len;
@@ -129,6 +140,15 @@ namespace gr
       const int fixed_search_window = d_kernel->cp_len() + 3 * d_kernel->subcarriers();
       const int backoff = pmt::to_long(t.value) - d_frame_len;
       return fixed_search_window + backoff;
+    }
+
+    void
+    simple_preamble_sync_cc_impl::remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const int ninput_size)
+    {
+      gr_complex initial_phase = gr_complex(1.0, 0.0);
+      const float cfo_incr = -1.0f * M_PI * cfo / d_kernel->subcarriers();
+      gr_complex phase_increment = gr_complex(std::cos(cfo_incr), std::sin(cfo_incr));
+      volk_32fc_s32fc_x2_rotator_32fc(p_out, p_in, phase_increment, &initial_phase, ninput_size);
     }
 
   } /* namespace gfdm */
