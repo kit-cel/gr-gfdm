@@ -49,7 +49,7 @@ namespace gr
                         gr::io_signature::make(1, 1, sizeof(gr_complex)),
                         gr::io_signature::make(1, 1, sizeof(gr_complex))), d_frame_len(frame_len), d_remaining_items(0)
     {
-      d_correct_cfo = false;
+      d_correct_cfo = true;
       d_tag_in_key = pmt::string_to_symbol(in_key);
       d_tag_out_key = pmt::string_to_symbol(out_key);
       d_tag_srcid = pmt::string_to_symbol(name());
@@ -58,6 +58,9 @@ namespace gr
               new auto_cross_corr_multicarrier_sync_cc(subcarriers, cp_len, preamble));
       set_output_multiple(frame_len);
       set_tag_propagation_policy(TPP_DONT);
+
+      d_cfo_port_id = pmt::string_to_symbol("cfo");
+      message_port_register_out(d_cfo_port_id);
     }
 
     /*
@@ -88,9 +91,7 @@ namespace gr
       if(d_remaining_items > 0){ // frame from last call still present.
 
         if(d_correct_cfo){
-          std::cout << "correct CFO: " << d_kernel->last_cfo() << std::endl;
-//          remove_cfo(out, in, d_kernel->last_cfo(), d_frame_len);
-          memcpy(out, in, sizeof(gr_complex) * d_frame_len);
+          remove_cfo(out, in, d_kernel->last_cfo(), d_frame_len);
         }
         else{
           memcpy(out, in, sizeof(gr_complex) * d_frame_len);
@@ -111,6 +112,7 @@ namespace gr
           int frame_start = d_kernel->detect_frame_start(in + search_offset, search_window) - d_kernel->cp_len();
 
           add_item_tag(0, nitems_written(0) + noutput_items, d_tag_out_key, d_tag_value, d_tag_srcid);
+          publish_cfo(d_kernel->last_cfo());
           d_remaining_items = d_frame_len;
           consumed_items = search_offset + frame_start;
         }
@@ -130,12 +132,21 @@ namespace gr
       return noutput_items;
     }
 
-    int simple_preamble_sync_cc_impl::get_offset_from_tag(const gr::tag_t& t)
+    void
+    simple_preamble_sync_cc_impl::publish_cfo(const float cfo)
+    {
+      pmt::pmt_t msg = pmt::from_float(cfo);
+      message_port_pub(d_cfo_port_id, msg);
+    }
+
+    int
+    simple_preamble_sync_cc_impl::get_offset_from_tag(const gr::tag_t& t)
     {
       return t.offset - nitems_read(0);
     }
 
-    int simple_preamble_sync_cc_impl::get_window_size_from_tag(const gr::tag_t& t)
+    int
+    simple_preamble_sync_cc_impl::get_window_size_from_tag(const gr::tag_t& t)
     {
       const int fixed_search_window = d_kernel->cp_len() + 3 * d_kernel->subcarriers();
       const int backoff = pmt::to_long(t.value) - d_frame_len;
@@ -145,10 +156,22 @@ namespace gr
     void
     simple_preamble_sync_cc_impl::remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const int ninput_size)
     {
-      gr_complex initial_phase = gr_complex(1.0, 0.0);
-      const float cfo_incr = -1.0f * M_PI * cfo / d_kernel->subcarriers();
-      gr_complex phase_increment = gr_complex(std::cos(cfo_incr), std::sin(cfo_incr));
-      volk_32fc_s32fc_x2_rotator_32fc(p_out, p_in, phase_increment, &initial_phase, ninput_size);
+
+//      gr_complex initial_phase = gr_complex(1.0, 0.0);
+      const float phase_inc = -2.0 * M_PI * cfo / float(d_kernel->subcarriers());
+//      std::cout << "correct CFO: " << cfo << ", adjusted: " << cfo / 2.0 << "phase_inc: " << phase_inc << std::endl;
+
+//      inc = (2 * np.pi) * rel_cfo / (128.)
+//      const float cfo_incr = -0.5f * M_PI * cfo / d_kernel->subcarriers();
+//      const float cfo_incr = -0.5f * cfo;
+      for(int i = 0; i < ninput_size; ++i){
+        float phase = float(i) * phase_inc;
+        gr_complex s = gr_complex(std::cos(phase), std::sin(phase));
+        *p_out++ = *p_in++ * s;
+      }
+
+//      gr_complex phase_increment = gr_complex(phase_inc, phase_inc);
+//      volk_32fc_s32fc_x2_rotator_32fc(p_out, p_in, phase_increment, &initial_phase, ninput_size);
     }
 
   } /* namespace gfdm */

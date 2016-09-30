@@ -118,7 +118,7 @@ namespace gr {
     float
     auto_cross_corr_multicarrier_sync_cc::calculate_normalized_cfo(const gfdm_complex corr_val)
     {
-      return std::arg(corr_val) / M_PI;
+      return std::arg(corr_val) / (2.0 * M_PI);
     }
 
     void
