@@ -22,7 +22,7 @@
 #define INCLUDED_GFDM_ADVANCED_RECEIVER_SB_CC_IMPL_H
 
 #include <gfdm/advanced_receiver_sb_cc.h>
-#include <gfdm/receiver_kernel_cc.h>
+#include <gfdm/advanced_receiver_kernel_cc.h>
 
 namespace gr
 {
@@ -32,21 +32,7 @@ namespace gr
     class advanced_receiver_sb_cc_impl : public advanced_receiver_sb_cc
     {
     private:
-      int d_n_timeslots;
-      int d_n_subcarriers;
-      int d_ic_iter;
-      gr::digital::constellation_sptr d_constellation;
-      std::vector<int> d_subcarrier_map;
-
-      void map_symbols_to_constellation_points(gr_complex *p_out, const gr_complex *p_in);
-
-      void demodulate_block_ic_array(gr_complex *p_out, const gr_complex *p_in);
-
-      gr_complex *d_freq_block;
-      gr_complex *d_ic_time_buffer;
-      gr_complex *d_ic_freq_buffer;
-
-      receiver_kernel_cc::sptr d_kernel;
+      advanced_receiver_kernel_cc::sptr d_adv_kernel;
 
     public:
       advanced_receiver_sb_cc_impl(int n_timeslots, int n_subcarriers, int overlap, int ic_iter,
@@ -56,7 +42,7 @@ namespace gr
       ~advanced_receiver_sb_cc_impl();
 
       void set_ic(int ic_iter)
-      { d_ic_iter = ic_iter; }
+      { d_adv_kernel->set_ic(ic_iter); }
 
       // Where all the action really happens
       int work(int noutput_items,
