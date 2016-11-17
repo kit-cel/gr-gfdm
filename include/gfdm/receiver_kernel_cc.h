@@ -72,6 +72,7 @@ namespace gr {
       };
       std::vector<gfdm_complex> filter_taps();
       std::vector<gfdm_complex> ic_filter_taps();
+      int timeslots() {return d_n_timeslots;};
 
     private:
       int d_n_subcarriers;
