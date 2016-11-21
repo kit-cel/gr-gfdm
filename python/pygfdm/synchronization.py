@@ -38,7 +38,7 @@ from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp
 from mapping import get_data_matrix, map_to_waveform_resources
 from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance, calculate_average_signal_energy, calculate_signal_energy, magnitude_squared
 from utils import generate_seed
-from correlation import auto_correlate_halfs, cross_correlate_signal
+from correlation import auto_correlate_halfs, cross_correlate_signal, cross_correlate_fft_cyclic
 from preamble import generate_sync_symbol
 
 
@@ -280,8 +280,19 @@ def simplified_sync_algo(rx, x_preamble, subcarriers, cp_len):
     xc = np.correlate(s, x_preamble, 'valid')
     cc = multiply_valid(np.abs(ac), np.abs(xc))
     nc = np.argmax(np.abs(cc))
-    # phase = np.angle(xc[nc])
-    # print 'init phase offset: ', phase
+
+    plt.plot(np.abs(ac[nm - subcarriers:nm + subcarriers]))
+    sc = s[nm - subcarriers:nm + subcarriers]
+    print(len(sc))
+    xcc = cross_correlate_fft_cyclic(sc, x_preamble)
+    print(len(xcc))
+    plt.plot(np.abs(xcc) * 0.001)
+    ccc = np.abs(ac[nm - subcarriers:nm + subcarriers]) * np.abs(xcc)
+    plt.plot(ccc * 0.001)
+    ncc = np.argmax(np.abs(ccc))
+    print 'cyclic: ', ncc, 'ncc: ', nm + ncc - subcarriers, 'cp_len: ', cp_len
+    plt.show()
+
     print 'simplified: nc: {} (nm: {}), cfo: {:.5f}, abs_corr_val: {:.5f}'.format(nc, nm, cfo, np.abs(ac[nm]))
     return nc, cfo, cc
 
@@ -381,8 +392,8 @@ def preamble_auto_corr_test():
 def main():
     np.set_printoptions(precision=4, suppress=True)
     # preamble_auto_corr_test()
-    # sync_test()
-
+    sync_test()
+    return
     # cfo = 1.024e-5
     samp_rate = 12.5e6
     freq = 20.
