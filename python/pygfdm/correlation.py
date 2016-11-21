@@ -29,6 +29,7 @@ COMMENT
 '''
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def auto_correlate_halfs(s):
@@ -151,9 +152,35 @@ def validate_cross_correlation_algorithms():
     validate_naive_cross_correlation(s, x, tolerance)
 
 
+def cross_correlate_fft_cyclic(s, p):
+
+    # valid_res_len = len(s) - len(p) + 1
+    S = np.fft.fft(s[0: len(p)])
+    # p = np.append(p, np.zeros(len(s) - len(p)))
+    P = np.fft.fft(p)
+    P = np.conjugate(P)
+    C = S * P
+    cf = np.fft.ifft(C)
+    # cf = cf[0:valid_res_len]
+    if s.dtype == np.float:  # in case input was float.
+        cf = np.real(cf)
+    return cf
+
+
 def main():
     np.set_printoptions(precision=4, suppress=True)
     validate_cross_correlation_algorithms()
+    l = 30
+    N = l * 3
+    offset = 5
+    s = np.random.randn(N) + 1j * np.random.randn(N)
+    x = s[offset:offset + l]
+
+    cf = cross_correlate_fft_valid(s, x)
+    plt.plot(np.abs(cf))
+    ccc = cross_correlate_fft_cyclic(s, x)
+    plt.plot(np.abs(ccc))
+    plt.show()
 
 
 if __name__ == '__main__':

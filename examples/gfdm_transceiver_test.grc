@@ -54,7 +54,7 @@
     </param>
     <param>
       <key>qt_qss_theme</key>
-      <value>/home/demel/install/share/gnuradio/themes/dark_custom.qss</value>
+      <value>/home/demel/src/dark_custom.qss</value>
     </param>
     <param>
       <key>realtime_scheduling</key>
