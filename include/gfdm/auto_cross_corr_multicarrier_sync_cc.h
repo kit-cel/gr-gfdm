@@ -24,6 +24,7 @@
 
 #include <complex>
 #include <vector>
+#include <fftw3.h>
 #include <boost/shared_ptr.hpp>
 #include <stdexcept>
 
@@ -59,6 +60,16 @@ namespace gr {
       float* d_abs_xcorr;
 
       float d_last_cfo;
+
+      fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
+      fftwf_plan d_fxc_plan;
+      fftwf_plan d_ixc_plan;
+      gfdm_complex* d_fxc_in;
+      gfdm_complex* d_fxc_out;
+      gfdm_complex* d_ixc_in;
+      gfdm_complex* d_ixc_out;
+      gfdm_complex* d_freq_preamble;
+
 
       int find_peak(float* vals, const int ninput_size);
       float calculate_normalized_cfo(const gfdm_complex corr_val);

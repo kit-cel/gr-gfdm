@@ -53,6 +53,18 @@ namespace gr {
 
       d_xcorr = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * 2 * subcarriers, volk_get_alignment());
       d_abs_xcorr = (float*) volk_malloc(sizeof(float) * 2 * subcarriers, volk_get_alignment());
+
+      d_fxc_in = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
+      d_fxc_out = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
+      d_ixc_in = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
+      d_ixc_out = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
+      d_freq_preamble = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
+      d_fxc_plan = initialize_fft(d_fxc_out, d_fxc_in, d_buffer_len, true);
+      d_ixc_plan = initialize_fft(d_ixc_out, d_ixc_in, d_buffer_len, false);
+      memset(d_fxc_in, 0x0, sizeof(gfdm_complex) * d_buffer_len);
+      memcpy(d_fxc_in, d_preamble, sizeof(gfdm_complex) * 2 * subcarriers);
+      fftwf_execute(d_fxc_plan);
+      memcpy(d_freq_preamble, d_fxc_out, sizeof(gfdm_complex) * d_buffer_len);
     }
 
     auto_cross_corr_multicarrier_sync_cc::~auto_cross_corr_multicarrier_sync_cc()
@@ -62,6 +74,40 @@ namespace gr {
       volk_free(d_abs_auto_corr);
       volk_free(d_xcorr);
       volk_free(d_abs_xcorr);
+
+      fftwf_destroy_plan(d_fxc_plan);
+      fftwf_destroy_plan(d_ixc_plan);
+      volk_free(d_fxc_in);
+      volk_free(d_fxc_out);
+      volk_free(d_ixc_in);
+      volk_free(d_ixc_out);
+      volk_free(d_freq_preamble);
+
+    }
+
+    fftwf_plan
+    auto_cross_corr_multicarrier_sync_cc::initialize_fft(gfdm_complex *out_buf, gfdm_complex *in_buf, const int fft_size, bool forward)
+    {
+      std::string filename(getenv("HOME"));
+      filename += "/.gr_fftw_wisdom";
+      FILE *fpr = fopen(filename.c_str(), "r");
+      if (fpr != 0) {
+        fftwf_import_wisdom_from_file(fpr);
+        fclose(fpr);
+      }
+
+      fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
+                                          reinterpret_cast<fftwf_complex *>(in_buf),
+                                          reinterpret_cast<fftwf_complex *>(out_buf),
+                                          forward ? FFTW_FORWARD : FFTW_BACKWARD,
+                                          FFTW_MEASURE);
+
+      FILE *fpw = fopen(filename.c_str(), "w");
+      if (fpw != 0) {
+        fftwf_export_wisdom_to_file(fpw);
+        fclose(fpw);
+      }
+      return plan;
     }
 
     int
@@ -125,11 +171,18 @@ namespace gr {
     auto_cross_corr_multicarrier_sync_cc::cross_correlate_preamble(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size)
     {
       const int p_len = 2 * d_subcarriers;
-      const int buf_len = ninput_size - p_len;
-      for(int i = 0; i < buf_len; ++i){
-        volk_32fc_x2_conjugate_dot_prod_32fc(p_out++, p_in++, d_preamble, p_len);
-//        std::cout << "res: " << *(p_out - 1) << ",\tin: " << *(p_in - 1) << ",\tp: " << d_preamble[i] << std::endl;
-      }
+      const int fft_len = 2 * p_len;
+//      const int buf_len = ninput_size - p_len;
+//      for(int i = 0; i < buf_len; ++i){
+//        volk_32fc_x2_conjugate_dot_prod_32fc(p_out++, p_in++, d_preamble, p_len);
+////        std::cout << "res: " << *(p_out - 1) << ",\tin: " << *(p_in - 1) << ",\tp: " << d_preamble[i] << std::endl;
+//      }
+//      std::cout << "buffer_len: " << d_buffer_len << ", ninput_size: " << ninput_size << std::endl;
+      memcpy(d_fxc_in, p_in, sizeof(gfdm_complex) * fft_len);
+      fftwf_execute(d_fxc_plan);
+      volk_32fc_x2_multiply_conjugate_32fc(d_ixc_in, d_fxc_out, d_freq_preamble, fft_len);
+      fftwf_execute(d_ixc_plan);
+      memcpy(p_out, d_ixc_out, sizeof(gfdm_complex) * p_len);
     }
 
     void
