@@ -54,6 +54,7 @@ namespace gr {
       d_xcorr = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * 2 * subcarriers, volk_get_alignment());
       d_abs_xcorr = (float*) volk_malloc(sizeof(float) * 2 * subcarriers, volk_get_alignment());
 
+      // This part is necessary for heavy sync optimization. e.g. ~120 -> ~45 us latency
       d_fxc_in = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
       d_fxc_out = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
       d_ixc_in = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
@@ -171,13 +172,13 @@ namespace gr {
     auto_cross_corr_multicarrier_sync_cc::cross_correlate_preamble(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size)
     {
       const int p_len = 2 * d_subcarriers;
-      const int fft_len = 2 * p_len;
 //      const int buf_len = ninput_size - p_len;
 //      for(int i = 0; i < buf_len; ++i){
 //        volk_32fc_x2_conjugate_dot_prod_32fc(p_out++, p_in++, d_preamble, p_len);
 ////        std::cout << "res: " << *(p_out - 1) << ",\tin: " << *(p_in - 1) << ",\tp: " << d_preamble[i] << std::endl;
 //      }
 //      std::cout << "buffer_len: " << d_buffer_len << ", ninput_size: " << ninput_size << std::endl;
+      const int fft_len = 4 * d_subcarriers;
       memcpy(d_fxc_in, p_in, sizeof(gfdm_complex) * fft_len);
       fftwf_execute(d_fxc_plan);
       volk_32fc_x2_multiply_conjugate_32fc(d_ixc_in, d_fxc_out, d_freq_preamble, fft_len);
