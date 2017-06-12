@@ -28,23 +28,26 @@ namespace gr {
   namespace gfdm {
 
     auto_cross_corr_multicarrier_sync_cc::auto_cross_corr_multicarrier_sync_cc(int subcarriers, int cp_len, std::vector<gfdm_complex> preamble):
-      d_subcarriers(subcarriers), d_cp_len(cp_len), d_last_cfo(0.0f)
+      d_subcarriers(subcarriers), d_cp_len(cp_len), d_last_cfo(0.0f), d_preamble_attenuation(1.0f)
     {
       if(int(preamble.size()) != 2 * subcarriers){
         throw std::runtime_error("ERROR: preamble.size() MUST be equal to 2 * n_subcarriers!");
       }
 
       // calculate energy of preamble
-      gfdm_complex energy = gfdm_complex(0.0, 0.0);
-      volk_32fc_x2_conjugate_dot_prod_32fc(&energy, &preamble[0], &preamble[0], preamble.size());
-
+//      gfdm_complex energy = gfdm_complex(0.0, 0.0);
+//      volk_32fc_x2_conjugate_dot_prod_32fc(&energy, &preamble[0], &preamble[0], preamble.size());
+      float energy = calculate_signal_energy(&preamble[0], preamble.size());
+      d_reference_preamble_energy = energy;
       // now calculate amplitude, assume Q part == 0.0
-      float amplitude = std::sqrt(energy.real());
+      float amplitude = std::sqrt(energy / 2.0);
       float scaling_factor = 1.0 / amplitude;
 
       // malloc array for preamble and copy scaled version to array.
       d_preamble = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * 2 * subcarriers, volk_get_alignment());
       volk_32f_s32f_multiply_32f((float*) d_preamble, (float*) &preamble[0], scaling_factor, 2 * 2 * subcarriers);
+
+        std::cout << "energy: " << energy << ", my_e: " << calculate_signal_energy(d_preamble, 2 * subcarriers) << ", amplitude: " << amplitude << std::endl;
 
       d_buffer_len = 4 * subcarriers;
       d_auto_corr = (gfdm_complex*) volk_malloc(sizeof(gfdm_complex) * d_buffer_len, volk_get_alignment());
@@ -85,6 +88,14 @@ namespace gr {
       volk_free(d_freq_preamble);
 
     }
+
+      float
+      auto_cross_corr_multicarrier_sync_cc::calculate_signal_energy(const gfdm_complex* p_in, const int ninput_size)
+      {
+          gfdm_complex energy = gfdm_complex(0.0, 0.0);
+          volk_32fc_x2_conjugate_dot_prod_32fc(&energy, p_in, p_in, ninput_size);
+          return energy.real();
+      }
 
     fftwf_plan
     auto_cross_corr_multicarrier_sync_cc::initialize_fft(gfdm_complex *out_buf, gfdm_complex *in_buf, const int fft_size, bool forward)
@@ -133,7 +144,11 @@ namespace gr {
 
       volk_32f_x2_multiply_32f(d_abs_xcorr, d_abs_xcorr, d_abs_auto_corr + xc_start, 2 * d_subcarriers);
       const int p_nc = find_peak(d_abs_xcorr, 2 * d_subcarriers);
+
       const int nc = xc_start + p_nc;
+      d_preamble_attenuation = std::sqrt(calculate_signal_energy(p_in + nc, 2 * d_subcarriers) / d_reference_preamble_energy);
+//      std::cout << "preamble attenuation: " << d_preamble_attenuation << ", " << d_abs_xcorr[p_nc]  << ", " << d_abs_auto_corr[nc] << std::endl;
+      d_frame_phase = std::arg(d_xcorr[p_nc]);
 //      std::cout << "nc: " << nc << "(" << nm + pos_correction_factor << "), cfo: " << d_last_cfo << std::endl;
       return nc;
     }

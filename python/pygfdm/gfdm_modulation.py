@@ -32,7 +32,7 @@ import matplotlib.cm as cm
 from modulation import gfdm_modulation_matrix, gfdm_tx_fft2
 from filters import gfdm_filter_taps, get_frequency_domain_filter
 from mapping import get_data_matrix, map_to_waveform_resource_grid, get_subcarrier_map
-from utils import get_random_samples, get_random_qpsk, get_zero_f_data
+from utils import get_random_samples, get_random_qpsk, get_zero_f_data, calculate_signal_energy
 
 
 def gfdm_transform_subcarriers_to_fd(D, M):
@@ -159,9 +159,14 @@ def get_random_GFDM_block(ts, sc, overlap, alpha):
 
 
 def modulate_mapped_gfdm_block(data, ts, sc, active_sc, overlap, alpha):
+    # const gfdm_complex scaling_factor = gfdm_complex(1. / std::sqrt(std::abs(res) / n_timeslots), 0.0f);
     smap = get_subcarrier_map(sc, active_sc)
     dm = map_to_waveform_resource_grid(data, active_sc, sc, smap).T
     H = get_frequency_domain_filter('rrc', alpha, ts, sc, overlap)
+    filter_energy = calculate_signal_energy(H)
+    scaling_factor = 1. / np.sqrt(filter_energy / ts)
+    H = H * scaling_factor
+    # print filter_energy, scaling_factor, calculate_signal_energy(H)
     return gfdm_modulate_block(dm, H, ts, sc, overlap, False)
 
 
