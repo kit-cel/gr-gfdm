@@ -45,7 +45,7 @@ namespace gr {
 
       int get_offset_from_tag(const gr::tag_t& t);
       int get_window_size_from_tag(const gr::tag_t& t);
-      void remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const int ninput_size);
+      void remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const float init_phase, const int ninput_size);
 
       void publish_cfo(const float cfo);
 

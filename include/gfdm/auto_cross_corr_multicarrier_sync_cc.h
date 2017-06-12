@@ -46,6 +46,8 @@ namespace gr {
 
       int detect_frame_start(const gfdm_complex *p_in, int ninput_size);
       float last_cfo(){return d_last_cfo;};
+      float frame_phase(){return d_frame_phase;};
+      float preamble_attenuation(){ return d_preamble_attenuation;};
       int subcarriers(){ return d_subcarriers;};
       int cp_len(){ return d_cp_len;};
     private:
@@ -60,6 +62,8 @@ namespace gr {
       float* d_abs_xcorr;
 
       float d_last_cfo;
+      float d_frame_phase;
+      float d_preamble_attenuation;
 
       fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
       fftwf_plan d_fxc_plan;
@@ -69,6 +73,10 @@ namespace gr {
       gfdm_complex* d_ixc_in;
       gfdm_complex* d_ixc_out;
       gfdm_complex* d_freq_preamble;
+
+
+      float d_reference_preamble_energy;
+      float calculate_signal_energy(const gfdm_complex* p_in, const int ninput_size);
 
 
       int find_peak(float* vals, const int ninput_size);

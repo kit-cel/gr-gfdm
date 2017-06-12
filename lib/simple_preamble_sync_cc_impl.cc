@@ -91,7 +91,7 @@ namespace gr
       if(d_remaining_items > 0){ // frame from last call still present.
 
         if(d_correct_cfo){
-          remove_cfo(out, in, d_kernel->last_cfo(), d_frame_len);
+          remove_cfo(out, in, d_kernel->last_cfo(), d_kernel->frame_phase(), d_frame_len);
         }
         else{
           memcpy(out, in, sizeof(gr_complex) * d_frame_len);
@@ -154,19 +154,16 @@ namespace gr
     }
 
     void
-    simple_preamble_sync_cc_impl::remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const int ninput_size)
+    simple_preamble_sync_cc_impl::remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const float init_phase, const int ninput_size)
     {
-
-//      gr_complex initial_phase = gr_complex(1.0, 0.0);
       const float phase_inc = -2.0 * M_PI * cfo / float(d_kernel->subcarriers());
+      const float scaling_factor = 1.0 / d_kernel->preamble_attenuation();
 //      std::cout << "correct CFO: " << cfo << ", adjusted: " << cfo / 2.0 << "phase_inc: " << phase_inc << std::endl;
-
-//      inc = (2 * np.pi) * rel_cfo / (128.)
-//      const float cfo_incr = -0.5f * M_PI * cfo / d_kernel->subcarriers();
-//      const float cfo_incr = -0.5f * cfo;
+      float phase = -1.0 * (init_phase - phase_inc);
       for(int i = 0; i < ninput_size; ++i){
-        float phase = float(i) * phase_inc;
-        gr_complex s = gr_complex(std::cos(phase), std::sin(phase));
+        phase += phase_inc;
+        //float phase = 1.0 * init_phase + float(i) * phase_inc;
+        gr_complex s = gr_complex(scaling_factor * std::cos(phase), scaling_factor * std::sin(phase));
         *p_out++ = *p_in++ * s;
       }
 

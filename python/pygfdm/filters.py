@@ -48,7 +48,8 @@ def gfdm_freq_taps_sparse(H, M, L):
 def get_frequency_domain_filter(filtertype, alpha, M, K, L):
     h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
     H = gfdm_freq_taps(h)
-    return gfdm_freq_taps_sparse(H, M, L)
+    H = gfdm_freq_taps_sparse(H, M, L)
+    return H
 
 
 def tapered_cosine(t, alpha):
