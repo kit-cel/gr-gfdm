@@ -28,6 +28,12 @@ def generate_seed(my_string):
     return abs(hash(my_string)) % (2 ** 32)  # seed must be a positive 32-bit integer!
 
 
+def get_pseudo_random_bytes(bmin, bmax, bnum, seed_str):
+    seed = generate_seed(seed_str)
+    np.random.seed(seed)
+    return np.random.randint(bmin, bmax, bnum)
+    
+
 def get_random_qpsk(nsamples, seed=None, dtype=np.complex):
     if seed:
         np.random.seed(seed)
