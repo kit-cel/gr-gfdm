@@ -960,7 +960,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>np.concatenate((np.arange(active_subcarriers // 2), np.arange(fft_len - active_subcarriers // 2, fft_len)))</value>
+      <value>mapping.get_subcarrier_map(fft_len, active_subcarriers, dc_free=True)</value>
     </param>
   </block>
   <block>
@@ -2175,6 +2175,37 @@
     <param>
       <key>import</key>
       <value>from gfdm.pygfdm import filters</value>
+    </param>
+  </block>
+  <block>
+    <key>import</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(112, 156)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_mapping</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>from gfdm.pygfdm import mapping</value>
     </param>
   </block>
   <block>

@@ -69,7 +69,9 @@ def map_to_waveform_resource_grid(syms, active_subcarriers, fft_len, subcarrier_
     return frame
 
 
-def get_subcarrier_map(subcarriers, active_subcarriers):
+def get_subcarrier_map(subcarriers, active_subcarriers, dc_free=False):
+    if dc_free:
+        return np.concatenate((np.arange(1, active_subcarriers // 2 + 1), np.arange(subcarriers - active_subcarriers // 2, subcarriers)))
     return np.concatenate((np.arange(0, active_subcarriers // 2), np.arange(subcarriers - active_subcarriers // 2, subcarriers)))
 
 

@@ -52,15 +52,6 @@ def convert_to_cf64(signal):
     return signal.astype(np.complex64)
 
 
-def calculate_zero_tail_length(samples, samp_rate, rep_time=1e-3):
-    s = len(samples)
-    frame_dur = 1. * s / samp_rate
-    tail_dur = rep_time - frame_dur
-    tail_dur = max(tail_dur, 0.0)
-    tail_len = int(samp_rate * tail_dur)
-    return tail_len
-
-
 def load_gr_iq_file(filename):
     return np.fromfile(filename, dtype=np.complex64)
 
