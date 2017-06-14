@@ -148,6 +148,9 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
     # this function aims to reproduce [0] Section IIIA
 
     H = get_frequency_domain_filter('rrc', alpha, M, K, overlap)
+    filter_energy = calculate_signal_energy(H)
+    scaling_factor = 1. / np.sqrt(filter_energy / M)
+    H *= scaling_factor
     D = get_data_matrix(data, K, group_by_subcarrier=False)
     return gfdm_modulate_block(D, H, M, K, overlap, False)
 
