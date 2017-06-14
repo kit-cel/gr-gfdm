@@ -30,6 +30,7 @@ GR_PYTHON_INSTALL(
     mapping.py
     preamble.py
     utils.py
+    validation_utils.py
     __init__.py
     DESTINATION ${GR_PYTHON_DIR}/gfdm/pygfdm
 )

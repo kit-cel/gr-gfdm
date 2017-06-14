@@ -49,6 +49,9 @@ def get_frequency_domain_filter(filtertype, alpha, M, K, L):
     h = gfdm_filter_taps(filtertype, alpha, M, K, 1)
     H = gfdm_freq_taps(h)
     H = gfdm_freq_taps_sparse(H, M, L)
+    filter_energy = H.dot(H).real
+    H /= np.sqrt(filter_energy / M)
+
     return H
 
 

@@ -31,7 +31,7 @@ endif()
 GR_PYTHON_INSTALL(
     FILES
     __init__.py
-    DESTINATION ${GR_PYTHON_DIR}/gfdm
+    channel_estimator_cc.py DESTINATION ${GR_PYTHON_DIR}/gfdm
 )
 
 ########################################################################
@@ -56,3 +56,5 @@ GR_ADD_TEST(qa_frame_energy_detector_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOU
 GR_ADD_TEST(qa_simple_preamble_sync_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_simple_preamble_sync_cc.py)
 GR_ADD_TEST(qa_resource_demapper_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_resource_demapper_cc.py)
 GR_ADD_TEST(qa_remove_prefix_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_remove_prefix_cc.py)
+GR_ADD_TEST(qa_extract_burst_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_extract_burst_cc.py)
+GR_ADD_TEST(qa_channel_estimator_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_channel_estimator_cc.py)

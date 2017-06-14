@@ -49,7 +49,7 @@ namespace gr
                                                                gr::digital::constellation_sptr constellation,
                                                                std::vector<int> subcarrier_map)
             : gr::sync_block("advanced_receiver_sb_cc",
-                             gr::io_signature::make(1, 1, sizeof(gr_complex)),
+                             gr::io_signature::make(1, 2, sizeof(gr_complex)),
                              gr::io_signature::make(1, 1, sizeof(gr_complex)))
     {
       d_adv_kernel = advanced_receiver_kernel_cc::sptr(new advanced_receiver_kernel_cc(n_timeslots, n_subcarriers, overlap, frequency_taps, subcarrier_map, ic_iter, constellation));
@@ -73,12 +73,26 @@ namespace gr
 
       const int n_blocks = noutput_items / d_adv_kernel->block_size();
 
-      for (int i = 0; i < n_blocks; ++i) {
-        d_adv_kernel->generic_work(out, in);
+      if(input_items.size() > 1){
+        std::cout << "use EQ\n";
+        const gr_complex *in_eq = (const gr_complex *) input_items[1];
+        for (int i = 0; i < n_blocks; ++i) {
+          d_adv_kernel->generic_work_equalize(out, in, in_eq);
 
-        in += d_adv_kernel->block_size();
-        out += d_adv_kernel->block_size();
+          in += d_adv_kernel->block_size();
+          in_eq += d_adv_kernel->block_size();
+          out += d_adv_kernel->block_size();
+        }
       }
+      else{
+        for (int i = 0; i < n_blocks; ++i) {
+          d_adv_kernel->generic_work(out, in);
+
+          in += d_adv_kernel->block_size();
+          out += d_adv_kernel->block_size();
+        }
+      }
+
       return n_blocks * d_adv_kernel->block_size();
     }
 

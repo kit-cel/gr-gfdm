@@ -92,6 +92,13 @@ def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcar
     return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len)
 
 
+def symmetric_mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len):
+    pn_vals = get_random_qpsk(active_subcarriers // 2, seed)
+    pn_vals = np.concatenate((pn_vals, np.conj(pn_vals[::-1])))
+    pn_sym = map_to_waveform_resources(pn_vals, active_subcarriers, fft_len, subcarrier_map)
+    return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len), pn_vals
+
+
 def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
     M = 2  # fixed for preamble
     pn_symbols = np.concatenate((pn_symbols, pn_symbols))

@@ -129,8 +129,8 @@ def gfdm_modulate_block(D, H, M, K, L, compat_mode=True):
 
     x_t = np.fft.ifft(x_t)
 
-    if compat_mode:
-        x_t *= 1.0 / K
+    # if compat_mode:
+    #     x_t *= 1.0 / K
     return x_t
 
 
@@ -148,6 +148,9 @@ def gfdm_modulate_fft(data, alpha, M, K, overlap):
     # this function aims to reproduce [0] Section IIIA
 
     H = get_frequency_domain_filter('rrc', alpha, M, K, overlap)
+    filter_energy = calculate_signal_energy(H)
+    scaling_factor = 1. / np.sqrt(filter_energy / M)
+    H *= scaling_factor
     D = get_data_matrix(data, K, group_by_subcarrier=False)
     return gfdm_modulate_block(D, H, M, K, overlap, False)
 
@@ -158,9 +161,9 @@ def get_random_GFDM_block(ts, sc, overlap, alpha):
     return (data, tx_data)
 
 
-def modulate_mapped_gfdm_block(data, ts, sc, active_sc, overlap, alpha):
+def modulate_mapped_gfdm_block(data, ts, sc, active_sc, overlap, alpha, dc_free=False):
     # const gfdm_complex scaling_factor = gfdm_complex(1. / std::sqrt(std::abs(res) / n_timeslots), 0.0f);
-    smap = get_subcarrier_map(sc, active_sc)
+    smap = get_subcarrier_map(sc, active_sc, dc_free=dc_free)
     dm = map_to_waveform_resource_grid(data, active_sc, sc, smap).T
     H = get_frequency_domain_filter('rrc', alpha, ts, sc, overlap)
     filter_energy = calculate_signal_energy(H)
@@ -287,6 +290,7 @@ def compare_subcarrier_combination():
     print np.all(np.roll(X, -M / 2) == X0)
     print np.all(X == X0)
     print np.real(X)
+
 
 
 def main():

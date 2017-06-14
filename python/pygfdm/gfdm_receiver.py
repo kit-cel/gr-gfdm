@@ -66,7 +66,7 @@ def gfdm_filter_subcarriers(R, H, K, M, L):
     :param L: overlapping factor
     :return: filtered subcarriers in fd
     '''
-    H = H / float(K)
+    # H = H / float(K)
     D = R.flatten()
     F = D * np.tile(H, K)
     return np.reshape(F, (-1, L * M)).T

@@ -51,16 +51,35 @@ namespace gr {
       volk_free(d_ic_time_buffer);
     }
 
+    void
+    advanced_receiver_kernel_cc::perform_ic_iterations(gr_complex *p_out, const gr_complex *p_freq_block)
+    {
+      for (int j = 0; j < d_ic_iter; ++j) {
+        map_symbols_to_constellation_points(d_ic_time_buffer, p_out);
+        d_kernel->cancel_sc_interference(d_ic_freq_buffer, d_ic_time_buffer, p_freq_block);
+        d_kernel->transform_subcarriers_to_td(p_out, d_ic_freq_buffer);
+      }
+    }
+
     void advanced_receiver_kernel_cc::generic_work(gr_complex *p_out, const gr_complex *p_in)
     {
       d_kernel->fft_filter_downsample(d_freq_block, p_in);
       d_kernel->transform_subcarriers_to_td(p_out, d_freq_block);
+      perform_ic_iterations(p_out, d_freq_block);
+    }
 
-      for (int j = 0; j < d_ic_iter; ++j) {
-        map_symbols_to_constellation_points(d_ic_time_buffer, p_out);
-        d_kernel->cancel_sc_interference(d_ic_freq_buffer, d_ic_time_buffer, d_freq_block);
-        d_kernel->transform_subcarriers_to_td(p_out, d_ic_freq_buffer);
-      }
+    void
+    advanced_receiver_kernel_cc::generic_work_equalize(gr_complex *p_out, const gr_complex *p_in, const gr_complex* f_eq_in)
+    {
+      d_kernel->fft_equalize_filter_downsample(d_freq_block, p_in, f_eq_in);
+      d_kernel->transform_subcarriers_to_td(p_out, d_freq_block);
+      perform_ic_iterations(p_out, d_freq_block);
+
+//      for (int j = 0; j < d_ic_iter; ++j) {
+//        map_symbols_to_constellation_points(d_ic_time_buffer, p_out);
+//        d_kernel->cancel_sc_interference(d_ic_freq_buffer, d_ic_time_buffer, d_freq_block);
+//        d_kernel->transform_subcarriers_to_td(p_out, d_ic_freq_buffer);
+//      }
     }
 
     void advanced_receiver_kernel_cc::map_symbols_to_constellation_points(gr_complex *p_out, const gr_complex *p_in)
