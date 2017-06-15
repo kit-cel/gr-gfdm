@@ -25,7 +25,7 @@ import gfdm_swig as gfdms
 from pygfdm.gfdm_modulation import gfdm_modulate_block
 from pygfdm.mapping import get_data_matrix
 from pygfdm.filters import get_frequency_domain_filter
-from pygfdm.utils import get_random_qpsk
+from pygfdm.utils import get_random_qpsk, calculate_signal_energy
 import numpy as np
 
 
@@ -45,9 +45,6 @@ class qa_modulator_cc(gr_unittest.TestCase):
         taps = get_frequency_domain_filter('rrc', filter_alpha, ntimeslots, nsubcarrier, 2)
 
         data = get_random_qpsk(nsubcarrier * ntimeslots)
-        # data = np.zeros(nsubcarrier)
-        # data[0] = 1
-        # data = np.repeat(data, ntimeslots)
         D = get_data_matrix(data, nsubcarrier, group_by_subcarrier=False)
         print D
 

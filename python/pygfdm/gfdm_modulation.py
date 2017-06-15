@@ -129,8 +129,8 @@ def gfdm_modulate_block(D, H, M, K, L, compat_mode=True):
 
     x_t = np.fft.ifft(x_t)
 
-    if compat_mode:
-        x_t *= 1.0 / K
+    # if compat_mode:
+    #     x_t *= 1.0 / K
     return x_t
 
 
@@ -290,6 +290,7 @@ def compare_subcarrier_combination():
     print np.all(np.roll(X, -M / 2) == X0)
     print np.all(X == X0)
     print np.real(X)
+
 
 
 def main():

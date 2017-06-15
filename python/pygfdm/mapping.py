@@ -55,6 +55,12 @@ def map_to_waveform_resources(syms, active_subcarriers, fft_len, subcarrier_map,
     return frame.flatten()
 
 
+def demap_from_waveform_resource_grid(syms, subcarriers, subcarrier_map):
+    tm = np.reshape(syms, (subcarriers, -1))
+    td = tm[subcarrier_map, :]
+    return td.T.flatten()
+
+
 def map_to_waveform_resource_grid(syms, active_subcarriers, fft_len, subcarrier_map, per_timeslot=True):
     n_data_syms = len(syms)
     ts = int(np.ceil(1. * n_data_syms / active_subcarriers))

@@ -24,7 +24,7 @@ import gfdm_swig as gfdm
 from pygfdm import filters, utils
 from pygfdm.gfdm_receiver import gfdm_demodulate_block
 from pygfdm.mapping import get_subcarrier_map
-from pygfdm.utils import get_random_qpsk
+from pygfdm.utils import get_random_qpsk, calculate_signal_energy
 import numpy as np
 
 
