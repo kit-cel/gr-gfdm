@@ -249,7 +249,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>64</value>
+      <value>fft_len // 2</value>
     </param>
   </block>
   <block>
@@ -276,7 +276,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>ramp_len</value>
+      <value>cp_len // 2</value>
     </param>
   </block>
   <block>
@@ -699,7 +699,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>cp_len // 4</value>
+      <value>cs_len</value>
     </param>
   </block>
   <block>
@@ -1097,7 +1097,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>40</value>
+      <value>20.</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -1366,7 +1366,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>file</key>
@@ -2948,7 +2948,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -3579,7 +3579,7 @@
     </param>
     <param>
       <key>name</key>
-      <value>"TX and RX frames"</value>
+      <value>"RX frames"</value>
     </param>
     <param>
       <key>nconnections</key>
@@ -3615,7 +3615,7 @@
     </param>
     <param>
       <key>tr_tag</key>
-      <value>"energy_start"</value>
+      <value>"frame_start"</value>
     </param>
     <param>
       <key>type</key>
@@ -6076,12 +6076,6 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_frame_energy_detector_cc_0</source_block_id>
-    <sink_block_id>qtgui_time_sink_x_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
     <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
     <sink_block_id>blocks_message_debug_0</sink_block_id>
     <source_key>cfo</source_key>
@@ -6096,6 +6090,12 @@
   <connection>
     <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
     <sink_block_id>qtgui_time_sink_rx</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
+    <sink_block_id>qtgui_time_sink_x_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
