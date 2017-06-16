@@ -28,8 +28,8 @@ def synchronize(frame, ref_frame, x_preamble, fft_len, cp_len):
     # cfo = 2. * np.angle(ac[nm-5:nm+5]) / (2. * np.pi)
     # print(cfo)
     # cfo = np.sum(cfo) / len(cfo)
-    # cfo = 2 * np.angle(ac[nm]) / (2. * np.pi)
-    cfo = np.angle(ac[nm]) / (2. * np.pi)
+    cfo = 2 * np.angle(ac[nm]) / (2. * np.pi)
+    # cfo = np.angle(ac[nm]) / (2. * np.pi)
     print('CFO:', cfo, cfo * samp_rate / fft_len)
 
     phase_inc = sync.cfo_to_phase_increment(-cfo, fft_len)
@@ -49,8 +49,9 @@ def synchronize(frame, ref_frame, x_preamble, fft_len, cp_len):
     p_len = cp_len + 2 * fft_len + cp_len // 2 + cp_len
     print('data frame start:       ', sample_nc + p_len)
     phase = np.angle(xc[nc])
+    # phase = 0.0
     print('phase:', phase)
-    frame *= np.exp(-1j * phase)
+    # frame *= np.exp(-1j * phase)
 
     ref_e = utils.calculate_signal_energy(x_preamble)
     rx_e = utils.calculate_signal_energy(frame[nc:nc + len(x_preamble)])
@@ -120,9 +121,9 @@ def plot_constellation(ref_data, rx_data, rx_eq_data, start, end):
     r = ref_data[start:end]
     x = rx_data[start:end]
     e = rx_eq_data[start:end]
-    plt.scatter(r.real, r.imag, color='r')
-    plt.scatter(x.real, x.imag, color='b')
-    plt.scatter(e.real, e.imag, color='g')
+    plt.scatter(r.real, r.imag, color='r', label='reference')
+    plt.scatter(x.real, x.imag, color='b', label='RX')
+    plt.scatter(e.real, e.imag, color='g', label='RX EQ')
     consti = np.array([1+1j, 1-1j, -1+1j, -1-1j, ])
     consti /= np.sqrt(2.)
     plt.scatter(consti.real, consti.imag, color='m', marker='x')
@@ -131,6 +132,15 @@ def plot_constellation(ref_data, rx_data, rx_eq_data, start, end):
     lim_span = [-my_lims, my_lims]
     plt.xlim(lim_span)
     plt.ylim(lim_span)
+    plt.legend()
+
+
+def calculate_frame_ber(ref_symbols, rx_symbols):
+    b = utils.demodulate_qpsk(ref_symbols)
+    print(b[0:10])
+    br = utils.demodulate_qpsk(rx_symbols)
+    print(br[0:10])
+    return (len(b) - np.sum(b == br)) / len(b)
 
 
 def main():
@@ -143,8 +153,9 @@ def main():
     cs_len = cp_len // 2
     subcarrier_map = mapping.get_subcarrier_map(fft_len, active_subcarriers, dc_free=True)
     print(subcarrier_map)
-    filename = '/home/demel/iq_samples/gfdm_samples_os4.dat'
-    frame = converter.load_gr_iq_file(filename)[130000:140000]
+    filename = '/home/demel/iq_samples/gfdm_50ms_slice.dat'
+    frame = converter.load_gr_iq_file(filename)[122000:127000]
+    # frame = converter.load_gr_iq_file(filename)
     print('num samples', len(frame))
     # plt.plot(np.abs(frame))
     # plt.semilogy(*signal.welch(frame))
@@ -165,20 +176,29 @@ def main():
     sframe = signal.resample(sframe, len(sframe) // 4)
     print(len(sframe), len(ref_frame))
 
+    # plt.plot(np.abs(sframe))
+    # plt.plot(np.abs(ref_frame))
+    # plt.plot(np.abs(sframe - ref_frame))
+    # plt.show()
+    # return
 
     f_start = cp_len + 2 * fft_len + cs_len
     d_start = f_start + cp_len
+    print('data start: ', d_start)
 
     rx_preamble = sframe[cp_len:cp_len + 2 * fft_len]
     rx_data_frame = sframe[d_start:d_start + fft_len * timeslots]
 
-    ref_data = demodulate_data_frame(modulated_frame, rx_kernel, demapper, len(data))
-    # plt.scatter(ref_data.real, ref_data.imag, color='r')
-
-    rx_data = demodulate_data_frame(rx_data_frame, rx_kernel, demapper, len(data))
-    # plt.scatter(rx_data[0:timeslots].real, rx_data[0:timeslots].imag, color='b')
+    # plt.plot(np.abs(rx_data_frame))
+    # plt.plot(np.abs(modulated_frame))
+    # plt.plot(np.abs(rx_data_frame - modulated_frame))
     # plt.show()
     # return
+
+    ref_data = demodulate_data_frame(modulated_frame, rx_kernel, demapper, len(data))
+    rx_data = demodulate_data_frame(rx_data_frame, rx_kernel, demapper, len(data))
+
+
 
     H, e0, e1 = preamble_estimate(rx_preamble, x_preamble, fft_len)
     H_est = np.repeat(H, timeslots)
@@ -198,8 +218,35 @@ def main():
 
     rx_eq_data = demodulate_equalize_frame(rx_data_frame, rx_kernel, demapper, H, fft_len, len(data))
     # plt.scatter(rx_eq_data[0:timeslots].real, rx_eq_data[0:timeslots].imag, color='g')
-    rx_eq_data -= ic
-    rx_data -= ic
+    # rx_eq_data -= ic
+    # rx_data -= ic
+
+    phases = np.angle(rx_data) - np.angle(ref_data)
+    phases = np.unwrap(phases)
+    pm = np.reshape(phases, (-1, active_subcarriers))
+    # for i in range(active_subcarriers):
+    #     p = pm[:, i]
+    #     plt.plot(p)
+
+    # plt.plot(phases)
+    # plt.show()
+    avg_phase = np.sum(phases) / len(phases)
+    print('AVG phase shift: ', avg_phase)
+    # rx_data *= np.exp(-1j * avg_phase)
+
+    phases = np.angle(rx_data) - np.angle(ref_data)
+    phases = np.unwrap(phases)
+    # plt.plot(phases)
+
+
+    # plt.show()
+    # return
+    fber = calculate_frame_ber(ref_data, rx_data)
+    print('Frame BER: ', fber)
+
+    plot_constellation(ref_data, rx_data, rx_eq_data, 0, timeslots * fft_len)
+    plt.show()
+    return
 
     for i in range(timeslots):
         icp = ic[i + timeslots]
