@@ -52,10 +52,10 @@ def generate_sc_qpsk_frame(timeslots, subcarriers, active_subcarriers, cp_len, c
     frame_preamble, x_preamble = preamble.mapped_preamble(p_seed, 'rrc', alpha, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, cs_len)
     d = utils.get_random_qpsk(timeslots * subcarriers, f_seed)
     # d_frame = mod_frame = gfdm_modulation.modulate_mapped_gfdm_block(d, timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
-    # symbol = cyclic_prefix.add_cyclic_starfix(d_frame, cp_len, cs_len)
+    symbol = cyclic_prefix.add_cyclic_starfix(d, cp_len, cs_len)
 
     window_ramp = cyclic_prefix.get_raised_cosine_ramp(cs_len, cyclic_prefix.get_window_len(cp_len, timeslots, subcarriers, cs_len))
-    d_frame = cyclic_prefix.pinch_block(d, window_ramp)
+    d_frame = cyclic_prefix.pinch_block(symbol, window_ramp)
 
     H = filters.get_frequency_domain_filter('rrc', alpha, timeslots, subcarriers, overlap)
     return np.concatenate((frame_preamble, d_frame)), d, x_preamble, d, H

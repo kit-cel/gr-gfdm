@@ -198,9 +198,7 @@ def equalize_frame(rx_data, ref_data, active_subcarriers, timeslots):
     plt.show()
     return rx_data
 
-# def auto_correlate_halfs(s):
-#     pivot = len(s) / 2
-#     return np.sum(np.conjugate(s[0:pivot]) * s[pivot:])
+
 def corr_trial(frame, fft_len):
     ac = sync.auto_correlate_signal(frame, fft_len)
     wh = np.ones(fft_len)
