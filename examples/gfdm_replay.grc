@@ -225,7 +225,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>vu.generate_reference_frame(9, 64, 52, 32, 16, .2)</value>
+      <value>vu.generate_sc_qpsk_frame(9, 64, 52, 32, 16, .2)</value>
     </param>
   </block>
   <block>
@@ -601,7 +601,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/home/demel/iq_samples/gfdm_replay_fancy.dat</value>
+      <value>/home/demel/iq_samples/gfdm_replay_sc_qpsk.dat</value>
     </param>
     <param>
       <key>_coordinate</key>

@@ -20,6 +20,7 @@
 #
 
 import numpy as np
+import scipy.signal as signal
 import utils
 import mapping
 import preamble
@@ -50,7 +51,8 @@ def generate_sc_qpsk_frame(timeslots, subcarriers, active_subcarriers, cp_len, c
     subcarrier_map = mapping.get_subcarrier_map(subcarriers, active_subcarriers, dc_free=True)
     overlap = 2
     frame_preamble, x_preamble = preamble.mapped_preamble(p_seed, 'rrc', alpha, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, cs_len)
-    d = utils.get_random_qpsk(timeslots * subcarriers, f_seed)
+    d = .2 * utils.get_random_qpsk(timeslots * subcarriers // 4, f_seed)
+    d = signal.resample(d, len(d) * 4)
     # d_frame = mod_frame = gfdm_modulation.modulate_mapped_gfdm_block(d, timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
     symbol = cyclic_prefix.add_cyclic_starfix(d, cp_len, cs_len)
 

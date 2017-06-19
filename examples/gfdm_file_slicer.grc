@@ -480,11 +480,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>file</key>
-      <value>/home/demel/iq_samples/gfdm_50ms_slice.dat</value>
+      <value>/home/demel/iq_samples/gfdm_sc_qpsk_50ms_slice.dat</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -531,7 +531,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/home/demel/iq_samples/gfdm_replay_fancy.dat</value>
+      <value>/home/demel/iq_samples/gfdm_replay_sc_qpsk.dat</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -582,7 +582,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -684,7 +684,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -708,7 +708,7 @@
     </param>
     <param>
       <key>num_items</key>
-      <value>int(samp_rate * 10)</value>
+      <value>int(samp_rate * 1)</value>
     </param>
     <param>
       <key>type</key>
@@ -1411,12 +1411,6 @@
   <connection>
     <source_block_id>blocks_file_source_0</source_block_id>
     <sink_block_id>qtgui_waterfall_sink_x_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_head_0</source_block_id>
-    <sink_block_id>blocks_complex_to_mag_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
