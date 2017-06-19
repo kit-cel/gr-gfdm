@@ -49,7 +49,7 @@ namespace gr
                         gr::io_signature::make(1, 1, sizeof(gr_complex)),
                         gr::io_signature::make(1, 1, sizeof(gr_complex))), d_frame_len(frame_len), d_remaining_items(0)
     {
-      d_correct_cfo = true;
+      d_correct_cfo = false;
       d_tag_in_key = pmt::string_to_symbol(in_key);
       d_tag_out_key = pmt::string_to_symbol(out_key);
       d_tag_srcid = pmt::string_to_symbol(name());

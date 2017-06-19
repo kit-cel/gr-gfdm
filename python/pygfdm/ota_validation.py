@@ -4,6 +4,9 @@ from __future__ import print_function, division
 import numpy as np
 import scipy.signal as signal
 from fractions import gcd
+import sys, os
+sys.path.insert(0, os.path.abspath('/home/demel/src/gr-gfdm/examples/'))
+import gfdm_file_sync
 
 import synchronization as sync
 import preamble
@@ -25,9 +28,7 @@ def synchronize(frame, ref_frame, x_preamble, fft_len, cp_len):
     samp_rate = 12.5e6
     ac = sync.auto_correlate_signal(frame, fft_len)
     nm = np.argmax(np.abs(ac))
-    # cfo = 2. * np.angle(ac[nm-5:nm+5]) / (2. * np.pi)
-    # print(cfo)
-    # cfo = np.sum(cfo) / len(cfo)
+    print('AC start: ', nm)
     cfo = 2 * np.angle(ac[nm]) / (2. * np.pi)
     # cfo = np.angle(ac[nm]) / (2. * np.pi)
     print('CFO:', cfo, cfo * samp_rate / fft_len)
@@ -61,17 +62,19 @@ def synchronize(frame, ref_frame, x_preamble, fft_len, cp_len):
     sframe = frame[sample_nc:sample_nc + len(ref_frame)]
     # plt.plot(np.abs(ref_frame))
     # plt.plot(np.abs(sframe))
-    # # plt.plot(np.abs(ac))
+    plt.plot(np.abs(ac))
     # # # # plt.plot(np.abs(xc))
-    # # plt.plot(cc)
+    plt.plot(cc)
     # # plt.axvline(sample_nc, color='y')
-    # plt.show()
+    plt.show()
     # return
 
     return sframe
 
 
 def preamble_estimate(rx_preamble, x_preamble, fft_len):
+    e = np.fft.fft(rx_preamble) / np.fft.fft(x_preamble)
+    e = np.concatenate((e[0:fft_len//2], e[-fft_len//2:]))
     e0 = np.fft.fft(rx_preamble[0:fft_len]) / np.fft.fft(x_preamble[0:fft_len])
     e1 = np.fft.fft(rx_preamble[fft_len:]) / np.fft.fft(x_preamble[fft_len:])
     H = (e0 + e1) / 2
@@ -143,6 +146,79 @@ def calculate_frame_ber(ref_symbols, rx_symbols):
     return (len(b) - np.sum(b == br)) / len(b)
 
 
+def gr_load_frame():
+    # gfdm_file_sync.main()
+
+    tb = gfdm_file_sync.gfdm_file_sync()
+    tb.start()
+    import time
+    time.sleep(1)
+    # while not len(tb.sync_sink.data()):
+    #     print('wait')
+    tb.stop()
+    tb.wait()
+    rx_frames = np.array(tb.sync_sink.data())
+    bursts = np.array(tb.burst_sink.data())
+    # plt.plot(np.abs(rx_frames))
+    # plt.show()
+
+    tags = tb.sync_sink.tags()
+    rx_len = len(rx_frames)
+    print(rx_len, rx_len / 3200)
+    print(len(tags))
+    return rx_frames
+
+
+def calculate_avg_phase(rx_data, ref_data):
+    phases = np.angle(rx_data) - np.angle(ref_data)
+    phases = np.unwrap(phases)
+    # pm = np.reshape(phases, (-1, active_subcarriers))
+    # for i in range(active_subcarriers):
+    #     p = pm[:, i]
+    #     plt.plot(p)
+
+    # plt.plot(phases)
+    # plt.show()
+    avg_phase = np.sum(phases) / len(phases)
+    print('AVG phase shift: ', avg_phase)
+    return avg_phase
+
+
+def equalize_frame(rx_data, ref_data, active_subcarriers, timeslots):
+    t_data_m = np.reshape(ref_data, (active_subcarriers, timeslots))
+    r_data_m = np.reshape(rx_data, (active_subcarriers, timeslots))
+    t0 = t_data_m[:, 0]
+    r0 = r_data_m[:, 0]
+    te = t_data_m[:, -1]
+    re = r_data_m[:, -1]
+    g = signal.gaussian(9, 1.0)
+    e0 = np.correlate(r0 - t0, g)
+    plt.plot(np.unwrap(np.angle(e0)))
+    plt.plot(np.unwrap(-1. * np.angle(re - te)))
+    plt.show()
+    return rx_data
+
+# def auto_correlate_halfs(s):
+#     pivot = len(s) / 2
+#     return np.sum(np.conjugate(s[0:pivot]) * s[pivot:])
+def corr_trial(frame, fft_len):
+    ac = sync.auto_correlate_signal(frame, fft_len)
+    wh = np.ones(fft_len)
+    aca = np.conj(frame) * np.roll(frame, -fft_len)
+    e = frame.real ** 2 + frame.imag ** 2
+    for i in range(len(aca) - 2 * fft_len):
+        c = aca[i:i + fft_len]
+        p = e[i:i + 2 * fft_len]
+        aca[i] = 2. * np.sum(c) / np.sum(p)
+    # aca = np.correlate(aca, wh, 'valid')
+    print(len(aca), len(ac))
+    aca = aca[0:len(ac)]
+    plt.plot(np.abs(ac))
+    plt.plot(np.abs(aca))
+    # plt.plot(np.abs(aca) * np.sqrt(utils.calculate_signal_energy(ac) / utils.calculate_signal_energy(aca)))
+    plt.show()
+
+
 def main():
     np.set_printoptions(precision=2, linewidth=150)
     alpha = .2
@@ -152,19 +228,28 @@ def main():
     cp_len = fft_len // 2
     cs_len = cp_len // 2
     subcarrier_map = mapping.get_subcarrier_map(fft_len, active_subcarriers, dc_free=True)
+    cc_pad = 500
+    f_num = 19
+    frame = gr_load_frame()[f_num*3200-cc_pad:(f_num+1)*3200+cc_pad]
+    # corr_trial(frame, fft_len * 4)
+    # return
+    # tz = np.zeros(1000, dtype=frame.dtype) + 0.0001
+    # frame = np.concatenate((tz, frame, tz))
     print(subcarrier_map)
     filename = '/home/demel/iq_samples/gfdm_50ms_slice.dat'
-    frame = converter.load_gr_iq_file(filename)[122000:127000]
+    # frame = converter.load_gr_iq_file(filename)[122000:127000]
     # frame = converter.load_gr_iq_file(filename)
     print('num samples', len(frame))
     # plt.plot(np.abs(frame))
-    # plt.semilogy(*signal.welch(frame))
+    # # plt.semilogy(*signal.welch(frame))
     # plt.show()
     # return
 
     # plt.semilogy(*signal.welch(frame))
 
     ref_frame, modulated_frame, x_preamble, data, freq_filter_taps = validation_utils.generate_reference_frame(timeslots, fft_len, active_subcarriers, cp_len, cs_len, alpha)
+    ref_frame, modulated_frame, x_preamble, data, freq_filter_taps = validation_utils.generate_sc_qpsk_frame(timeslots, fft_len, active_subcarriers, cp_len, cs_len, alpha)
+
     rx_kernel = cgfdm.py_receiver_kernel_cc(timeslots, fft_len, 2, freq_filter_taps)
     demapper = cgfdm.py_resource_demapper_kernel_cc(timeslots, fft_len, active_subcarriers, subcarrier_map, True)
 
@@ -175,6 +260,8 @@ def main():
     sframe = synchronize(frame, ref_frame_os, x_preamble_os, 4 * fft_len, 4 * cp_len)
     sframe = signal.resample(sframe, len(sframe) // 4)
     print(len(sframe), len(ref_frame))
+    avg_phase = calculate_avg_phase(sframe, ref_frame)
+    sframe *= np.exp(-1j * avg_phase)
 
     # plt.plot(np.abs(sframe))
     # plt.plot(np.abs(ref_frame))
@@ -201,6 +288,9 @@ def main():
 
 
     H, e0, e1 = preamble_estimate(rx_preamble, x_preamble, fft_len)
+    a = np.angle(e1) - np.angle(e0)
+    a /= fft_len
+    # H = e1
     H_est = np.repeat(H, timeslots)
     # H = np.fft.fftshift(H)
     # e0 = np.fft.fftshift(e0)
@@ -237,6 +327,9 @@ def main():
     phases = np.angle(rx_data) - np.angle(ref_data)
     phases = np.unwrap(phases)
     # plt.plot(phases)
+
+    # rx_eq_data = equalize_frame(rx_data, ref_data, active_subcarriers, timeslots)
+
 
 
     # plt.show()
