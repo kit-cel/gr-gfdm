@@ -219,6 +219,8 @@ def complex_sine(phase_inc, n_samps, init_phase=0.0):
         v = np.zeros(n_samps)
     else:
         v = np.arange(init_phase, init_phase + n_samps * phase_inc, phase_inc)
+    if len(v) > n_samps:
+        v = v[0:n_samps]
     return np.cos(v) + 1j * np.sin(v)
 
 

@@ -45,5 +45,6 @@ install(FILES
     simple_preamble_sync_cc.h
     resource_demapper_kernel_cc.h
     resource_demapper_cc.h
-    advanced_receiver_kernel_cc.h DESTINATION include/gfdm
+    advanced_receiver_kernel_cc.h
+    extract_burst_cc.h DESTINATION include/gfdm
 )
