@@ -49,7 +49,8 @@ list(APPEND gfdm_sources
     simple_preamble_sync_cc_impl.cc
     resource_demapper_kernel_cc.cc
     resource_demapper_cc_impl.cc
-    advanced_receiver_kernel_cc.cc)
+    advanced_receiver_kernel_cc.cc
+    extract_burst_cc_impl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)

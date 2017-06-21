@@ -56,3 +56,4 @@ GR_ADD_TEST(qa_frame_energy_detector_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOU
 GR_ADD_TEST(qa_simple_preamble_sync_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_simple_preamble_sync_cc.py)
 GR_ADD_TEST(qa_resource_demapper_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_resource_demapper_cc.py)
 GR_ADD_TEST(qa_remove_prefix_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_remove_prefix_cc.py)
+GR_ADD_TEST(qa_extract_burst_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_extract_burst_cc.py)
