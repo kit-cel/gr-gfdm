@@ -5,6 +5,8 @@ import numpy as np
 import scipy.signal as signal
 from fractions import gcd
 import sys, os
+from twisted.web.util import _SourceFragmentElement
+
 sys.path.insert(0, os.path.abspath('/home/demel/src/gr-gfdm/examples/'))
 import gfdm_file_sync
 
@@ -24,7 +26,27 @@ import matplotlib.pyplot as plt
 import cgfdm
 
 
+def kernel_synchronize_time(frame, x_preamble, fft_len, cp_len, frame_len):
+    sync_kernel = cgfdm.py_auto_cross_corr_multicarrier_sync_cc(fft_len, cp_len, x_preamble)
+    kac = sync_kernel.fixed_lag_auto_correlate(frame.astype(dtype=np.complex64))
+    knm = sync_kernel.find_peak(np.abs(kac).astype(dtype=np.float32))
+    xstart = np.maximum(knm - sync_kernel.subcarriers(), 0)
+    xc_range = np.arange(xstart, xstart + 4 * sync_kernel.subcarriers())
+    kxc = sync_kernel.cross_correlate_preamble(frame[xc_range].astype(dtype=np.complex64))
+    kcc = np.abs(kac[xstart:xstart + len(kxc)]) * np.abs(kxc)
+    knc = xstart + sync_kernel.find_peak(kcc.astype(dtype=np.float32))
+    # kpos, kcfo = sync_kernel.detect_frame(frame.astype(dtype=np.complex64))
+    sample_nc = knc - cp_len
+    sframe = frame[sample_nc:sample_nc + frame_len]
+    print(knc, knm, sample_nc, len(sframe))
+    p_att = sync_kernel.calculate_preamble_attenuation(sframe[cp_len:cp_len + 2 * fft_len].astype(dtype=np.complex64))
+    sframe *= (1. / p_att)
+    return sframe
+
+
 def synchronize_time(frame, ref_frame, x_preamble, fft_len, cp_len, samp_rate=12.e6):
+    kframe = kernel_synchronize_time(frame, x_preamble, fft_len, cp_len, len(ref_frame))
+
     ac = sync.auto_correlate_signal(frame, fft_len)
     nm = np.argmax(np.abs(ac))
     print('AC start: ', nm)
@@ -68,17 +90,103 @@ def synchronize_time(frame, ref_frame, x_preamble, fft_len, cp_len, samp_rate=12
     # plt.plot(np.abs(xc))
     # plt.plot(cc)
     # # # plt.axvline(sample_nc, color='y')
+    # print(np.abs(kframe - sframe) < 1e-4)
+    # plt.plot(np.abs(kframe))
+    # plt.plot(np.abs(sframe))
     # plt.show()
-    # return
+    return sframe
+
+
+def estimate_frame_channel(H, fft_len, frame_len):
+    used_sc = 52
+    subcarrier_map = mapping.get_subcarrier_map(fft_len, used_sc, dc_free=True)
+    # subcarrier_map = np.roll(subcarrier_map, len(subcarrier_map) // 2)
+    H[0] = (H[1] + H[-1]) / 2.
+    # plt.plot(subcarrier_map, np.angle(H[subcarrier_map]))
+    H = np.fft.fftshift(H)
+    active_sc = np.arange((fft_len - used_sc)//2, (fft_len + used_sc)//2+1)
+    g = signal.gaussian(9, 1.0)
+    g /= np.sqrt(3.55 * g.dot(g))
+    g_factor = 1. # 3.55
+    g /= np.sqrt(g_factor * g.dot(g))
+    Ha = H[active_sc]
+    Hb = np.concatenate((np.repeat(Ha[0], 4), Ha, np.repeat(Ha[-1], 4)))
+    Hg = np.correlate(Hb, g)
+    print('channel averaging error:', utils.calculate_signal_energy(Ha), utils.calculate_signal_energy(Hg), utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
+    Hg *= np.sqrt(utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
+    x = np.arange(0, len(Hg), len(Hg) / frame_len, dtype=np.float)
+    xp = np.arange(len(Hg), dtype=np.float)
+    H_frame = np.interp(x, xp, Hg.real) + 1j * np.interp(x, xp, Hg.imag)
+
+    xf = np.arange(0, len(Hg), len(Hg) / (fft_len * 9), dtype=np.float)
+    H_p = np.interp(xf, xp, Hg.real) + 1j * np.interp(xf, xp, Hg.imag)
+
+    # phase_m = m * fft_len / len(sframe)
+    # p = np.arange(-frame_len, frame_len)
+    # plt.plot(np.angle(H_p))
+    # plt.plot(np.angle(H_frame))
+    #
+    # plt.plot(np.angle(Ha))
+    # plt.plot(np.angle(Hg))
+    # plt.plot(np.abs(Ha))
+    # plt.plot(np.abs(Hg))
+    # plt.show()
+    return H_frame
+
+
+def calculate_agc_factor(rx_preamble, x_preamble):
+    ref_e = utils.calculate_signal_energy(x_preamble)
+    rx_e = utils.calculate_signal_energy(rx_preamble)
+    print('AGC factor', np.sqrt(ref_e / rx_e))
+    return np.sqrt(ref_e / rx_e)
+
+
+def equalize_frame(sframe, x_preamble, fft_len, cp_len, cs_len):
+    rx_preamble = sframe[cp_len:cp_len + len(x_preamble)]
+    agc_factor = calculate_agc_factor(rx_preamble, x_preamble)
+    # print('AGC values:', ref_e, rx_e, agc_factor)
+    sframe *= agc_factor
+
+    frame_start = cp_len + 2 * fft_len + cs_len + cp_len
+    H, e0, e1 = preamble_estimate(rx_preamble, x_preamble, fft_len)
+    H_estimate = estimate_frame_channel(H, fft_len, len(sframe))
+
+    H_p = estimate_frame_channel(H, fft_len, fft_len * 9)
+    p = sframe[frame_start:frame_start + fft_len * 9]
+
+    P = np.fft.fft(p)
+    P *= np.fft.fftshift(np.conj(H_p))
+    p = np.fft.ifft(P)
+    print('equalize p:', utils.calculate_signal_energy(p))
+
+    F = np.fft.fft(sframe)
+    F *= np.fft.fftshift(np.conj(H_estimate))
+    sframe = np.fft.ifft(F)
+
+    s = sframe[frame_start:frame_start + fft_len * 9]
+    print('equalize s:', utils.calculate_signal_energy(s))
+    # plt.plot(s.real)
+    # plt.plot(p.real)
+    # plt.plot(s.imag)
+    # plt.plot(p.imag)
+    # plt.plot(np.abs(P))
+    # plt.plot(np.abs(F))
+    # # plt.plot(np.abs(P - F))
+    # plt.show()
+
     return sframe
 
 
 def synchronize_freq_offsets(sframe, modulated_frame, x_preamble, fft_len, cp_len, samp_rate=12.5e6):
     rx_preamble = sframe[cp_len:cp_len + len(x_preamble)]
     frame_start = cp_len + 2 * fft_len + 16 + cp_len
-    rx_frame = sframe[frame_start:frame_start + len(modulated_frame)]
+    # rx_frame = sframe[frame_start:frame_start + len(modulated_frame)]
+    # subcarrier_map = mapping.get_subcarrier_map(fft_len, 52, dc_free=True)
     H, e0, e1 = preamble_estimate(rx_preamble, x_preamble, fft_len)
+    H_estimate = estimate_frame_channel(H, fft_len, len(sframe))
+
     H = np.fft.fftshift(H)
+
     used_sc = 52
     active_sc = np.concatenate((np.arange((fft_len - used_sc)//2, fft_len//2), np.arange(fft_len//2+1, (fft_len + used_sc)//2+1)))
     # print(active_sc)
@@ -89,10 +197,16 @@ def synchronize_freq_offsets(sframe, modulated_frame, x_preamble, fft_len, cp_le
     phase_m = m * fft_len / len(sframe)
     p = np.arange(-len(sframe)//2, len(sframe)//2)
     eq = np.exp(-1j * (p * phase_m + 0.0))
+    plt.plot(np.angle(eq))
+    plt.plot(np.angle(np.conj(H_estimate)))
+    plt.show()
+
     eq = np.fft.fftshift(eq)
     F = np.fft.fft(sframe)
-    F *= eq
+    # F *= eq
+    F *= np.fft.fftshift(np.conj(H_estimate))
     sframe = np.fft.ifft(F)
+
     rx_frame = sframe[frame_start:frame_start + len(modulated_frame)]
 
     fine_cfo = m / (2 * np.pi)
@@ -110,7 +224,9 @@ def synchronize_freq_offsets(sframe, modulated_frame, x_preamble, fft_len, cp_le
     # print('estimated fine freq offset: ', fine_cfo * samp_rate / fft_len)
     H_frame = np.fft.fft(rx_frame) / np.fft.fft(modulated_frame)
     H_frame = np.fft.fftshift(H_frame)[50:-50]
-    frame_sc = np.arange(-len(H_frame) // 2, len(H_frame) // 2)
+    # frame_sc = np.arange(-len(H_frame) // 2, len(H_frame) // 2)
+    frame_sc = np.concatenate((np.arange(-len(H_frame) // 2, 0), np.arange(1, len(H_frame) // 2)))
+    H_frame = H_frame[frame_sc]
     B = np.array([frame_sc, np.ones(len(frame_sc))])
     mf, cf = np.linalg.lstsq(B.T, np.unwrap(np.angle(H_frame)))[0]
     plt.plot(frame_sc, np.unwrap(np.angle(H_frame)))
@@ -184,8 +300,8 @@ def synchronize_integrated(frame, ref_frame, x_preamble, fft_len, cp_len):
 
 
 def preamble_estimate(rx_preamble, x_preamble, fft_len):
-    e = np.fft.fft(rx_preamble) / np.fft.fft(x_preamble)
-    e = np.concatenate((e[0:fft_len//2], e[-fft_len//2:]))
+    # e = np.fft.fft(rx_preamble) / np.fft.fft(x_preamble)
+    # e = np.concatenate((e[0:fft_len//2], e[-fft_len//2:]))
     e0 = np.fft.fft(rx_preamble[0:fft_len]) / np.fft.fft(x_preamble[0:fft_len])
     e1 = np.fft.fft(rx_preamble[fft_len:]) / np.fft.fft(x_preamble[fft_len:])
     H = (e0 + e1) / 2
@@ -251,9 +367,9 @@ def plot_constellation(ref_data, rx_data, rx_eq_data, start, end):
 
 def calculate_frame_ber(ref_symbols, rx_symbols):
     b = utils.demodulate_qpsk(ref_symbols)
-    print(b[0:10])
+    # print(b[0:10])
     br = utils.demodulate_qpsk(rx_symbols)
-    print(br[0:10])
+    # print(br[0:10])
     return (len(b) - np.sum(b == br)) / len(b)
 
 
@@ -285,11 +401,11 @@ def calculate_avg_phase(rx_data, ref_data):
 
     phase_err = np.angle(rx_data) - np.angle(ref_data)
     phase_err = np.unwrap(phase_err)
-    plt.plot(phase_err)
-    plt.plot(np.unwrap(phase_err))
+    # plt.plot(phase_err)
+    # plt.plot(np.unwrap(phase_err))
 
     m, c = np.linalg.lstsq(A.T, phase_err)[0]
-    plt.plot(np.arange(len(phase_err)), m * np.arange(len(phase_err)))
+    # plt.plot(np.arange(len(phase_err)), m * np.arange(len(phase_err)))
     # pm = np.reshape(phases, (-1, active_subcarriers))
     # for i in range(active_subcarriers):
     #     p = pm[:, i]
@@ -297,58 +413,34 @@ def calculate_avg_phase(rx_data, ref_data):
 
     avg_phase = np.sum(phase_err) / len(phase_err)
     print('AVG phase shift: ', avg_phase)
-    print('lin reg: ', m, c)
-    plt.plot(phase_err - avg_phase)
-    plt.title('phase error')
-    plt.show()
+    print('return val:      ', c + m * len(phase_err))
+    # print('lin reg: ', m, c)
+    # plt.plot(phase_err - avg_phase)
+    # plt.title('phase error')
+    # plt.show()
     # return avg_phase
     return c + m * len(phase_err)
-    # return m, c
 
 
-def equalize_frame(rx_data, ref_data, active_subcarriers, timeslots):
-    t_data_m = np.reshape(ref_data, (active_subcarriers, timeslots))
-    r_data_m = np.reshape(rx_data, (active_subcarriers, timeslots))
-    t0 = t_data_m[:, 0]
-    r0 = r_data_m[:, 0]
-    te = t_data_m[:, -1]
-    re = r_data_m[:, -1]
-    g = signal.gaussian(9, 1.0)
-    e0 = np.correlate(r0 - t0, g)
-    plt.plot(np.unwrap(np.angle(e0)))
-    plt.plot(np.unwrap(-1. * np.angle(re - te)))
-    plt.show()
-    return rx_data
-
-
-def corr_trial(frame, fft_len):
-    ac = sync.auto_correlate_signal(frame, fft_len)
-    wh = np.ones(fft_len)
-    aca = np.conj(frame) * np.roll(frame, -fft_len)
-    e = frame.real ** 2 + frame.imag ** 2
-    for i in range(len(aca) - 2 * fft_len):
-        c = aca[i:i + fft_len]
-        p = e[i:i + 2 * fft_len]
-        aca[i] = 2. * np.sum(c) / np.sum(p)
-    # aca = np.correlate(aca, wh, 'valid')
-    print(len(aca), len(ac))
-    aca = aca[0:len(ac)]
-    plt.plot(np.abs(ac))
-    plt.plot(np.abs(aca))
-    # plt.plot(np.abs(aca) * np.sqrt(utils.calculate_signal_energy(ac) / utils.calculate_signal_energy(aca)))
-    plt.show()
-
-
-def demodulate_frame(rx_data_frame, modulated_frame, rx_kernel, demapper, data, timeslots, fft_len):
+def demodulate_frame(rx_data_frame, modulated_frame, rx_kernel, demapper, data, timeslots, fft_len, H_estimate=None):
     ref_data = demodulate_data_frame(modulated_frame, rx_kernel, demapper, len(data))
     rx_data = demodulate_data_frame(rx_data_frame, rx_kernel, demapper, len(data))
+
+    if H_estimate is None:
+        d = np.array([1+1j, -1+1j, -1-1j, 1-1j]) / np.sqrt(2.)
+    else:
+        d = rx_kernel.demodulate_equalize(rx_data_frame.astype(dtype=np.complex64), H_estimate.astype(dtype=np.complex64))
+        d = demapper.demap_from_resources(d.astype(dtype=np.complex64), len(data))
+
+    mse = np.sum(np.abs(rx_data - ref_data) ** 2) / len(ref_data)
+    print('frame EQ demodulated energy', utils.calculate_signal_energy(rx_data), utils.calculate_signal_energy(rx_data) / len(rx_data), utils.calculate_signal_energy(ref_data) / len(ref_data))
 
     # calculate_avg_phase(rx_data, ref_data)
 
     fber = calculate_frame_ber(ref_data, rx_data)
-    print('Frame BER: ', fber)
+    print('Frame BER: ', fber, 'with MSE: ', mse)
 
-    plot_constellation(ref_data, rx_data, rx_data, 0, timeslots * fft_len)
+    plot_constellation(ref_data, rx_data, d, 0, timeslots * fft_len)
     plt.show()
 
 
@@ -394,7 +486,7 @@ def rx_nyquist_sampled(frames, ref_frame, modulated_frame, x_preamble, data, rx_
     d_start = f_start + cp_len
     print('data start: ', d_start)
     for f in frames[0:3]:
-        for offset in range(4):
+        for offset in range(3):
             print('\n\n OFFSET: ', offset)
             ff = f[offset:-(4-offset)]
             print('offset frame len', len(ff))
@@ -419,6 +511,68 @@ def rx_nyquist_sampled(frames, ref_frame, modulated_frame, x_preamble, data, rx_
             # plt.show()
 
 
+def rx_demodulate(frames, ref_frame, modulated_frame, x_preamble, data, rx_kernel, demapper, timeslots, fft_len, cp_len, cs_len):
+    f_start = cp_len + 2 * fft_len + cs_len
+    d_start = f_start + cp_len
+    print('data start: ', d_start)
+    sync_kernel = cgfdm.py_auto_cross_corr_multicarrier_sync_cc(64, 32, x_preamble)
+
+    for f in frames[0:3]:
+        rx_preamble = f[cp_len:cp_len + 2 * fft_len]
+        # agc_factor = calculate_agc_factor(rx_preamble, x_preamble)
+        agc_factor = sync_kernel.calculate_preamble_attenuation(rx_preamble.astype(dtype=np.complex64))
+        fk = sync_kernel.normalize_power_level(f, agc_factor)
+        f *= agc_factor
+        print(np.all(np.abs(f - fk) < 1e-10))
+        # rx_preamble *= agc_factor
+        rx_preamble = f[cp_len:cp_len + 2 * fft_len]
+        H, e0, e1 = preamble_estimate(rx_preamble, x_preamble, fft_len)
+        # H *= agc_factor #* 1. * np.sqrt((fft_len * timeslots - cp_len - cs_len) / len(f))
+        H_estimate = estimate_frame_channel(H, fft_len, fft_len * timeslots)
+        H_estimate = np.fft.fftshift(H_estimate)
+        rx_t_frame = f[d_start:d_start + fft_len * timeslots] #* agc_factor
+        rx_t_energy = utils.calculate_signal_energy(rx_t_frame)
+
+        kde = rx_kernel.demodulate_equalize(rx_t_frame.astype(dtype=np.complex64), H_estimate.astype(dtype=np.complex64))
+        de = demapper.demap_from_resources(kde.astype(dtype=np.complex64), len(data))
+
+        P = np.fft.fft(rx_t_frame)
+        P *= np.conj(H_estimate)
+        rx_t_frame = np.fft.ifft(P)
+        kd = rx_kernel.demodulate(rx_t_frame.astype(dtype=np.complex64))
+        d = demapper.demap_from_resources(kd.astype(dtype=np.complex64), len(data))
+
+
+        print('kernel FER: ', calculate_frame_ber(data, d))
+
+        sframe = equalize_frame(f, x_preamble, fft_len, cp_len, cs_len)
+
+        rx_preamble = sframe[cp_len:cp_len + 2 * fft_len]
+        avg_phase = calculate_avg_phase(rx_preamble, x_preamble)
+        # sframe *= np.exp(-1j * avg_phase)
+        rx_data_frame = sframe[d_start:d_start + fft_len * timeslots]
+        rx_data_energy = utils.calculate_signal_energy(rx_data_frame)
+        print('energies: ', rx_t_energy, rx_data_energy, utils.calculate_signal_energy(rx_t_frame), utils.calculate_signal_energy(modulated_frame))
+
+        print('find the scaling factor: ', len(sframe), len(rx_data_frame), len(rx_t_frame), np.sqrt((fft_len * timeslots) / len(f)), np.sqrt(7. / 9))
+        f_scale = utils.calculate_signal_energy(rx_data_frame) / utils.calculate_signal_energy(rx_t_frame)
+        print(utils.calculate_signal_energy(rx_data_frame), utils.calculate_signal_energy(rx_t_frame), f_scale, np.sqrt(1. * len(rx_t_frame) / len(sframe)), np.sqrt(f_scale))
+        print('demodulated signal energy', utils.calculate_signal_energy(d), utils.calculate_signal_energy(d) / len(d))
+        # d *= np.sqrt(f_scale)
+        # de *= np.sqrt(f_scale)
+        # kd *= np.sqrt(f_scale)
+        ekd = utils.calculate_signal_energy(rx_t_frame - rx_data_frame)
+        print(ekd, ekd / len(kd))
+        plt.scatter(d.real, d.imag, label='kernel')
+        plt.scatter(de.real, de.imag, label='EQ kern')
+        H_estimate = np.ones(len(H_estimate))
+
+
+        # demodulate_frame(rx_data_frame, modulated_frame, rx_kernel, demapper, data, timeslots, fft_len, H_estimate)
+        demodulate_frame(rx_t_frame * np.sqrt(f_scale), modulated_frame, rx_kernel, demapper, data, timeslots, fft_len, H_estimate)
+
+
+
 def main():
     np.set_printoptions(precision=2, linewidth=150)
     alpha = .2
@@ -436,29 +590,29 @@ def main():
     # tz = np.zeros(1000, dtype=frame.dtype) + 0.0001
     # frame = np.concatenate((tz, frame, tz))
     print(subcarrier_map)
-    filename = '/lhome/records/gfdm_ref_frame_synced_100ms_slice.dat'
+    filename = '/lhome/records/gfdm_replay_ref_frame_time_synced.dat'
     # filename = '/lhome/records/gfdm_ref_frame_50ms_slice.dat'
-    slice_len = 7900 - 1500
-    offset = 2100
+    slice_len = 800
+    offset = 0
     # offset = 3400
     n_frames = 20
     frame_start = 0
-    frame_end = 4096
+    frame_end = 800
     frame = converter.load_gr_iq_file(filename)[offset:]
     n_max_frames = int(len(frame) // slice_len)
     print('max number of frames:', n_max_frames)
-    frame = frame[0:slice_len * n_frames]
+    frame = frame[2000 * slice_len:2000 * slice_len + slice_len * n_frames]
     frames = np.reshape(frame, (-1, slice_len))
-    frames = frames[:, frame_start:frame_end]
+    # frames = frames[:, frame_start:frame_end]
     # frame = converter.load_gr_iq_file(filename)
     print('num samples', len(frame))
-    # f_frame = np.fft.fft(frame)
+    f_frame = np.fft.fft(frame)
     # plt.semilogy(np.abs(f_frame))
     # plt.plot(np.abs(frame))
     # plt.show()
     # for f in frames:
     #     plt.plot(np.abs(f))
-    # # # # # plt.semilogy(*signal.welch(frame))
+    # # # # # # plt.semilogy(*signal.welch(frame))
     # plt.show()
     # return
 
@@ -471,7 +625,8 @@ def main():
     demapper = cgfdm.py_resource_demapper_kernel_cc(timeslots, fft_len, active_subcarriers, subcarrier_map, True)
 
     # rx_oversampled(frames, ref_frame, modulated_frame, x_preamble, data, rx_kernel, demapper, timeslots, fft_len, cp_len, cs_len)
-    rx_nyquist_sampled(frames, ref_frame, modulated_frame, x_preamble, data, rx_kernel, demapper, timeslots, fft_len, cp_len, cs_len)
+    # rx_nyquist_sampled(frames, ref_frame, modulated_frame, x_preamble, data, rx_kernel, demapper, timeslots, fft_len, cp_len, cs_len)
+    rx_demodulate(frames, ref_frame, modulated_frame, x_preamble, data, rx_kernel, demapper, timeslots, fft_len, cp_len, cs_len)
     return
 
 

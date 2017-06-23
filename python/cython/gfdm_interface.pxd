@@ -36,6 +36,7 @@ cdef extern from "receiver_kernel_cc.h" namespace "gr::gfdm":
         vector[float complex] filter_taps()
         vector[float complex] ic_filter_taps()
         void generic_work(float complex* p_out, const float complex* p_in);
+        void generic_work_equalize(float complex* p_out, const float complex* p_in, const float complex* f_eq_in)
         void fft_filter_downsample(float complex* p_out, const float complex* p_in);
         void transform_subcarriers_to_td(float complex* p_out, const float complex* p_in);
         void cancel_sc_interference(float complex* p_out, const float complex* p_td_in, const float complex* p_fd_in);
@@ -53,3 +54,9 @@ cdef extern from "auto_cross_corr_multicarrier_sync_cc.h" namespace "gr::gfdm":
         auto_cross_corr_multicarrier_sync_cc(int, int, vector[float complex]) except +
         int detect_frame_start(const float complex* p_in, const int ninput_size);
         float last_cfo()
+        int subcarriers()
+        void cross_correlate_preamble(float complex* p_out, const float complex* p_in, const int ninput_size)
+        void fixed_lag_auto_correlate(float complex* p_out, const float complex* p_in, const int ninput_size)
+        int find_peak(float* vals, const int ninput_size)
+        float calculate_preamble_attenuation(const float complex* p_in)
+        void normalize_power_level(float complex* p_out, const float complex* p_in, const float norm_factor, const int ninput_size)

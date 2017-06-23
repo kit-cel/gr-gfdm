@@ -94,7 +94,8 @@ namespace gr
           remove_cfo(out, in, 2 * d_kernel->last_cfo(), d_kernel->frame_phase(), d_frame_len);
         }
         else{
-          memcpy(out, in, sizeof(gr_complex) * d_frame_len);
+//          memcpy(out, in, sizeof(gr_complex) * d_frame_len);
+          d_kernel->normalize_power_level(out, in, d_kernel->preamble_attenuation(), d_frame_len);
         }
 
         d_remaining_items = 0;
@@ -157,7 +158,7 @@ namespace gr
     simple_preamble_sync_cc_impl::remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const float init_phase, const int ninput_size)
     {
       const float phase_inc = -2.0 * M_PI * cfo / float(d_kernel->subcarriers());
-      const float scaling_factor = 1.0 / d_kernel->preamble_attenuation();
+      const float scaling_factor = d_kernel->preamble_attenuation();
 //      std::cout << "correct CFO: " << cfo << ", adjusted: " << cfo / 2.0 << "phase_inc: " << phase_inc << std::endl;
       float phase = -1.0 * (init_phase - phase_inc);
       for(int i = 0; i < ninput_size; ++i){

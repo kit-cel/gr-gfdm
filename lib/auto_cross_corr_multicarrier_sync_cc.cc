@@ -122,6 +122,20 @@ namespace gr {
       return plan;
     }
 
+    float
+    auto_cross_corr_multicarrier_sync_cc::calculate_preamble_attenuation(const gfdm_complex* p_in)
+    {
+      return std::sqrt(d_reference_preamble_energy / calculate_signal_energy(p_in, 2 * d_subcarriers));
+    }
+
+    void
+    auto_cross_corr_multicarrier_sync_cc::normalize_power_level(gfdm_complex* p_out, const gfdm_complex* p_in, const float norm_factor, const int ninput_size)
+    {
+//      volk_32f_s32f_normalize((float*) p_out, const float scalar, unsigned int num_points)
+      volk_32f_s32f_multiply_32f((float*) p_out, (const float*) p_in, norm_factor, 2 * ninput_size);
+    }
+
+
     int
     auto_cross_corr_multicarrier_sync_cc::detect_frame_start(const gfdm_complex *p_in, int ninput_size)
     {
@@ -146,7 +160,7 @@ namespace gr {
       const int p_nc = find_peak(d_abs_xcorr, 2 * d_subcarriers);
 
       const int nc = xc_start + p_nc;
-      d_preamble_attenuation = std::sqrt(calculate_signal_energy(p_in + nc, 2 * d_subcarriers) / d_reference_preamble_energy);
+      d_preamble_attenuation = calculate_preamble_attenuation(p_in + nc);
 //      std::cout << "preamble attenuation: " << d_preamble_attenuation << ", " << d_abs_xcorr[p_nc]  << ", " << d_abs_auto_corr[nc] << std::endl;
       d_frame_phase = std::arg(d_xcorr[p_nc]);
 //      std::cout << "nc: " << nc << "(" << nm + pos_correction_factor << "), cfo: " << d_last_cfo << std::endl;
