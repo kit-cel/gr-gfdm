@@ -49,7 +49,7 @@ namespace gr
                         gr::io_signature::make(1, 1, sizeof(gr_complex)),
                         gr::io_signature::make(1, 1, sizeof(gr_complex))), d_frame_len(frame_len), d_remaining_items(0)
     {
-      d_correct_cfo = false;
+      d_correct_cfo = true;
       d_tag_in_key = pmt::string_to_symbol(in_key);
       d_tag_out_key = pmt::string_to_symbol(out_key);
       d_tag_srcid = pmt::string_to_symbol(name());
@@ -91,7 +91,8 @@ namespace gr
       if(d_remaining_items > 0){ // frame from last call still present.
 
         if(d_correct_cfo){
-          remove_cfo(out, in, 2 * d_kernel->last_cfo(), d_kernel->frame_phase(), d_frame_len);
+          //remove_cfo(out, in, 2 * d_kernel->last_cfo(), d_kernel->frame_phase(), d_frame_len);
+          remove_cfo(out, in, 0.0, 0.0, d_frame_len);
         }
         else{
           memcpy(out, in, sizeof(gr_complex) * d_frame_len);
