@@ -94,61 +94,6 @@ def generate_integrated_frame(timeslots, subcarriers, active_subcarriers, cp_len
     return p, mod_frame, x_preamble, d, H
 
 
-# def synchronize_integrated(frame, ref_frame, x_preamble, fft_len, cp_len):
-#     samp_rate = 12.5e6
-#     ac = sync.auto_correlate_signal(frame, fft_len)
-#
-#     nm = np.argmax(np.abs(ac[0:len(ac) // 2]))
-#     print('AC start: ', nm)
-#     # cfo = 2 * np.angle(ac[nm]) / (2. * np.pi)
-#     cfo = np.angle(ac[nm]) / (2. * np.pi)
-#     print('CFO:', cfo, cfo * samp_rate / fft_len)
-#
-#     phase_inc = sync.cfo_to_phase_increment(-cfo, fft_len)
-#     wave = sync.complex_sine(phase_inc, len(frame), 0.0)
-#     # frame *= wave
-#
-#     ac = sync.auto_correlate_signal(frame, fft_len)
-#     cfo = np.angle(ac[nm]) / (2. * np.pi)
-#     print('CFO:', cfo, cfo * samp_rate / fft_len)
-#     ac = np.roll(ac, cp_len)
-#
-#     xc = np.correlate(frame, x_preamble, 'valid')
-#     cc = sync.multiply_valid(np.abs(ac), np.abs(xc))
-#     nc = np.argmax(np.abs(cc[0:len(cc)//2]))
-#     print('correlation frame start:', nc)
-#     sample_nc = nc - cp_len
-#     print('sample frame start:     ', sample_nc)
-#     print('data frame start:       ', nc)
-#     phase = np.angle(xc[nc])
-#     # phase = 0.0
-#     print('phase:', phase)
-#     # frame *= np.exp(-1j * phase)
-#
-#     ref_e = utils.calculate_signal_energy(x_preamble)
-#     p = frame[nc:nc + len(x_preamble)]
-#     rx_e = utils.calculate_signal_energy(p)
-#     agc_factor = np.sqrt(ref_e / rx_e)
-#     print('AGC values:', ref_e, rx_e, agc_factor)
-#     # frame *= agc_factor
-#     sframe = frame[sample_nc:sample_nc + len(ref_frame)]
-#     # plt.plot(np.abs(ref_frame))
-#     # plt.plot(np.abs(frame))
-#     plt.plot(np.abs(ac), label='AC')
-#     plt.plot(np.abs(xc), label='XC')
-#     plt.plot(cc, label='MM')
-#     # # plt.axvline(sample_nc, color='y')
-#
-#     # print(np.abs(p - x_preamble))
-#     # print(np.max(np.abs(p - x_preamble)))
-#     # x = p.dot(x_preamble)
-#     # print(x, x_preamble.dot(x_preamble), p.dot(p))
-#     # plt.scatter(p.real, p.imag)
-#     # plt.scatter(x_preamble.real, x_preamble.imag)
-#     plt.legend()
-#     plt.show()
-#     return sframe
-
 
 def main():
     np.set_printoptions(precision=2, linewidth=150)
@@ -161,8 +106,7 @@ def main():
     subcarrier_map = mapping.get_subcarrier_map(fft_len, active_subcarriers, dc_free=True)
     ref_frame, modulated_frame, x_preamble, data, freq_filter_taps = generate_integrated_frame(timeslots, fft_len, active_subcarriers, cp_len, cs_len, alpha)
     test_frame = np.concatenate((.001 * utils.get_random_samples(1000), ref_frame, .001 * utils.get_random_samples(1000)))
-    # sframe = synchronize_integrated(test_frame, ref_frame, x_preamble, fft_len, cp_len)
-    # return
+
 
 
 if __name__ == '__main__':
