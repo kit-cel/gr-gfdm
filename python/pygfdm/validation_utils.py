@@ -32,6 +32,52 @@ import filters
 import matplotlib.pyplot as plt
 
 
+class frame_estimator():
+    def __init__(self, x_preamble, fft_len, timeslots, active_subcarriers):
+        self._x_preamble = x_preamble
+        self._fft_len = fft_len
+        self._timeslots = timeslots
+        self._inv_freq_x_preamble0 = 1. / np.fft.fft(x_preamble[0:fft_len])
+        self._inv_freq_x_preamble1 = 1. / np.fft.fft(x_preamble[fft_len:])
+
+        active_sc = np.arange((self._fft_len - active_subcarriers)//2, (self._fft_len + active_subcarriers)//2+1)
+        active_sc = active_sc[3:-3]
+        freqs = np.fft.fftfreq(fft_len)
+        freqs = np.fft.fftshift(freqs)
+        self._active_preamble_freqs = freqs[active_sc]
+        self._active_sc = active_sc
+        fr_freqs = np.fft.fftfreq(self._fft_len * self._timeslots)
+        self._frame_freqs = np.fft.fftshift(fr_freqs)
+
+        g = signal.gaussian(9, 1.0)
+        g_factor = 1.
+        g /= np.sqrt(g_factor * g.dot(g))
+        self._p_filter = g
+
+    def _estimate_preamble(self, rx_preamble):
+        e0 = np.fft.fft(rx_preamble[0:self._fft_len]) * self._inv_freq_x_preamble0
+        e1 = np.fft.fft(rx_preamble[self._fft_len:]) * self._inv_freq_x_preamble1
+        H = (e0 + e1) / 2
+        return H
+
+    def _interpolate_frame(self, H):
+        H[0] = (H[1] + H[-1]) / 2.
+        H = np.fft.fftshift(H)
+
+        Ha = H[self._active_sc]
+        Hb = np.concatenate((np.repeat(Ha[0], 4), Ha, np.repeat(Ha[-1], 4)))
+        Hg = np.correlate(Hb, self._p_filter)
+
+        Hg *= np.sqrt(utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
+
+        H_frame = np.interp(self._frame_freqs, self._active_preamble_freqs, Hg.real) + 1j * np.interp(self._frame_freqs, self._active_preamble_freqs, Hg.imag)
+        return np.fft.fftshift(H_frame)
+
+    def estimate_frame(self, rx_preamble):
+        H = self._estimate_preamble(rx_preamble)
+        return self._interpolate_frame(H)
+
+
 def generate_reference_frame(timeslots, subcarriers, active_subcarriers, cp_len, cs_len, alpha=.2):
     p_seed = utils.generate_seed('awesome preamble')
     f_seed = utils.generate_seed('awesome frame')
@@ -92,7 +138,6 @@ def generate_integrated_frame(timeslots, subcarriers, active_subcarriers, cp_len
 
     H = filters.get_frequency_domain_filter('rrc', alpha, timeslots, subcarriers, overlap)
     return p, mod_frame, x_preamble, d, H
-
 
 
 def main():

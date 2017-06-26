@@ -1698,6 +1698,61 @@
     </param>
   </block>
   <block>
+    <key>gfdm_remove_prefix_cc</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>block_len</key>
+      <value>64 * 2 * 4</value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>frame_len</key>
+      <value>800 * 4</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(768, 668)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>gfdm_remove_prefix_cc_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>offset</key>
+      <value>64 * 4</value>
+    </param>
+    <param>
+      <key>gfdm_sync_tag_key</key>
+      <value>frame_start</value>
+    </param>
+  </block>
+  <block>
     <key>gfdm_simple_preamble_sync_cc</key>
     <param>
       <key>alias</key>
@@ -3631,7 +3686,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(760, 684)</value>
+      <value>(1144, 660)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -4455,6 +4510,18 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
+    <source_block_id>gfdm_remove_prefix_cc_0</source_block_id>
+    <sink_block_id>qtgui_time_sink_x_0_0_0_1</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
+    <sink_block_id>gfdm_remove_prefix_cc_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
     <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
     <sink_block_id>low_pass_filter_0</sink_block_id>
     <source_key>0</source_key>
@@ -4463,12 +4530,6 @@
   <connection>
     <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
     <sink_block_id>qtgui_time_sink_x_0_0_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
-    <sink_block_id>qtgui_time_sink_x_0_0_0_1</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

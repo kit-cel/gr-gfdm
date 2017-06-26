@@ -5,7 +5,7 @@ import numpy as np
 import scipy.signal as signal
 from fractions import gcd
 import sys, os
-from twisted.web.util import _SourceFragmentElement
+import time
 
 sys.path.insert(0, os.path.abspath('/home/demel/src/gr-gfdm/examples/'))
 import gfdm_file_sync
@@ -97,29 +97,114 @@ def synchronize_time(frame, ref_frame, x_preamble, fft_len, cp_len, samp_rate=12
     return sframe
 
 
+# class frame_estimator():
+#     def __init__(self, x_preamble, fft_len, timeslots, active_subcarriers):
+#         print('init estimator')
+#         self._x_preamble = x_preamble
+#         self._fft_len = fft_len
+#         self._timeslots = timeslots
+#         self._inv_freq_x_preamble0 = 1. / np.fft.fft(x_preamble[0:fft_len])
+#         self._inv_freq_x_preamble1 = 1. / np.fft.fft(x_preamble[fft_len:])
+#
+#         active_sc = np.arange((self._fft_len - active_subcarriers)//2, (self._fft_len + active_subcarriers)//2+1)
+#         active_sc = active_sc[3:-3]
+#         freqs = np.fft.fftfreq(fft_len)
+#         freqs = np.fft.fftshift(freqs)
+#         self._active_preamble_freqs = freqs[active_sc]
+#         self._active_sc = active_sc
+#         fr_freqs = np.fft.fftfreq(self._fft_len * self._timeslots)
+#         self._frame_freqs = np.fft.fftshift(fr_freqs)
+#
+#         g = signal.gaussian(9, 1.0)
+#         g_factor = 1.
+#         g /= np.sqrt(g_factor * g.dot(g))
+#         self._p_filter = g
+#
+#     def _estimate_preamble(self, rx_preamble):
+#         e0 = np.fft.fft(rx_preamble[0:self._fft_len]) * self._inv_freq_x_preamble0
+#         e1 = np.fft.fft(rx_preamble[self._fft_len:]) * self._inv_freq_x_preamble1
+#         H = (e0 + e1) / 2
+#         return H
+#
+#     def _interpolate_frame(self, H):
+#         H[0] = (H[1] + H[-1]) / 2.
+#         H = np.fft.fftshift(H)
+#
+#         Ha = H[self._active_sc]
+#         Hb = np.concatenate((np.repeat(Ha[0], 4), Ha, np.repeat(Ha[-1], 4)))
+#         Hg = np.correlate(Hb, self._p_filter)
+#
+#         Hg *= np.sqrt(utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
+#
+#         H_frame = np.interp(self._frame_freqs, self._active_preamble_freqs, Hg.real) + 1j * np.interp(self._frame_freqs, self._active_preamble_freqs, Hg.imag)
+#         return np.fft.fftshift(H_frame)
+#
+#     def estimate_frame(self, rx_preamble):
+#         H = self._estimate_preamble(rx_preamble)
+#         return self._interpolate_frame(H)
+
+
 def estimate_frame_channel(H, fft_len, frame_len):
     used_sc = 52
-    subcarrier_map = mapping.get_subcarrier_map(fft_len, used_sc, dc_free=True)
+    # subcarrier_map = mapping.get_subcarrier_map(fft_len, used_sc, dc_free=True)
     # subcarrier_map = np.roll(subcarrier_map, len(subcarrier_map) // 2)
+    ts = time.time()
     H[0] = (H[1] + H[-1]) / 2.
     # plt.plot(subcarrier_map, np.angle(H[subcarrier_map]))
     H = np.fft.fftshift(H)
     active_sc = np.arange((fft_len - used_sc)//2, (fft_len + used_sc)//2+1)
+    active_sc = active_sc[3:-3]
     g = signal.gaussian(9, 1.0)
-    g /= np.sqrt(3.55 * g.dot(g))
-    g_factor = 1. # 3.55
+    g_factor = 1.
     g /= np.sqrt(g_factor * g.dot(g))
     Ha = H[active_sc]
     Hb = np.concatenate((np.repeat(Ha[0], 4), Ha, np.repeat(Ha[-1], 4)))
     Hg = np.correlate(Hb, g)
-    print('channel averaging error:', utils.calculate_signal_energy(Ha), utils.calculate_signal_energy(Hg), utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
-    Hg *= np.sqrt(utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
-    x = np.arange(0, len(Hg), len(Hg) / frame_len, dtype=np.float)
-    xp = np.arange(len(Hg), dtype=np.float)
-    H_frame = np.interp(x, xp, Hg.real) + 1j * np.interp(x, xp, Hg.imag)
 
-    xf = np.arange(0, len(Hg), len(Hg) / (fft_len * 9), dtype=np.float)
-    H_p = np.interp(xf, xp, Hg.real) + 1j * np.interp(xf, xp, Hg.imag)
+    # print('channel averaging error:', utils.calculate_signal_energy(Ha), utils.calculate_signal_energy(Hg), utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
+    Hg *= np.sqrt(utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
+
+    freqs = np.fft.fftfreq(len(H))
+    freqs = np.fft.fftshift(freqs)
+
+    fr_freqs = np.fft.fftfreq(frame_len)
+    fr_freqs = np.fft.fftshift(fr_freqs)
+    H_frame = np.interp(fr_freqs, freqs[active_sc], Hg.real) + 1j * np.interp(fr_freqs, freqs[active_sc], Hg.imag)
+    te = time.time()
+    print('interpolation timing:', te - ts)
+
+    A = np.array([freqs[active_sc], np.ones(len(active_sc))])
+    # print(np.shape(A))
+
+    m, c = np.linalg.lstsq(A.T, H[active_sc])[0]
+    Hl = m * freqs[active_sc] + c
+
+
+    plt.plot(freqs[active_sc], Ha.real)
+    plt.plot(freqs[active_sc], Ha.imag)
+    plt.plot(freqs[active_sc], Hg.real, marker='x', ms=10)
+    plt.plot(freqs[active_sc], Hl.real)
+
+    # Hg = Ha
+
+    fr_freqs = np.fft.fftfreq(frame_len)
+    fr_freqs = np.fft.fftshift(fr_freqs)
+    H_frame = np.interp(fr_freqs, freqs[active_sc], Hg.real) + 1j * np.interp(fr_freqs, freqs[active_sc], Hg.imag)
+    plt.plot(fr_freqs, H_frame.real)
+
+    p_freqs = np.fft.fftfreq(fft_len * 9)
+    p_freqs = np.fft.fftshift(p_freqs)
+    H_p = np.interp(p_freqs, freqs[active_sc], Hg.real) + 1j * np.interp(p_freqs, freqs[active_sc], Hg.imag)
+    plt.plot(p_freqs, H_p.real)
+
+    Hlf = m * fr_freqs + c
+    plt.plot(fr_freqs, Hlf.real)
+
+    # plt.show()
+
+    # plt.plot(xp, Hg.real, marker='x')
+    # plt.plot(x, H_frame.real)
+    # plt.plot(xf, H_p.real)
 
     # phase_m = m * fft_len / len(sframe)
     # p = np.arange(-frame_len, frame_len)
@@ -351,6 +436,11 @@ def plot_constellation(ref_data, rx_data, rx_eq_data, start, end):
     r = ref_data[start:end]
     x = rx_data[start:end]
     e = rx_eq_data[start:end]
+
+    for i in range(len(r)):
+        plt.plot([r[i].real, x[i].real], [r[i].imag, x[i].imag], color='g')
+        # plt.arrow(r[i].real, r[i].imag, x[i].real - r[i].real, x[i].imag - r[i].imag) #, head_width=0.05, head_length=0.1, fc='k', ec='k')
+
     plt.scatter(r.real, r.imag, color='r', label='reference')
     plt.scatter(x.real, x.imag, color='b', label='RX')
     plt.scatter(e.real, e.imag, color='g', label='RX EQ')
@@ -517,59 +607,48 @@ def rx_demodulate(frames, ref_frame, modulated_frame, x_preamble, data, rx_kerne
     print('data start: ', d_start)
     sync_kernel = cgfdm.py_auto_cross_corr_multicarrier_sync_cc(64, 32, x_preamble)
 
+    estimator = validation_utils.frame_estimator(x_preamble, fft_len, timeslots, 52)
+
     for f in frames[0:3]:
+        rxs = time.time()
         rx_preamble = f[cp_len:cp_len + 2 * fft_len]
-        # agc_factor = calculate_agc_factor(rx_preamble, x_preamble)
         agc_factor = sync_kernel.calculate_preamble_attenuation(rx_preamble.astype(dtype=np.complex64))
-        fk = sync_kernel.normalize_power_level(f, agc_factor)
-        f *= agc_factor
-        print(np.all(np.abs(f - fk) < 1e-10))
-        # rx_preamble *= agc_factor
+        f = sync_kernel.normalize_power_level(f, agc_factor)
+
         rx_preamble = f[cp_len:cp_len + 2 * fft_len]
-        H, e0, e1 = preamble_estimate(rx_preamble, x_preamble, fft_len)
-        # H *= agc_factor #* 1. * np.sqrt((fft_len * timeslots - cp_len - cs_len) / len(f))
-        H_estimate = estimate_frame_channel(H, fft_len, fft_len * timeslots)
-        H_estimate = np.fft.fftshift(H_estimate)
-        rx_t_frame = f[d_start:d_start + fft_len * timeslots] #* agc_factor
-        rx_t_energy = utils.calculate_signal_energy(rx_t_frame)
+        H_estimate = estimator.estimate_frame(rx_preamble)
+
+        rx_t_frame = f[d_start:d_start + fft_len * timeslots]
 
         kde = rx_kernel.demodulate_equalize(rx_t_frame.astype(dtype=np.complex64), H_estimate.astype(dtype=np.complex64))
         de = demapper.demap_from_resources(kde.astype(dtype=np.complex64), len(data))
+        rxe = time.time()
+        print('receiver chain time: ', 1e6 * (rxe - rxs), 'us')
 
         P = np.fft.fft(rx_t_frame)
         P *= np.conj(H_estimate)
         rx_t_frame = np.fft.ifft(P)
-        kd = rx_kernel.demodulate(rx_t_frame.astype(dtype=np.complex64))
-        d = demapper.demap_from_resources(kd.astype(dtype=np.complex64), len(data))
+        # kd = rx_kernel.demodulate(rx_t_frame.astype(dtype=np.complex64))
+        # d = demapper.demap_from_resources(kd.astype(dtype=np.complex64), len(data))
 
-
-        print('kernel FER: ', calculate_frame_ber(data, d))
+        print('kernel FER: ', calculate_frame_ber(data, de))
 
         sframe = equalize_frame(f, x_preamble, fft_len, cp_len, cs_len)
 
-        rx_preamble = sframe[cp_len:cp_len + 2 * fft_len]
-        avg_phase = calculate_avg_phase(rx_preamble, x_preamble)
+        # rx_preamble = sframe[cp_len:cp_len + 2 * fft_len]
+        # avg_phase = calculate_avg_phase(rx_preamble, x_preamble)
         # sframe *= np.exp(-1j * avg_phase)
         rx_data_frame = sframe[d_start:d_start + fft_len * timeslots]
-        rx_data_energy = utils.calculate_signal_energy(rx_data_frame)
-        print('energies: ', rx_t_energy, rx_data_energy, utils.calculate_signal_energy(rx_t_frame), utils.calculate_signal_energy(modulated_frame))
 
-        print('find the scaling factor: ', len(sframe), len(rx_data_frame), len(rx_t_frame), np.sqrt((fft_len * timeslots) / len(f)), np.sqrt(7. / 9))
-        f_scale = utils.calculate_signal_energy(rx_data_frame) / utils.calculate_signal_energy(rx_t_frame)
-        print(utils.calculate_signal_energy(rx_data_frame), utils.calculate_signal_energy(rx_t_frame), f_scale, np.sqrt(1. * len(rx_t_frame) / len(sframe)), np.sqrt(f_scale))
-        print('demodulated signal energy', utils.calculate_signal_energy(d), utils.calculate_signal_energy(d) / len(d))
-        # d *= np.sqrt(f_scale)
-        # de *= np.sqrt(f_scale)
-        # kd *= np.sqrt(f_scale)
         ekd = utils.calculate_signal_energy(rx_t_frame - rx_data_frame)
-        print(ekd, ekd / len(kd))
-        plt.scatter(d.real, d.imag, label='kernel')
+        print('MSE for kernel vs Python demod', ekd, ekd / len(rx_data_frame))
+        plt.show()
+        # plt.scatter(d.real, d.imag, label='kernel')
         plt.scatter(de.real, de.imag, label='EQ kern')
         H_estimate = np.ones(len(H_estimate))
 
-
         # demodulate_frame(rx_data_frame, modulated_frame, rx_kernel, demapper, data, timeslots, fft_len, H_estimate)
-        demodulate_frame(rx_t_frame * np.sqrt(f_scale), modulated_frame, rx_kernel, demapper, data, timeslots, fft_len, H_estimate)
+        demodulate_frame(rx_t_frame, modulated_frame, rx_kernel, demapper, data, timeslots, fft_len, H_estimate)
 
 
 
