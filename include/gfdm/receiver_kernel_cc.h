@@ -59,6 +59,7 @@ namespace gr {
       void generic_work(gfdm_complex* out, const gfdm_complex* in);
       void generic_work_equalize(gfdm_complex *out, const gfdm_complex *in, const gfdm_complex* f_eq_in);
       void fft_filter_downsample(gfdm_complex* p_out, const gfdm_complex* p_in);
+      void fft_equalize_filter_downsample(gfdm_complex* p_out, const gfdm_complex* p_in, const gfdm_complex* f_eq_in);
       void transform_subcarriers_to_td(gfdm_complex *p_out, const gfdm_complex *p_in);
       void cancel_sc_interference(gfdm_complex* p_out, const gfdm_complex* p_td_in, const gfdm_complex* p_fd_in);
 

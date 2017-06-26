@@ -57,12 +57,15 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         # print "MAXIMUM ref value: ", np.max(abs(ref))
 
         src = blocks.vector_source_c(data)
+        est_data = np.ones(len(data), dtype=np.complex)
+        est_src = blocks.vector_source_c(est_data)
         gfdm_constellation = digital.constellation_qpsk().base()
         mod = gfdm.advanced_receiver_sb_cc(M, K, L, 0,
                                            taps, gfdm_constellation, np.arange(K))
         dst = blocks.vector_sink_c()
 
-        self.tb.connect(src, mod, dst)
+        self.tb.connect(src, (mod, 0), dst)
+        self.tb.connect(est_src, (mod, 1))
         # set up fg
         self.tb.run()
         # check data

@@ -43,6 +43,7 @@ namespace gr {
       ~advanced_receiver_kernel_cc();
 
       void generic_work(gr_complex *p_out, const gr_complex *p_in);
+      void generic_work_equalize(gr_complex *out, const gr_complex *in, const gr_complex* f_eq_in);
       void set_ic(int ic_iter) { d_ic_iter = ic_iter; }
       int block_size() { return d_kernel->block_size();}
 
@@ -53,6 +54,7 @@ namespace gr {
       gr::digital::constellation_sptr d_constellation;
 
       void map_symbols_to_constellation_points(gr_complex *p_out, const gr_complex *p_in);
+      void perform_ic_iterations(gr_complex *p_out, const gr_complex *p_freq_block);
 
       gr_complex *d_freq_block;
       gr_complex *d_ic_time_buffer;

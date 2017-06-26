@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<block>
+  <name>GFDM Preamble-based Channel estimator</name>
+  <key>gfdm_channel_estimator_cc</key>
+  <category>[GFDM]</category>
+  <import>import gfdm</import>
+  <make>gfdm.channel_estimator_cc($preamble, $fft_len, $timeslots, $active_subcarriers)</make>
+
+  <param>
+    <name>Preamble</name>
+    <key>preamble</key>
+    <type>complex_vector</type>
+  </param>
+
+  <param>
+    <name>FFT length</name>
+    <key>fft_len</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>Timeslots</name>
+    <key>timeslots</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>active Subcarriers</name>
+    <key>active_subcarriers</key>
+    <type>int</type>
+  </param>
+
+  <!-- Make one 'sink' node per input. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <sink>
+    <name>in</name>
+    <type>complex</type>
+  </sink>
+
+  <!-- Make one 'source' node per output. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <source>
+    <name>out</name>
+    <type>complex</type>
+  </source>
+</block>

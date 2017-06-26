@@ -308,6 +308,15 @@ namespace gr
     }
 
     void
+    receiver_kernel_cc::fft_equalize_filter_downsample(gfdm_complex* p_out, const gfdm_complex* p_in, const gfdm_complex* f_eq_in)
+    {
+      memcpy(d_in_fft_in, p_in, sizeof(gfdm_complex) * d_block_len);
+      fftwf_execute(d_in_fft_plan);
+      volk_32fc_x2_multiply_conjugate_32fc(d_equalized, d_in_fft_out, f_eq_in, d_block_len);
+      filter_subcarriers_and_downsample_fd(p_out, d_equalized);
+    }
+
+    void
     receiver_kernel_cc::generic_work(gfdm_complex *out, const gfdm_complex *in)
     {
       fft_filter_downsample(d_sc_filtered, in);
