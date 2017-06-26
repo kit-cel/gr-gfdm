@@ -34,7 +34,7 @@ class channel_estimator_cc(gr.interp_block):
             out_sig=[np.complex64], interp=timeslots)
         self._kernel = validation_utils.frame_estimator(preamble, fft_len, timeslots, active_subcarriers)
         self._preamble_len = 2 * fft_len
-        self.set_output_multiple(fft_len * timeslots)
+        self.set_output_multiple(2 * fft_len * timeslots)
         self._work_count = 0
 
 
@@ -42,11 +42,13 @@ class channel_estimator_cc(gr.interp_block):
         in0 = input_items[0]
         out = output_items[0]
         if len(in0) < self._preamble_len:
+            #print 'failing with too few samples', len(in0), len(out)
             return 0
         # print len(in0), len(out)
         H_estimate = self._kernel.estimate_frame(in0[0:self._preamble_len])
+        H_estimate = np.concatenate((H_estimate, np.zeros(len(H_estimate), dtype=H_estimate.dtype)))
         out[0:len(H_estimate)] = H_estimate.astype(dtype=np.complex64)
-        print(self._work_count, 'channel estimator:', len(H_estimate))
+        #print(self._work_count, 'channel estimator:', len(H_estimate), len(in0), len(out))
         self._work_count += 1
         return len(H_estimate)
 
