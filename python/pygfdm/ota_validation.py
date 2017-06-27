@@ -561,7 +561,11 @@ def rx_demodulate(frames, ref_frame, modulated_frame, x_preamble, data, rx_kerne
     sync_kernel = cgfdm.py_auto_cross_corr_multicarrier_sync_cc(64, 32, x_preamble)
 
     estimator = validation_utils.frame_estimator(x_preamble, fft_len, timeslots, 52)
-    c_est = cgfdm.py_preamble_channel_estimator_cc(9, 64, 52, x_preamble)
+    c_est = cgfdm.py_preamble_channel_estimator_cc(9, 64, 52, True, x_preamble)
+    p_filter_taps = c_est.preamble_filter_taps()
+    print(estimator._p_filter)
+    print(p_filter_taps)
+    print(np.abs(p_filter_taps - estimator._p_filter) < 1e-6)
 
     for f in frames[0:30]:
         rxs = time.time()
@@ -579,13 +583,31 @@ def rx_demodulate(frames, ref_frame, modulated_frame, x_preamble, data, rx_kerne
         rxe = time.time()
         print('receiver chain time: ', 1e6 * (rxe - rxs), 'us')
 
-        p_active = np.concatenate((np.arange(1, 27), np.arange(37, 64)))
-        cp_est = c_est.estimate_preamble_channel(rx_preamble)
-        p_est = estimator._estimate_preamble(rx_preamble)
-        print('Python vs C Preamble channel correct:', np.all(np.abs(cp_est[p_active] - p_est[p_active]) < 1e-4), np.all(np.angle(cp_est[p_active]) - np.angle(p_est[p_active]) < 1e-6))
-        # print(np.angle(cp_est[p_active]) - np.angle(p_est[p_active]) < 1e-6)
-        # plt.plot(np.angle(cp_est[p_active]))
-        # plt.plot(np.angle(p_est[p_active]))
+        # p_active = np.concatenate((np.arange(1, 27), np.arange(37, 64)))
+        # cp_est = c_est.estimate_preamble_channel(rx_preamble)
+        # p_est = estimator._estimate_preamble(rx_preamble)
+        # print('Python vs C Preamble channel correct:', np.all(np.abs(cp_est[p_active] - p_est[p_active]) < 1e-4), np.all(np.angle(cp_est[p_active]) - np.angle(p_est[p_active]) < 1e-6))
+
+        # pf = estimator._filter_preamble_estimate(p_est)
+        # cf = c_est.filter_preamble_estimate(p_est.astype(dtype=np.complex64))
+        # print(np.all(np.angle(pf) - np.angle(cf) < 1e-6))
+
+        # frame_estimate = c_est.interpolate_frame(pf.astype(dtype=np.complex64))
+        rxs = time.time()
+        frame_estimate = c_est.estimate_frame(rx_preamble)
+        rxe = time.time()
+        print('CPP channel estimator duration: ', 1e6 * (rxe - rxs), 'us')
+        print('Python vs C Preamble channel correct:', np.all(np.abs(frame_estimate - H_estimate) < 1e-6))
+        H_estimate = frame_estimate
+        # plt.plot(H_estimate.real)
+        # plt.plot(H_estimate.imag)
+        # plt.plot(frame_estimate.real)
+        # plt.plot(frame_estimate.imag)
+        #
+        # # plt.plot(pf.real)
+        # # plt.plot(pf.imag)
+        # # plt.plot(cf.real)
+        # # plt.plot(cf.imag)
         # plt.show()
 
 

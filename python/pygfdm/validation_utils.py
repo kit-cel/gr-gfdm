@@ -41,7 +41,7 @@ class frame_estimator():
         self._inv_freq_x_preamble1 = 1. / np.fft.fft(x_preamble[fft_len:])
 
         active_sc = np.arange((self._fft_len - active_subcarriers)//2, (self._fft_len + active_subcarriers)//2+1)
-        active_sc = active_sc[3:-3]
+        # active_sc = active_sc[3:-3]
         freqs = np.fft.fftfreq(fft_len)
         freqs = np.fft.fftshift(freqs)
         self._active_preamble_freqs = freqs[active_sc]
@@ -153,8 +153,7 @@ def main():
     subcarrier_map = mapping.get_subcarrier_map(fft_len, active_subcarriers, dc_free=True)
     ref_frame, modulated_frame, x_preamble, data, freq_filter_taps = generate_integrated_frame(timeslots, fft_len, active_subcarriers, cp_len, cs_len, alpha)
     test_frame = np.concatenate((.001 * utils.get_random_samples(1000), ref_frame, .001 * utils.get_random_samples(1000)))
-    # sframe = synchronize_integrated(test_frame, ref_frame, x_preamble, fft_len, cp_len)
-    # return
+
 
 
 if __name__ == '__main__':

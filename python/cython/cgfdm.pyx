@@ -241,14 +241,35 @@ cdef class py_auto_cross_corr_multicarrier_sync_cc:
 cdef class py_preamble_channel_estimator_cc:
     cdef gfdm_interface.preamble_channel_estimator_cc* kernel
 
-    def __cinit__(self, int timeslots, int fft_len, int active_subcarriers, np.ndarray preamble):
-        self.kernel = new gfdm_interface.preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, preamble.astype(dtype=np.complex64))
+    def __cinit__(self, int timeslots, int fft_len, int active_subcarriers, is_dc_free, np.ndarray preamble):
+        self.kernel = new gfdm_interface.preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, is_dc_free, preamble.astype(dtype=np.complex64))
 
     def __del__(self):
         del self.kernel
 
+    def preamble_filter_taps(self):
+        return np.array(self.kernel.preamble_filter_taps())
+
     def estimate_preamble_channel(self, np.ndarray[np.complex64_t, ndim=1] rx_preamble):
         cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.kernel.fft_len(),), dtype=np.complex64)
         self.kernel.estimate_preamble_channel(<float complex*> res.data, <float complex*> rx_preamble.data)
+        return res
+
+    def filter_preamble_estimate(self, np.ndarray[np.complex64_t, ndim=1] estimate):
+        res_len = self.kernel.active_subcarriers()
+        if self.kernel.is_dc_free():
+            res_len += 1
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((res_len,), dtype=np.complex64)
+        self.kernel.filter_preamble_estimate(<float complex*> res.data, <float complex*> estimate.data)
+        return res
+
+    def interpolate_frame(self, np.ndarray[np.complex64_t, ndim=1] estimate):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.kernel.fft_len() * self.kernel.timeslots(),), dtype=np.complex64)
+        self.kernel.interpolate_frame(<float complex*> res.data, <float complex*> estimate.data)
+        return res
+
+    def estimate_frame(self, np.ndarray[np.complex64_t, ndim=1] rx_preamble):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.kernel.fft_len() * self.kernel.timeslots(),), dtype=np.complex64)
+        self.kernel.estimate_frame(<float complex*> res.data, <float complex*> rx_preamble.data)
         return res
 

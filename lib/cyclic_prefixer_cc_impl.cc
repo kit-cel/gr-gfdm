@@ -72,13 +72,13 @@ namespace gr {
     int
     cyclic_prefixer_cc_impl::fixed_rate_ninput_to_noutput(int ninput)
     {
-      return (ninput / d_kernel->block_size()) * d_kernel->frame_size();;
+      return (ninput / d_kernel->block_size()) * d_kernel->frame_size();
     }
 
     int
     cyclic_prefixer_cc_impl::fixed_rate_noutput_to_ninput(int noutput)
     {
-      return (noutput / d_kernel->frame_size()) * d_kernel->block_size();;
+      return (noutput / d_kernel->frame_size()) * d_kernel->block_size();
     }
 
     int
