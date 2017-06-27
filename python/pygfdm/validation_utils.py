@@ -41,7 +41,7 @@ class frame_estimator():
         self._inv_freq_x_preamble1 = 1. / np.fft.fft(x_preamble[fft_len:])
 
         active_sc = np.arange((self._fft_len - active_subcarriers)//2, (self._fft_len + active_subcarriers)//2+1)
-        active_sc = active_sc[3:-3]
+        # active_sc = active_sc[3:-3]
         freqs = np.fft.fftfreq(fft_len)
         freqs = np.fft.fftshift(freqs)
         self._active_preamble_freqs = freqs[active_sc]

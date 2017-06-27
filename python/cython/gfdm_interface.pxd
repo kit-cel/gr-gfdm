@@ -63,6 +63,13 @@ cdef extern from "auto_cross_corr_multicarrier_sync_cc.h" namespace "gr::gfdm":
 
 cdef extern from "preamble_channel_estimator_cc.h" namespace "gr::gfdm":
     cdef cppclass preamble_channel_estimator_cc:
-        preamble_channel_estimator_cc(int, int, int, vector[float complex]) except +
+        preamble_channel_estimator_cc(int, int, int, bool, vector[float complex]) except +
         int fft_len()
+        int timeslots()
+        int active_subcarriers()
+        bool is_dc_free()
+        vector[float] preamble_filter_taps()
         void estimate_preamble_channel(float complex* fd_preamble_channel, const float complex* rx_preamble)
+        void filter_preamble_estimate(float complex* filtered, const float complex* estimate)
+        void interpolate_frame(float complex* frame_estimate, const float complex* estimate)
+        void estimate_frame(float complex* frame_estimate, const float complex* rx_preamble)
