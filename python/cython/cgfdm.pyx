@@ -238,3 +238,17 @@ cdef class py_auto_cross_corr_multicarrier_sync_cc:
             raise ValueError("CGFDM: RX vector for preamble attenuation calculation is TOO SMALL!")
         return self.kernel.calculate_preamble_attenuation(<float complex*> inbuf.data)
 
+cdef class py_preamble_channel_estimator_cc:
+    cdef gfdm_interface.preamble_channel_estimator_cc* kernel
+
+    def __cinit__(self, int timeslots, int fft_len, int active_subcarriers, np.ndarray preamble):
+        self.kernel = new gfdm_interface.preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, preamble.astype(dtype=np.complex64))
+
+    def __del__(self):
+        del self.kernel
+
+    def estimate_preamble_channel(self, np.ndarray[np.complex64_t, ndim=1] rx_preamble):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.kernel.fft_len(),), dtype=np.complex64)
+        self.kernel.estimate_preamble_channel(<float complex*> res.data, <float complex*> rx_preamble.data)
+        return res
+

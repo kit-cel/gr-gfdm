@@ -50,8 +50,8 @@ class frame_estimator():
         self._frame_freqs = np.fft.fftshift(fr_freqs)
 
         g = signal.gaussian(9, 1.0)
-        g_factor = 1.
-        g /= np.sqrt(g_factor * g.dot(g))
+        # g /= g.dot(np.ones(len(g)))
+        g /= np.sum(g)
         self._p_filter = g
 
     def _estimate_preamble(self, rx_preamble):
@@ -60,15 +60,17 @@ class frame_estimator():
         H = (e0 + e1) / 2
         return H
 
-    def _interpolate_frame(self, H):
+    def _filter_preamble_estimate(self, H):
         H[0] = (H[1] + H[-1]) / 2.
         H = np.fft.fftshift(H)
 
         Ha = H[self._active_sc]
         Hb = np.concatenate((np.repeat(Ha[0], 4), Ha, np.repeat(Ha[-1], 4)))
         Hg = np.correlate(Hb, self._p_filter)
+        return Hg
 
-        Hg *= np.sqrt(utils.calculate_signal_energy(Ha) / utils.calculate_signal_energy(Hg))
+    def _interpolate_frame(self, H):
+        Hg = self._filter_preamble_estimate(H)
 
         H_frame = np.interp(self._frame_freqs, self._active_preamble_freqs, Hg.real) + 1j * np.interp(self._frame_freqs, self._active_preamble_freqs, Hg.imag)
         return np.fft.fftshift(H_frame)

@@ -561,6 +561,7 @@ def rx_demodulate(frames, ref_frame, modulated_frame, x_preamble, data, rx_kerne
     sync_kernel = cgfdm.py_auto_cross_corr_multicarrier_sync_cc(64, 32, x_preamble)
 
     estimator = validation_utils.frame_estimator(x_preamble, fft_len, timeslots, 52)
+    c_est = cgfdm.py_preamble_channel_estimator_cc(9, 64, 52, x_preamble)
 
     for f in frames[0:30]:
         rxs = time.time()
@@ -577,6 +578,16 @@ def rx_demodulate(frames, ref_frame, modulated_frame, x_preamble, data, rx_kerne
         de = demapper.demap_from_resources(kde.astype(dtype=np.complex64), len(data))
         rxe = time.time()
         print('receiver chain time: ', 1e6 * (rxe - rxs), 'us')
+
+        p_active = np.concatenate((np.arange(1, 27), np.arange(37, 64)))
+        cp_est = c_est.estimate_preamble_channel(rx_preamble)
+        p_est = estimator._estimate_preamble(rx_preamble)
+        print('Python vs C Preamble channel correct:', np.all(np.abs(cp_est[p_active] - p_est[p_active]) < 1e-4), np.all(np.angle(cp_est[p_active]) - np.angle(p_est[p_active]) < 1e-6))
+        # print(np.angle(cp_est[p_active]) - np.angle(p_est[p_active]) < 1e-6)
+        # plt.plot(np.angle(cp_est[p_active]))
+        # plt.plot(np.angle(p_est[p_active]))
+        # plt.show()
+
 
         P = np.fft.fft(rx_t_frame)
         P *= np.conj(H_estimate)

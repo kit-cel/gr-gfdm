@@ -74,7 +74,6 @@ namespace gr
       const int n_blocks = noutput_items / d_adv_kernel->block_size();
 
       if(input_items.size() > 1){
-        std::cout << "use EQ\n";
         const gr_complex *in_eq = (const gr_complex *) input_items[1];
         for (int i = 0; i < n_blocks; ++i) {
           d_adv_kernel->generic_work_equalize(out, in, in_eq);

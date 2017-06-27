@@ -28,6 +28,8 @@
 #include <boost/shared_ptr.hpp>
 #include <stdexcept>
 
+#include "gfdm_kernel_utils.h"
+
 namespace gr {
   namespace gfdm {
 
@@ -35,7 +37,7 @@ namespace gr {
      * \brief Simplified version of "Improved Preamble-Aided Timing Estimation for OFDM Systems"
      *
      */
-    class auto_cross_corr_multicarrier_sync_cc
+    class auto_cross_corr_multicarrier_sync_cc : public gfdm_kernel_utils
     {
     public:
       typedef std::complex<float> gfdm_complex;
@@ -70,7 +72,6 @@ namespace gr {
       float d_frame_phase;
       float d_preamble_attenuation;
 
-      fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
       fftwf_plan d_fxc_plan;
       fftwf_plan d_ixc_plan;
       gfdm_complex* d_fxc_in;
@@ -79,15 +80,9 @@ namespace gr {
       gfdm_complex* d_ixc_out;
       gfdm_complex* d_freq_preamble;
 
-
       float d_reference_preamble_energy;
-      float calculate_signal_energy(const gfdm_complex* p_in, const int ninput_size);
 
-
-//      int find_peak(float* vals, const int ninput_size);
       float calculate_normalized_cfo(const gfdm_complex corr_val);
-//      void cross_correlate_preamble(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
-//      void fixed_lag_auto_correlate(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
       void adjust_buffer_size(const int ninput_size);
     };
 

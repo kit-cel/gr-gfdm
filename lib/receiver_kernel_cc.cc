@@ -131,32 +131,6 @@ namespace gr
       return taps;
     }
 
-    fftwf_plan
-    receiver_kernel_cc::initialize_fft(gfdm_complex *out_buf, gfdm_complex *in_buf, const int fft_size, bool forward)
-    {
-      std::string filename(getenv("HOME"));
-      filename += "/.gr_fftw_wisdom";
-      FILE *fpr = fopen(filename.c_str(), "r");
-      if (fpr != 0) {
-        fftwf_import_wisdom_from_file(fpr);
-        fclose(fpr);
-      }
-
-      fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
-                                          reinterpret_cast<fftwf_complex *>(in_buf),
-                                          reinterpret_cast<fftwf_complex *>(out_buf),
-                                          forward ? FFTW_FORWARD : FFTW_BACKWARD,
-                                          FFTW_MEASURE);
-
-      FILE *fpw = fopen(filename.c_str(), "w");
-      if (fpw != 0) {
-        fftwf_export_wisdom_to_file(fpw);
-        fclose(fpw);
-      }
-      return plan;
-    }
-
-
     void
     receiver_kernel_cc::filter_superposition(std::vector<std::vector<gfdm_complex> > &out,
                                              const gfdm_complex *in)
@@ -326,10 +300,7 @@ namespace gr
     void
     receiver_kernel_cc::generic_work_equalize(gfdm_complex *out, const gfdm_complex *in, const gfdm_complex* f_eq_in)
     {
-      memcpy(d_in_fft_in, in, sizeof(gfdm_complex) * d_block_len);
-      fftwf_execute(d_in_fft_plan);
-      volk_32fc_x2_multiply_conjugate_32fc(d_equalized, d_in_fft_out, f_eq_in, d_block_len);
-      filter_subcarriers_and_downsample_fd(d_sc_filtered, d_equalized);
+      fft_equalize_filter_downsample(d_sc_filtered, in, f_eq_in);
       transform_subcarriers_to_td(out, d_sc_filtered);
     }
 
