@@ -35,8 +35,6 @@ namespace gr {
       }
 
       // calculate energy of preamble
-//      gfdm_complex energy = gfdm_complex(0.0, 0.0);
-//      volk_32fc_x2_conjugate_dot_prod_32fc(&energy, &preamble[0], &preamble[0], preamble.size());
       float energy = calculate_signal_energy(&preamble[0], preamble.size());
       d_reference_preamble_energy = energy;
       // now calculate amplitude, assume Q part == 0.0
@@ -87,39 +85,6 @@ namespace gr {
       volk_free(d_ixc_out);
       volk_free(d_freq_preamble);
 
-    }
-
-      float
-      auto_cross_corr_multicarrier_sync_cc::calculate_signal_energy(const gfdm_complex* p_in, const int ninput_size)
-      {
-          gfdm_complex energy = gfdm_complex(0.0, 0.0);
-          volk_32fc_x2_conjugate_dot_prod_32fc(&energy, p_in, p_in, ninput_size);
-          return energy.real();
-      }
-
-    fftwf_plan
-    auto_cross_corr_multicarrier_sync_cc::initialize_fft(gfdm_complex *out_buf, gfdm_complex *in_buf, const int fft_size, bool forward)
-    {
-      std::string filename(getenv("HOME"));
-      filename += "/.gr_fftw_wisdom";
-      FILE *fpr = fopen(filename.c_str(), "r");
-      if (fpr != 0) {
-        fftwf_import_wisdom_from_file(fpr);
-        fclose(fpr);
-      }
-
-      fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
-                                          reinterpret_cast<fftwf_complex *>(in_buf),
-                                          reinterpret_cast<fftwf_complex *>(out_buf),
-                                          forward ? FFTW_FORWARD : FFTW_BACKWARD,
-                                          FFTW_MEASURE);
-
-      FILE *fpw = fopen(filename.c_str(), "w");
-      if (fpw != 0) {
-        fftwf_export_wisdom_to_file(fpw);
-        fclose(fpw);
-      }
-      return plan;
     }
 
     float

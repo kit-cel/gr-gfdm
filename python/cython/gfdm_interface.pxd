@@ -60,3 +60,9 @@ cdef extern from "auto_cross_corr_multicarrier_sync_cc.h" namespace "gr::gfdm":
         int find_peak(float* vals, const int ninput_size)
         float calculate_preamble_attenuation(const float complex* p_in)
         void normalize_power_level(float complex* p_out, const float complex* p_in, const float norm_factor, const int ninput_size)
+
+cdef extern from "preamble_channel_estimator_cc.h" namespace "gr::gfdm":
+    cdef cppclass preamble_channel_estimator_cc:
+        preamble_channel_estimator_cc(int, int, int, vector[float complex]) except +
+        int fft_len()
+        void estimate_preamble_channel(float complex* fd_preamble_channel, const float complex* rx_preamble)

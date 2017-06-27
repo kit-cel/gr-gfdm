@@ -131,32 +131,6 @@ namespace gr
       return taps;
     }
 
-    fftwf_plan
-    receiver_kernel_cc::initialize_fft(gfdm_complex *out_buf, gfdm_complex *in_buf, const int fft_size, bool forward)
-    {
-      std::string filename(getenv("HOME"));
-      filename += "/.gr_fftw_wisdom";
-      FILE *fpr = fopen(filename.c_str(), "r");
-      if (fpr != 0) {
-        fftwf_import_wisdom_from_file(fpr);
-        fclose(fpr);
-      }
-
-      fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
-                                          reinterpret_cast<fftwf_complex *>(in_buf),
-                                          reinterpret_cast<fftwf_complex *>(out_buf),
-                                          forward ? FFTW_FORWARD : FFTW_BACKWARD,
-                                          FFTW_MEASURE);
-
-      FILE *fpw = fopen(filename.c_str(), "w");
-      if (fpw != 0) {
-        fftwf_export_wisdom_to_file(fpw);
-        fclose(fpw);
-      }
-      return plan;
-    }
-
-
     void
     receiver_kernel_cc::filter_superposition(std::vector<std::vector<gfdm_complex> > &out,
                                              const gfdm_complex *in)

@@ -29,6 +29,8 @@
 #include <fftw3.h>
 #include <stdexcept>
 
+#include "gfdm_kernel_utils.h"
+
 namespace gr {
   namespace gfdm {
 
@@ -47,7 +49,7 @@ namespace gr {
      * [Gas+13] I.S. Gaspar et al. "Low Complexity GFDM Receiver Based on Sparse Frequency Domain Processing"
      *
      */
-    class  receiver_kernel_cc
+    class  receiver_kernel_cc : public gfdm_kernel_utils
     {
     public:
       typedef std::complex<float> gfdm_complex;
@@ -84,7 +86,6 @@ namespace gr {
       gfdm_complex* d_filter_taps;
       gfdm_complex* d_ic_filter_taps;
 
-      fftwf_plan initialize_fft(gfdm_complex* out_buf, gfdm_complex* in_buf, const int fft_size, bool forward);
       void initialize_taps_vector(gfdm_complex* filter_taps, std::vector<gfdm_complex> frequency_taps, const int n_timeslots);
 
       fftwf_plan d_in_fft_plan;
