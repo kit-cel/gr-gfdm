@@ -97,7 +97,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(96, 844)</value>
+      <value>(80, 828)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -328,7 +328,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1440, 656)</value>
+      <value>(1416, 676)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -694,57 +694,6 @@
     </param>
   </block>
   <block>
-    <key>blocks_file_sink</key>
-    <param>
-      <key>append</key>
-      <value>False</value>
-    </param>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>file</key>
-      <value>/lhome/records/gfdm_gr_fg_synced_frames.dat</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(752, 508)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>blocks_file_sink_0_0</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
-    </param>
-    <param>
-      <key>unbuffered</key>
-      <value>False</value>
-    </param>
-    <param>
-      <key>vlen</key>
-      <value>1</value>
-    </param>
-  </block>
-  <block>
     <key>blocks_file_source</key>
     <param>
       <key>alias</key>
@@ -870,7 +819,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(784, 644)</value>
+      <value>(288, 700)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1031,7 +980,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(104, 492)</value>
+      <value>(64, 508)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1090,7 +1039,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1360, 892)</value>
+      <value>(1200, 820)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1157,7 +1106,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(936, 844)</value>
+      <value>(936, 852)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1189,53 +1138,6 @@
     </param>
   </block>
   <block>
-    <key>gfdm_extract_burst_cc</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>burst_start_tag</key>
-      <value>'energy_start'</value>
-    </param>
-    <param>
-      <key>burst_len</key>
-      <value>1000</value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(280, 756)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>gfdm_extract_burst_cc_0</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
     <key>gfdm_remove_prefix_cc</key>
     <param>
       <key>alias</key>
@@ -1263,7 +1165,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(744, 856)</value>
+      <value>(744, 860)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1318,7 +1220,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(952, 716)</value>
+      <value>(920, 740)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1369,7 +1271,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1632, 908)</value>
+      <value>(1472, 836)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1405,70 +1307,7 @@
     </param>
   </block>
   <block>
-    <key>gfdm_simple_preamble_sync_cc</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>cp_len</key>
-      <value>cp_len</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>frame_len</key>
-      <value>800</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(512, 724)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>gfdm_simple_preamble_sync_cc_0</value>
-    </param>
-    <param>
-      <key>in_key</key>
-      <value>energy_start</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>out_key</key>
-      <value>frame_start</value>
-    </param>
-    <param>
-      <key>preamble</key>
-      <value>modulated_preambles[1]</value>
-    </param>
-    <param>
-      <key>subcarriers</key>
-      <value>64</value>
-    </param>
-  </block>
-  <block>
-    <key>hier_energy_burst_detector</key>
+    <key>gfdm_synchronization</key>
     <param>
       <key>alias</key>
       <value></value>
@@ -1478,8 +1317,8 @@
       <value>burst_backoff</value>
     </param>
     <param>
-      <key>burst_tag_key</key>
-      <value>'energy_start'</value>
+      <key>cp_len</key>
+      <value>cp_len</value>
     </param>
     <param>
       <key>comment</key>
@@ -1494,8 +1333,20 @@
       <value>True</value>
     </param>
     <param>
+      <key>look_ahead_val</key>
+      <value>64</value>
+    </param>
+    <param>
+      <key>output_tag_key</key>
+      <value>'frame_start'</value>
+    </param>
+    <param>
+      <key>frame_len</key>
+      <value>800</value>
+    </param>
+    <param>
       <key>_coordinate</key>
-      <value>(72, 740)</value>
+      <value>(56, 684)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1503,7 +1354,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>hier_energy_burst_detector_0</value>
+      <value>gfdm_synchronization_0</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -1514,12 +1365,12 @@
       <value>0</value>
     </param>
     <param>
-      <key>peak_look_ahead_value</key>
-      <value>look_ahead_val</value>
+      <key>ref_preamble</key>
+      <value>modulated_preambles[1]</value>
     </param>
     <param>
-      <key>peak_th_factor</key>
-      <value>10.</value>
+      <key>subcarriers</key>
+      <value>64</value>
     </param>
   </block>
   <block>
@@ -1736,7 +1587,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1720, 772)</value>
+      <value>(1712, 860)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -2083,7 +1934,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1008, 628)</value>
+      <value>(512, 684)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -2322,7 +2173,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(328, 868)</value>
+      <value>(248, 900)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -2685,7 +2536,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(704, 972)</value>
+      <value>(376, 972)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -3048,7 +2899,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1320, 780)</value>
+      <value>(1216, 700)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -3599,45 +3450,6 @@
     </param>
   </block>
   <block>
-    <key>blocks_vector_sink_x</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(968, 800)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>sync_sink</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
-    </param>
-    <param>
-      <key>vlen</key>
-      <value>1</value>
-    </param>
-  </block>
-  <block>
     <key>qtgui_tab_widget</key>
     <param>
       <key>alias</key>
@@ -3653,7 +3465,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(280, 692)</value>
+      <value>(320, 612)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -3796,7 +3608,7 @@
   </connection>
   <connection>
     <source_block_id>freq_xlating_fir_filter_xxx_0</source_block_id>
-    <sink_block_id>hier_energy_burst_detector_0</sink_block_id>
+    <sink_block_id>gfdm_synchronization_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -3817,18 +3629,6 @@
     <sink_block_id>qtgui_time_sink_x_0_0_0_1</sink_block_id>
     <source_key>0</source_key>
     <sink_key>1</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>gfdm_extract_burst_cc_0</source_block_id>
-    <sink_block_id>gfdm_simple_preamble_sync_cc_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>gfdm_extract_burst_cc_0</source_block_id>
-    <sink_block_id>qtgui_time_sink_x_0_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
   </connection>
   <connection>
     <source_block_id>gfdm_remove_prefix_cc_0</source_block_id>
@@ -3855,45 +3655,33 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
-    <sink_block_id>blocks_pdu_to_tagged_stream_0</sink_block_id>
-    <source_key>cfo</source_key>
-    <sink_key>pdus</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
-    <sink_block_id>blocks_file_sink_0_0</sink_block_id>
+    <source_block_id>gfdm_synchronization_0</source_block_id>
+    <sink_block_id>qtgui_time_sink_x_0_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
+    <source_block_id>gfdm_synchronization_0</source_block_id>
     <sink_block_id>gfdm_remove_prefix_cc_0</sink_block_id>
-    <source_key>0</source_key>
+    <source_key>1</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
+    <source_block_id>gfdm_synchronization_0</source_block_id>
     <sink_block_id>gfdm_remove_prefix_cc_0_0</sink_block_id>
-    <source_key>0</source_key>
+    <source_key>1</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
+    <source_block_id>gfdm_synchronization_0</source_block_id>
     <sink_block_id>qtgui_time_sink_x_0_0_0_0</sink_block_id>
-    <source_key>0</source_key>
+    <source_key>1</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
-    <sink_block_id>sync_sink</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>hier_energy_burst_detector_0</source_block_id>
-    <sink_block_id>gfdm_extract_burst_cc_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
+    <source_block_id>gfdm_synchronization_0</source_block_id>
+    <sink_block_id>blocks_pdu_to_tagged_stream_0</sink_block_id>
+    <source_key>out</source_key>
+    <sink_key>pdus</sink_key>
   </connection>
 </flow_graph>
