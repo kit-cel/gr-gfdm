@@ -42,7 +42,6 @@ namespace gr {
     class preamble_channel_estimator_cc : public gfdm_kernel_utils
     {
     public:
-//      typedef std::complex<float> gfdm_complex;
       typedef boost::shared_ptr<preamble_channel_estimator_cc> sptr;
 
       preamble_channel_estimator_cc(int timeslots, int fft_len, int active_subcarriers, bool is_dc_free, std::vector<gfdm_complex> preamble);

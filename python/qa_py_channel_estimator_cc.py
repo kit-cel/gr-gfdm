@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # 
-# Copyright 2017 Johannes Demel.
+# Copyright 2017 <+YOU OR YOUR COMPANY+>.
 # 
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,8 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-import gfdm_swig as gfdm
+from channel_estimator_cc import channel_estimator_cc
+import numpy as np
 
 
 class qa_channel_estimator_cc(gr_unittest.TestCase):
@@ -33,9 +34,11 @@ class qa_channel_estimator_cc(gr_unittest.TestCase):
 
     def test_001_t(self):
         # set up fg
+        estimator = channel_estimator_cc(np.ones(128), 64, 9, 52)
+
         self.tb.run()
         # check data
 
 
 if __name__ == '__main__':
-    gr_unittest.run(qa_channel_estimator_cc)
+    gr_unittest.run(qa_channel_estimator_cc, "qa_channel_estimator_cc.xml")

@@ -23,7 +23,7 @@ import numpy as np
 from gnuradio import gr
 from pygfdm import validation_utils
 
-class channel_estimator_cc(gr.interp_block):
+class py_channel_estimator_cc(gr.interp_block):
     """
     docstring for block channel_estimator_cc
     """

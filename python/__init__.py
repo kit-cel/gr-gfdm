@@ -31,5 +31,5 @@ except ImportError:
 	pass
 
 # import any pure python here
-from channel_estimator_cc import channel_estimator_cc
+from py_channel_estimator_cc import py_channel_estimator_cc
 #
