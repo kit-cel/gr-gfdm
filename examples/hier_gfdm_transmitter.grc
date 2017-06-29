@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<?grc format='1' created='3.7.11'?>
+<?grc format='1' created='3.7.12'?>
 <flow_graph>
   <timestamp>Thu Jun 16 17:50:25 2016</timestamp>
   <block>
@@ -93,7 +93,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(848, 68)</value>
+      <value>(656, 140)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -120,7 +120,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1040, 68)</value>
+      <value>(848, 140)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -147,7 +147,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1184, 68)</value>
+      <value>(1032, 140)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -174,7 +174,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(928, 68)</value>
+      <value>(736, 140)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -205,7 +205,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(368, 12)</value>
+      <value>(376, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -224,12 +224,16 @@
       <value></value>
     </param>
     <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
       <key>type</key>
       <value>intx</value>
     </param>
     <param>
       <key>value</key>
-      <value>110</value>
+      <value>52</value>
     </param>
   </block>
   <block>
@@ -248,7 +252,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(216, 12)</value>
+      <value>(264, 100)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -267,12 +271,16 @@
       <value></value>
     </param>
     <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
       <key>type</key>
       <value>intx</value>
     </param>
     <param>
       <key>value</key>
-      <value>64</value>
+      <value>32</value>
     </param>
   </block>
   <block>
@@ -291,7 +299,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(216, 84)</value>
+      <value>(344, 100)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -308,6 +316,10 @@
     <param>
       <key>short_id</key>
       <value></value>
+    </param>
+    <param>
+      <key>hide</key>
+      <value>none</value>
     </param>
     <param>
       <key>type</key>
@@ -334,7 +346,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(936, 12)</value>
+      <value>(752, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -353,12 +365,16 @@
       <value></value>
     </param>
     <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
       <key>type</key>
       <value></value>
     </param>
     <param>
       <key>value</key>
-      <value>0</value>
+      <value>filters.get_frequency_domain_filter('rrc', .2, 9, 64, 2)</value>
     </param>
   </block>
   <block>
@@ -393,7 +409,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(744, 192)</value>
+      <value>(816, 252)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -444,7 +460,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(312, 192)</value>
+      <value>(392, 252)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -503,7 +519,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(528, 200)</value>
+      <value>(600, 260)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -550,7 +566,100 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(16, 216)</value>
+      <value>(8, 332)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_cyclic_prefix</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>from gfdm.pygfdm import cyclic_prefix</value>
+    </param>
+  </block>
+  <block>
+    <key>import</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(8, 252)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_filters</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>from gfdm.pygfdm import filters</value>
+    </param>
+  </block>
+  <block>
+    <key>import</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(8, 212)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_mapping</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>from gfdm.pygfdm import mapping</value>
+    </param>
+  </block>
+  <block>
+    <key>import</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(8, 156)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -563,6 +672,37 @@
     <param>
       <key>import</key>
       <value>import numpy as np</value>
+    </param>
+  </block>
+  <block>
+    <key>import</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(8, 292)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_synchronization</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>from gfdm.pygfdm import preamble as pre_module</value>
     </param>
   </block>
   <block>
@@ -581,7 +721,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(568, 12)</value>
+      <value>(496, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -598,6 +738,10 @@
     <param>
       <key>short_id</key>
       <value></value>
+    </param>
+    <param>
+      <key>hide</key>
+      <value>none</value>
     </param>
     <param>
       <key>type</key>
@@ -620,7 +764,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1096, 220)</value>
+      <value>(1168, 284)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -663,7 +807,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(168, 220)</value>
+      <value>(216, 284)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -710,7 +854,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1144, 12)</value>
+      <value>(1048, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -729,12 +873,16 @@
       <value></value>
     </param>
     <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
       <key>type</key>
       <value></value>
     </param>
     <param>
       <key>value</key>
-      <value>np.ones(320, dtype=np.complex)</value>
+      <value>pre_module.mapped_preamble(471142, 'rrc', .2, 52, 64, mapping.get_subcarrier_map(64, 52, dc_free=True), 2, 32, 16)[0]</value>
     </param>
   </block>
   <block>
@@ -757,7 +905,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(936, 204)</value>
+      <value>(1016, 268)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -808,7 +956,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(648, 12)</value>
+      <value>(424, 100)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -825,6 +973,10 @@
     <param>
       <key>short_id</key>
       <value></value>
+    </param>
+    <param>
+      <key>hide</key>
+      <value>none</value>
     </param>
     <param>
       <key>type</key>
@@ -851,7 +1003,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(736, 12)</value>
+      <value>(592, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -870,12 +1022,16 @@
       <value></value>
     </param>
     <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
       <key>type</key>
       <value></value>
     </param>
     <param>
       <key>value</key>
-      <value>np.arange(110)</value>
+      <value>mapping.get_subcarrier_map(64, 52, dc_free=True)</value>
     </param>
   </block>
   <block>
@@ -894,7 +1050,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(488, 12)</value>
+      <value>(288, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -913,12 +1069,16 @@
       <value></value>
     </param>
     <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
       <key>type</key>
       <value>intx</value>
     </param>
     <param>
       <key>value</key>
-      <value>128</value>
+      <value>64</value>
     </param>
   </block>
   <block>
@@ -937,7 +1097,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(296, 12)</value>
+      <value>(208, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -956,12 +1116,16 @@
       <value></value>
     </param>
     <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
       <key>type</key>
       <value>intx</value>
     </param>
     <param>
       <key>value</key>
-      <value>5</value>
+      <value>9</value>
     </param>
   </block>
   <block>
@@ -980,7 +1144,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1032, 12)</value>
+      <value>(904, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -999,12 +1163,16 @@
       <value></value>
     </param>
     <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
       <key>type</key>
       <value></value>
     </param>
     <param>
       <key>value</key>
-      <value>[1,]</value>
+      <value>cyclic_prefix.get_root_raised_cosine_ramp(16, 624)</value>
     </param>
   </block>
   <connection>
