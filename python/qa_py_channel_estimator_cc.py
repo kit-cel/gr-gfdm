@@ -21,7 +21,7 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-from channel_estimator_cc import channel_estimator_cc
+from py_channel_estimator_cc import py_channel_estimator_cc
 import numpy as np
 
 
@@ -34,7 +34,7 @@ class qa_channel_estimator_cc(gr_unittest.TestCase):
 
     def test_001_t(self):
         # set up fg
-        estimator = channel_estimator_cc(np.ones(128), 64, 9, 52)
+        estimator = py_channel_estimator_cc(np.ones(128), 64, 9, 52)
 
         self.tb.run()
         # check data
