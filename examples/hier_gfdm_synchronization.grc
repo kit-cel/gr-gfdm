@@ -93,7 +93,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(464, 300)</value>
+      <value>(128, 140)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -214,7 +214,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1104, 268)</value>
+      <value>(1008, 308)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -253,11 +253,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(792, 308)</value>
+      <value>(792, 388)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -347,7 +347,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1104, 188)</value>
+      <value>(1008, 276)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -406,7 +406,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(496, 196)</value>
+      <value>(576, 284)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -453,7 +453,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(792, 164)</value>
+      <value>(792, 252)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -516,7 +516,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(280, 180)</value>
+      <value>(368, 268)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -559,7 +559,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(32, 124)</value>
+      <value>(8, 148)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -680,7 +680,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(104, 204)</value>
+      <value>(192, 292)</value>
     </param>
     <param>
       <key>_rotation</key>
