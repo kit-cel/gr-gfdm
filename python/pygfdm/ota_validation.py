@@ -647,20 +647,13 @@ def main():
     cp_len = fft_len // 2
     cs_len = cp_len // 2
     subcarrier_map = mapping.get_subcarrier_map(fft_len, active_subcarriers, dc_free=True)
-    cc_pad = 500
-    f_num = 19
-    # frame = gr_load_frame()[f_num*3200-cc_pad:(f_num+1)*3200+cc_pad]
-    # corr_trial(frame, fft_len * 4)
-    # return
-    # tz = np.zeros(1000, dtype=frame.dtype) + 0.0001
-    # frame = np.concatenate((tz, frame, tz))
+
     print(subcarrier_map)
     filename = '/lhome/records/gfdm_replay_ref_frame_time_synced.dat'
     # filename = '/lhome/records/gfdm_gr_fg_synced_frames.dat'
     # filename = '/lhome/records/gfdm_ref_frame_50ms_slice.dat'
     slice_len = 800
     offset = 0
-    # offset = 3400
     n_frames = 200
     frame_start = 0
     frame_end = 800
@@ -682,7 +675,6 @@ def main():
     # plt.show()
     # return
 
-    # plt.semilogy(*signal.welch(frame))
 
     ref_frame, modulated_frame, x_preamble, data, freq_filter_taps = validation_utils.generate_reference_frame(timeslots, fft_len, active_subcarriers, cp_len, cs_len, alpha)
     #ref_frame, modulated_frame, x_preamble, data, freq_filter_taps = validation_utils.generate_sc_qpsk_frame(timeslots, fft_len, active_subcarriers, cp_len, cs_len, alpha)
@@ -694,187 +686,6 @@ def main():
     # rx_nyquist_sampled(frames, ref_frame, modulated_frame, x_preamble, data, rx_kernel, demapper, timeslots, fft_len, cp_len, cs_len)
     rx_demodulate(frames, ref_frame, modulated_frame, x_preamble, data, rx_kernel, demapper, timeslots, fft_len, cp_len, cs_len)
     return
-
-
-    f_start = cp_len + 2 * fft_len + cs_len
-    d_start = f_start + cp_len
-    print('data start: ', d_start)
-
-    rx_preamble = sframe[cp_len:cp_len + 2 * fft_len]
-    rx_data_frame = sframe[d_start:d_start + fft_len * timeslots]
-
-    # plt.plot(np.abs(rx_data_frame))
-    # plt.plot(np.abs(modulated_frame))
-    # plt.plot(np.abs(rx_data_frame - modulated_frame))
-    # plt.plot(np.angle(rx_data_frame))
-    # plt.plot(np.angle(modulated_frame))
-
-    phase_err = np.unwrap(np.angle(rx_data_frame) - np.angle(modulated_frame))
-    A = np.array([np.arange(len(phase_err)), np.ones(len(phase_err))])
-    plt.plot(phase_err)
-
-    xc = np.sum(rx_data_frame * np.conj(modulated_frame))
-    xangle = np.angle(xc) / len(rx_data_frame)
-    plt.plot(np.arange(len(phase_err)), xangle * np.arange(len(phase_err)))
-
-    phase_reg = np.linalg.lstsq(A.T, phase_err)
-    m, c = phase_reg[0]
-    plt.plot(np.arange(len(phase_err)), m * np.arange(len(phase_err)) + c)
-    print(m, xangle)
-
-    phase_correction_vals = m * np.arange(len(phase_err)) + c
-    rx_data_frame *= np.exp(-1j * phase_correction_vals)
-    phase_err = np.unwrap(np.angle(rx_data_frame) - np.angle(modulated_frame))
-    plt.plot(phase_err)
-    phase_reg = np.linalg.lstsq(A.T, phase_err)
-    m, c = phase_reg[0]
-    plt.plot(np.arange(len(phase_err)), m * np.arange(len(phase_err)) + c)
-
-    # lin regression on preamble
-    phase_err = np.unwrap(np.angle(rx_preamble) - np.angle(x_preamble))
-    A = np.array([np.arange(len(phase_err)), np.ones(len(phase_err))])
-    plt.plot(phase_err)
-
-    phase_reg = np.linalg.lstsq(A.T, phase_err)
-    m, c = phase_reg[0]
-    plt.plot(np.arange(len(phase_err)), m * np.arange(len(phase_err)) + c)
-
-
-    plt.show()
-    # return
-
-    ref_data = demodulate_data_frame(modulated_frame, rx_kernel, demapper, len(data))
-    rx_data = demodulate_data_frame(rx_data_frame, rx_kernel, demapper, len(data))
-
-
-
-    H, e0, e1 = preamble_estimate(rx_preamble, x_preamble, fft_len)
-    a = np.angle(e1) - np.angle(e0)
-    a /= fft_len
-    # H = e1
-    H_est = np.repeat(H, timeslots)
-    # H = np.fft.fftshift(H)
-    # e0 = np.fft.fftshift(e0)
-    # e1 = np.fft.fftshift(e1)
-    # plt.plot(np.angle(e0))
-    # plt.plot(np.angle(e1))
-    # plt.plot(np.angle(H))
-    # plt.grid()
-    # plt.show()
-    # return
-
-    ic = ref_data - data
-    # plt.scatter(ic.real, ic.imag)
-    # plt.show()
-
-    rx_eq_data = demodulate_equalize_frame(rx_data_frame, rx_kernel, demapper, H, fft_len, len(data))
-    # plt.scatter(rx_eq_data[0:timeslots].real, rx_eq_data[0:timeslots].imag, color='g')
-    # rx_eq_data -= ic
-    # rx_data -= ic
-
-    phases = np.angle(rx_data) - np.angle(ref_data)
-    phases = np.unwrap(phases)
-    pm = np.reshape(phases, (-1, active_subcarriers))
-    # for i in range(active_subcarriers):
-    #     p = pm[:, i]
-    #     plt.plot(p)
-
-    # plt.plot(phases)
-    # plt.show()
-    avg_phase = np.sum(phases) / len(phases)
-    print('AVG phase shift: ', avg_phase)
-    # rx_data *= np.exp(-1j * avg_phase)
-
-    phases = np.angle(rx_data) - np.angle(ref_data)
-    phases = np.unwrap(phases)
-    # plt.plot(phases)
-
-    # rx_eq_data = equalize_frame(rx_data, ref_data, active_subcarriers, timeslots)
-
-
-
-    # plt.show()
-    # return
-    fber = calculate_frame_ber(ref_data, rx_data)
-    print('Frame BER: ', fber)
-
-    plot_constellation(ref_data, rx_data, rx_eq_data, 0, timeslots * fft_len)
-    plt.show()
-    return
-
-    for i in range(timeslots):
-        icp = ic[i + timeslots]
-        plt.scatter(icp.real, icp.imag)
-        plot_constellation(ref_data, rx_data, rx_eq_data, timeslots + i, timeslots + i + 1)
-        plt.show()
-    return
-
-
-
-    data_syms = sframe[d_start:d_start + fft_len * timeslots]
-    ref_syms = ref_frame[d_start:d_start + fft_len * timeslots]
-
-
-    rx_syms64 = data_syms.astype(dtype=np.complex64)
-    fd_syms = rx_kernel.fft_filter_downsample(rx_syms64)
-    fd_syms = np.reshape(fd_syms, (fft_len, timeslots))
-    fd_eq = np.zeros(np.shape(fd_syms), dtype=np.complex64)
-    for i in range(fft_len):
-        fd_eq[i] = fd_syms[i] * np.conj(H[i])
-    fd_eq = fd_eq.flatten()
-
-
-    r_data = rx_kernel.transform_subcarriers_to_td(fd_eq)
-
-
-    # f_estimate = estimate_frame(data_syms, ref_syms, fft_len, timeslots)
-
-    ref_syms64 = ref_syms.astype(dtype=np.complex64)
-    fd_syms = rx_kernel.fft_filter_downsample(ref_syms64)
-    txd2 = rx_kernel.transform_subcarriers_to_td(fd_syms)
-
-    txd = rx_kernel.demodulate(ref_syms64)
-    t_data = gfdm_receiver.gfdm_demodulate_fft(ref_syms, .5, timeslots, fft_len, 2, sic_rounds=0)
-
-    sc0d = t_data[timeslots:2*timeslots]
-    t_data_m = np.reshape(t_data, (fft_len, timeslots))
-    print(np.abs(sc0d - t_data_m[1]) < 1e-8)
-
-
-    # r_data = gfdm_receiver.gfdm_demodulate_fft(data_syms, .5, timeslots, fft_len, 2, sic_rounds=0)
-    r_data_m = np.reshape(r_data, (fft_len, timeslots))
-
-    # for i in subcarrier_map[0:10]:
-    #     # plt.scatter(t_data_m[i].real, t_data_m[i].imag)
-    #     # plt.scatter(r_data_m[i].real, r_data_m[i].imag, color='r')
-    #     a = np.angle(r_data_m[i] / t_data_m[i])
-    #     plt.plot(a)
-    #     print(a)
-    # plt.show()
-    # return
-    # tt = rx_kernel.demodulate(data_syms.astype(dtype=np.complex64))
-
-
-
-    d = mapping.demap_from_waveform_resource_grid(t_data, fft_len, subcarrier_map)
-
-    r_data = mapping.demap_from_waveform_resource_grid(r_data, fft_len, subcarrier_map)
-    plt.scatter(r_data.real, r_data.imag)
-    plt.scatter(t_data.real, t_data.imag, color='r')
-    # plt.scatter(d.real, d.imag, color='g')
-    # plt.scatter(tt.real, tt.imag, color='m')
-
-    print(d[0:5])
-    b = utils.demodulate_qpsk(d)
-    print(b[0:10])
-    br = utils.demodulate_qpsk(r_data)
-    print(br[0:10])
-    print(np.sum(br == b) / len(b))
-
-    # ref_frame = converter.convert_to_cf64(ref_frame)
-    # ref_frame.tofile('/home/demel/iq_samples/gfdm_reference_frame.dat')
-
-    plt.show()
 
 
 if __name__ == '__main__':
