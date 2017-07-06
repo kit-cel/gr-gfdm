@@ -109,6 +109,92 @@
     </param>
   </block>
   <block>
+    <key>variable_qtgui_label</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>timeslots * active_subcarriers</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>formatter</key>
+      <value>None</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1088, 300)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value>demod_tab@1: 0,1,1,1</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>active_symbols</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Active Symbols</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>int</value>
+    </param>
+  </block>
+  <block>
+    <key>variable_qtgui_label</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>int(np.log2(len(gfdm_constellation.points() ) )) * active_symbols</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>formatter</key>
+      <value>None</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1360, 300)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value>demod_tab@1: 0,2,1,1</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>bits_per_frame</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Num bits</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>int</value>
+    </param>
+  </block>
+  <block>
     <key>variable</key>
     <param>
       <key>comment</key>
@@ -253,6 +339,49 @@
     </param>
   </block>
   <block>
+    <key>variable_qtgui_label</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>int(1000. * bits_per_frame)</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>formatter</key>
+      <value>None</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1352, 244)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value>demod_tab@1: 0,2,1,1</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>data_rate</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Data Rate</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>int</value>
+    </param>
+  </block>
+  <block>
     <key>variable</key>
     <param>
       <key>comment</key>
@@ -304,6 +433,49 @@
     <param>
       <key>value</key>
       <value>64</value>
+    </param>
+  </block>
+  <block>
+    <key>variable_qtgui_label</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>1. * frame_len / samp_rate</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>formatter</key>
+      <value>None</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1080, 348)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value>demod_tab@1: 1,0,1,1</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>frame_dur</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Frame Duration</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>real</value>
     </param>
   </block>
   <block>
@@ -419,7 +591,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>0</value>
+      <value>2</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -583,6 +755,45 @@
     </param>
   </block>
   <block>
+    <key>variable_qtgui_entry</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>10.</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(856, 256)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>peak_rise_factor</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Peak TH Factor Rise</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>real</value>
+    </param>
+  </block>
+  <block>
     <key>variable</key>
     <param>
       <key>comment</key>
@@ -679,7 +890,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1120, 400)</value>
+      <value>(1120, 416)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -984,7 +1195,50 @@
     </param>
     <param>
       <key>value</key>
-      <value>9</value>
+      <value>21</value>
+    </param>
+  </block>
+  <block>
+    <key>variable_qtgui_label</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>block_len</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>formatter</key>
+      <value>None</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1216, 300)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value>demod_tab@1: 0,0,1,1</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>variable_qtgui_label_0</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Block length</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>int</value>
     </param>
   </block>
   <block>
@@ -1098,6 +1352,57 @@
     <param>
       <key>repeat</key>
       <value>True</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_multiply_const_vxx</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>const</key>
+      <value>2.0</value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(752, 580)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_multiply_const_vxx_0</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>vlen</key>
+      <value>1</value>
     </param>
   </block>
   <block>
@@ -1368,7 +1673,7 @@
     </param>
     <param>
       <key>label1</key>
-      <value>Tab 1</value>
+      <value>Stats</value>
     </param>
     <param>
       <key>label10</key>
@@ -1444,7 +1749,7 @@
     </param>
     <param>
       <key>num_tabs</key>
-      <value>1</value>
+      <value>2</value>
     </param>
   </block>
   <block>
@@ -1605,11 +1910,11 @@
     </param>
     <param>
       <key>overlap</key>
-      <value>2</value>
+      <value>overlap</value>
     </param>
     <param>
       <key>timeslots</key>
-      <value>9</value>
+      <value>timeslots</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -1621,7 +1926,7 @@
     </param>
     <param>
       <key>subcarriers</key>
-      <value>64</value>
+      <value>fft_len</value>
     </param>
     <param>
       <key>subcarrier_map</key>
@@ -1632,7 +1937,7 @@
     <key>gfdm_channel_estimator_cc</key>
     <param>
       <key>active_subcarriers</key>
-      <value>52</value>
+      <value>active_subcarriers</value>
     </param>
     <param>
       <key>alias</key>
@@ -1652,7 +1957,7 @@
     </param>
     <param>
       <key>fft_len</key>
-      <value>64</value>
+      <value>fft_len</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1680,7 +1985,7 @@
     </param>
     <param>
       <key>timeslots</key>
-      <value>9</value>
+      <value>timeslots</value>
     </param>
     <param>
       <key>is_dc_free</key>
@@ -1695,7 +2000,7 @@
     </param>
     <param>
       <key>block_len</key>
-      <value>64 * 2</value>
+      <value>len(modulated_preambles[1])</value>
     </param>
     <param>
       <key>comment</key>
@@ -1711,7 +2016,7 @@
     </param>
     <param>
       <key>frame_len</key>
-      <value>800</value>
+      <value>frame_len</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1735,7 +2040,7 @@
     </param>
     <param>
       <key>offset</key>
-      <value>32</value>
+      <value>cp_len</value>
     </param>
     <param>
       <key>gfdm_sync_tag_key</key>
@@ -1750,7 +2055,7 @@
     </param>
     <param>
       <key>block_len</key>
-      <value>64 * 9</value>
+      <value>block_len</value>
     </param>
     <param>
       <key>comment</key>
@@ -1766,7 +2071,7 @@
     </param>
     <param>
       <key>frame_len</key>
-      <value>800</value>
+      <value>frame_len</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1790,7 +2095,7 @@
     </param>
     <param>
       <key>offset</key>
-      <value>32 + 64 * 2 + 16 + 32</value>
+      <value>preamble_len + cp_len</value>
     </param>
     <param>
       <key>gfdm_sync_tag_key</key>
@@ -1801,7 +2106,7 @@
     <key>gfdm_resource_demapper_cc</key>
     <param>
       <key>active_subcarriers</key>
-      <value>52</value>
+      <value>active_subcarriers</value>
     </param>
     <param>
       <key>alias</key>
@@ -1841,7 +2146,7 @@
     </param>
     <param>
       <key>subcarriers</key>
-      <value>64</value>
+      <value>fft_len</value>
     </param>
     <param>
       <key>per_timeslot</key>
@@ -1853,7 +2158,7 @@
     </param>
     <param>
       <key>timeslots</key>
-      <value>9</value>
+      <value>timeslots</value>
     </param>
   </block>
   <block>
@@ -1884,7 +2189,7 @@
     </param>
     <param>
       <key>look_ahead_val</key>
-      <value>64</value>
+      <value>look_ahead_val</value>
     </param>
     <param>
       <key>output_tag_key</key>
@@ -1892,7 +2197,7 @@
     </param>
     <param>
       <key>frame_len</key>
-      <value>800</value>
+      <value>frame_len</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1915,12 +2220,16 @@
       <value>0</value>
     </param>
     <param>
+      <key>peak_rise_factor</key>
+      <value>peak_rise_factor</value>
+    </param>
+    <param>
       <key>ref_preamble</key>
       <value>modulated_preambles[1]</value>
     </param>
     <param>
       <key>subcarriers</key>
-      <value>64</value>
+      <value>fft_len</value>
     </param>
   </block>
   <block>
@@ -2523,7 +2832,7 @@
     </param>
     <param>
       <key>size</key>
-      <value>9 * 52</value>
+      <value>timeslots * active_subcarriers</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -3241,7 +3550,7 @@
     </param>
     <param>
       <key>size</key>
-      <value>800 * 12</value>
+      <value>frame_len * 12</value>
     </param>
     <param>
       <key>srate</key>
@@ -3604,7 +3913,7 @@
     </param>
     <param>
       <key>size</key>
-      <value>800 * 4</value>
+      <value>frame_len * 4</value>
     </param>
     <param>
       <key>srate</key>
@@ -3967,7 +4276,7 @@
     </param>
     <param>
       <key>size</key>
-      <value>576</value>
+      <value>block_len</value>
     </param>
     <param>
       <key>srate</key>
@@ -6306,6 +6615,12 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
+    <source_block_id>blocks_multiply_const_vxx_0</source_block_id>
+    <sink_block_id>frame_gap_vector_insert</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
     <source_block_id>blocks_throttle_0</source_block_id>
     <sink_block_id>qtgui_time_sink_x_0</sink_block_id>
     <source_key>0</source_key>
@@ -6403,7 +6718,7 @@
   </connection>
   <connection>
     <source_block_id>hier_gfdm_transmitter_0</source_block_id>
-    <sink_block_id>frame_gap_vector_insert</sink_block_id>
+    <sink_block_id>blocks_multiply_const_vxx_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
