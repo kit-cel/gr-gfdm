@@ -516,7 +516,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(368, 268)</value>
+      <value>(360, 272)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -540,7 +540,7 @@
     </param>
     <param>
       <key>peak_th_factor</key>
-      <value>10.</value>
+      <value>peak_rise_factor</value>
     </param>
   </block>
   <block>
@@ -727,6 +727,53 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(376, 128)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>peak_rise_factor</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Peak TH Factor Rise</value>
+    </param>
+    <param>
+      <key>short_id</key>
+      <value></value>
+    </param>
+    <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>eng_float</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>10.</value>
+    </param>
+  </block>
+  <block>
+    <key>parameter</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(696, 28)</value>
     </param>
     <param>
@@ -807,12 +854,6 @@
   </block>
   <connection>
     <source_block_id>gfdm_extract_burst_cc_0</source_block_id>
-    <sink_block_id>dbg_energy_bursts</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>gfdm_extract_burst_cc_0</source_block_id>
     <sink_block_id>gfdm_simple_preamble_sync_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
@@ -826,6 +867,12 @@
   <connection>
     <source_block_id>gfdm_simple_preamble_sync_cc_0</source_block_id>
     <sink_block_id>frames</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>hier_energy_burst_detector_0</source_block_id>
+    <sink_block_id>dbg_energy_bursts</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
