@@ -37,10 +37,17 @@ namespace gr {
       pmt::pmt_t d_tag_value;
       auto_cross_corr_multicarrier_sync_cc::sptr d_kernel;
 
+      pmt::pmt_t d_cfo_port_id;
+
+      bool d_correct_cfo;
+
       int d_remaining_items;
 
       int get_offset_from_tag(const gr::tag_t& t);
       int get_window_size_from_tag(const gr::tag_t& t);
+      void remove_cfo(gr_complex* p_out, const gr_complex* p_in, const float cfo, const float init_phase, const int ninput_size);
+
+      void publish_cfo(const float cfo);
 
      public:
       simple_preamble_sync_cc_impl(int frame_len, int subcarriers, int cp_len, std::vector<gr_complex> preamble, const std::string& in_key, const std::string& out_key);

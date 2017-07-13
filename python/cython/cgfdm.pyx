@@ -127,6 +127,9 @@ cdef class py_receiver_kernel_cc:
     def generic_work(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
         self.kernel.generic_work(<float complex*> outbuf.data, <float complex*> inbuf.data)
 
+    def generic_work_equalize(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf, np.ndarray[np.complex64_t, ndim=1] channel_estimate):
+        self.kernel.generic_work_equalize(<float complex*> outbuf.data, <float complex*> inbuf.data, <float complex*> channel_estimate.data)
+
     def cpp_fft_filter_downsample(self, np.ndarray[np.complex64_t, ndim=1] outbuf, np.ndarray[np.complex64_t, ndim=1] inbuf):
         self.kernel.fft_filter_downsample(<float complex*> outbuf.data, <float complex*> inbuf.data)
 
@@ -141,6 +144,13 @@ cdef class py_receiver_kernel_cc:
             raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
         cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
         self.generic_work(res, samples)
+        return res
+
+    def demodulate_equalize(self, np.ndarray[np.complex64_t, ndim=1] samples, np.ndarray[np.complex64_t, ndim=1] channel_estimate):
+        if samples.shape[0] != self.block_size() or channel_estimate.shape[0] != self.block_size():
+            raise ValueError("CGFDM: Size of input array MUST be equal to timeslots * active_subcarriers!")
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
+        self.generic_work_equalize(res, samples, channel_estimate)
         return res
 
     def fft_filter_downsample(self, np.ndarray[np.complex64_t, ndim=1] samples):
@@ -196,7 +206,70 @@ cdef class py_auto_cross_corr_multicarrier_sync_cc:
     def __del__(self):
         del self.kernel
 
+    def subcarriers(self):
+        return self.kernel.subcarriers()
+
     def detect_frame(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
         nc = self.kernel.detect_frame_start(<float complex*> inbuf.data, inbuf.shape[0])
         cfo = self.kernel.last_cfo()
         return nc, cfo
+
+    def fixed_lag_auto_correlate(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((inbuf.shape[0] - self.kernel.subcarriers(),), dtype=np.complex64)
+        self.kernel.fixed_lag_auto_correlate(<float complex*> res.data, <float complex*> inbuf.data, inbuf.shape[0])
+        return res
+
+    def cross_correlate_preamble(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((2 * self.kernel.subcarriers(),), dtype=np.complex64)
+        self.kernel.cross_correlate_preamble(<float complex*> res.data, <float complex*> inbuf.data, 2 * self.kernel.subcarriers())
+        return res
+
+    def find_peak(self, np.ndarray[np.float32_t, ndim=1] inbuf):
+        return self.kernel.find_peak(<float*> inbuf.data, inbuf.shape[0])
+
+    def normalize_power_level(self, np.ndarray[np.complex64_t, ndim=1] inbuf, norm_factor):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((inbuf.shape[0],), dtype=np.complex64)
+        self.kernel.normalize_power_level(<float complex*> res.data, <float complex*> inbuf.data, norm_factor, inbuf.shape[0])
+        return res
+
+    def calculate_preamble_attenuation(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
+        if inbuf.shape[0] < 2 * self.kernel.subcarriers():
+            print 'calculate_preamble_attenuation: inbuf.shape[0]', inbuf.shape[0], 'expected at least: ', 2 * self.kernel.subcarriers()
+            raise ValueError("CGFDM: RX vector for preamble attenuation calculation is TOO SMALL!")
+        return self.kernel.calculate_preamble_attenuation(<float complex*> inbuf.data)
+
+cdef class py_preamble_channel_estimator_cc:
+    cdef gfdm_interface.preamble_channel_estimator_cc* kernel
+
+    def __cinit__(self, int timeslots, int fft_len, int active_subcarriers, is_dc_free, np.ndarray preamble):
+        self.kernel = new gfdm_interface.preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, is_dc_free, preamble.astype(dtype=np.complex64))
+
+    def __del__(self):
+        del self.kernel
+
+    def preamble_filter_taps(self):
+        return np.array(self.kernel.preamble_filter_taps())
+
+    def estimate_preamble_channel(self, np.ndarray[np.complex64_t, ndim=1] rx_preamble):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.kernel.fft_len(),), dtype=np.complex64)
+        self.kernel.estimate_preamble_channel(<float complex*> res.data, <float complex*> rx_preamble.data)
+        return res
+
+    def filter_preamble_estimate(self, np.ndarray[np.complex64_t, ndim=1] estimate):
+        res_len = self.kernel.active_subcarriers()
+        if self.kernel.is_dc_free():
+            res_len += 1
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((res_len,), dtype=np.complex64)
+        self.kernel.filter_preamble_estimate(<float complex*> res.data, <float complex*> estimate.data)
+        return res
+
+    def interpolate_frame(self, np.ndarray[np.complex64_t, ndim=1] estimate):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.kernel.fft_len() * self.kernel.timeslots(),), dtype=np.complex64)
+        self.kernel.interpolate_frame(<float complex*> res.data, <float complex*> estimate.data)
+        return res
+
+    def estimate_frame(self, np.ndarray[np.complex64_t, ndim=1] rx_preamble):
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.kernel.fft_len() * self.kernel.timeslots(),), dtype=np.complex64)
+        self.kernel.estimate_frame(<float complex*> res.data, <float complex*> rx_preamble.data)
+        return res
+

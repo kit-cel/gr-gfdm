@@ -52,6 +52,11 @@
     <name>in</name>
     <type>complex</type>
   </sink>
+  <sink>
+    <name>eq</name>
+    <type>complex</type>
+    <optional>1</optional>
+  </sink>
   <source>
     <name>out</name>
     <type>complex</type>

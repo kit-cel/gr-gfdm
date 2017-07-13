@@ -48,7 +48,12 @@ list(APPEND gfdm_sources
     auto_cross_corr_multicarrier_sync_cc.cc
     simple_preamble_sync_cc_impl.cc
     resource_demapper_kernel_cc.cc
-    resource_demapper_cc_impl.cc)
+    resource_demapper_cc_impl.cc
+    advanced_receiver_kernel_cc.cc
+    extract_burst_cc_impl.cc
+    preamble_channel_estimator_cc.cc
+    gfdm_kernel_utils.cc
+    channel_estimator_cc_impl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)

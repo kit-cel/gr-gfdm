@@ -64,6 +64,9 @@ namespace gr
       d_in_fft_out = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * d_block_len, volk_get_alignment());
       d_in_fft_plan = initialize_fft(d_in_fft_out, d_in_fft_in, d_block_len, true);
 
+      // OPTIONAL: Equalize!
+      d_equalized = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * d_block_len, volk_get_alignment());
+
       //Initialize IFFT per subcarrier
       d_sc_ifft_in = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * d_n_timeslots, volk_get_alignment());
       d_sc_ifft_out = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * d_n_timeslots, volk_get_alignment());
@@ -127,32 +130,6 @@ namespace gr
       memcpy(&taps[0], d_ic_filter_taps, sizeof(gfdm_complex) * d_n_timeslots);
       return taps;
     }
-
-    fftwf_plan
-    receiver_kernel_cc::initialize_fft(gfdm_complex *out_buf, gfdm_complex *in_buf, const int fft_size, bool forward)
-    {
-      std::string filename(getenv("HOME"));
-      filename += "/.gr_fftw_wisdom";
-      FILE *fpr = fopen(filename.c_str(), "r");
-      if (fpr != 0) {
-        fftwf_import_wisdom_from_file(fpr);
-        fclose(fpr);
-      }
-
-      fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
-                                          reinterpret_cast<fftwf_complex *>(in_buf),
-                                          reinterpret_cast<fftwf_complex *>(out_buf),
-                                          forward ? FFTW_FORWARD : FFTW_BACKWARD,
-                                          FFTW_MEASURE);
-
-      FILE *fpw = fopen(filename.c_str(), "w");
-      if (fpw != 0) {
-        fftwf_export_wisdom_to_file(fpw);
-        fclose(fpw);
-      }
-      return plan;
-    }
-
 
     void
     receiver_kernel_cc::filter_superposition(std::vector<std::vector<gfdm_complex> > &out,
@@ -305,9 +282,25 @@ namespace gr
     }
 
     void
+    receiver_kernel_cc::fft_equalize_filter_downsample(gfdm_complex* p_out, const gfdm_complex* p_in, const gfdm_complex* f_eq_in)
+    {
+      memcpy(d_in_fft_in, p_in, sizeof(gfdm_complex) * d_block_len);
+      fftwf_execute(d_in_fft_plan);
+      volk_32fc_x2_multiply_conjugate_32fc(d_equalized, d_in_fft_out, f_eq_in, d_block_len);
+      filter_subcarriers_and_downsample_fd(p_out, d_equalized);
+    }
+
+    void
     receiver_kernel_cc::generic_work(gfdm_complex *out, const gfdm_complex *in)
     {
       fft_filter_downsample(d_sc_filtered, in);
+      transform_subcarriers_to_td(out, d_sc_filtered);
+    }
+
+    void
+    receiver_kernel_cc::generic_work_equalize(gfdm_complex *out, const gfdm_complex *in, const gfdm_complex* f_eq_in)
+    {
+      fft_equalize_filter_downsample(d_sc_filtered, in, f_eq_in);
       transform_subcarriers_to_td(out, d_sc_filtered);
     }
 

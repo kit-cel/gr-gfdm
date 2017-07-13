@@ -34,11 +34,12 @@ import matplotlib.pyplot as plt
 from modulation import gfdm_modulation_matrix
 from filters import get_frequency_domain_filter, gfdm_filter_taps
 from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
+from gfdm_receiver import gfdm_demodulate_fft
 from cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, get_root_raised_cosine_ramp
 from mapping import get_data_matrix, map_to_waveform_resources
 from utils import get_random_qpsk, get_complex_noise_vector, calculate_awgn_noise_variance, calculate_average_signal_energy, calculate_signal_energy, magnitude_squared
 from utils import generate_seed
-from correlation import auto_correlate_halfs, cross_correlate_signal
+from correlation import auto_correlate_halfs, cross_correlate_signal, cross_correlate_fft_cyclic
 from preamble import generate_sync_symbol
 
 
@@ -159,7 +160,7 @@ def auto_correlation_sync(s, K, cp_len):
     ic = abs_integrate(nc, cp_len)
 
     nm = np.argmax(ic)
-    cfo = np.angle(ac[nm]) / np.pi
+    cfo = np.angle(ac[nm]) / (2. * np.pi)
     # print 'max corr val', ic[nm], 'with energy:', calculate_average_signal_energy(s[nm: nm + plen])
     return nm, cfo, ic, ac
 
@@ -172,19 +173,55 @@ def cross_correlation_paper_def(s, preamble):
 
 
 def improved_cross_correlation_peak(s, preamble, abs_auto_corr_vals):
-    apcc = np.abs(cross_correlation_paper_def(s, preamble))
+    pcc = cross_correlation_paper_def(s, preamble)
+    apcc = np.abs(pcc)
     # Find peak and suppress minor peaks at +-N/2
     min_array_len = min(len(apcc), len(abs_auto_corr_vals))
     napcc = apcc[0:min_array_len] * abs_auto_corr_vals[0:min_array_len]
     nc = np.argmax(napcc)
+    phase = np.angle(pcc[nc])
+    print('constant phase shift: {}'.format(phase))
     # energy = calculate_signal_energy(s[nc:nc + len(preamble)])
     # napcc *= 1. / np.sqrt(energy)
     return nc, napcc, apcc
 
 
-def correct_frequency_offset(signal, cfo):
+def correct_frequency_offset(signal, cfo, fft_len=1.):
+    phase_inc = cfo_to_phase_increment(cfo, fft_len)
     n = np.arange(len(signal))
-    return signal * np.exp(-2j * np.pi * cfo * n)
+    return signal * np.exp(1j * phase_inc * n)
+
+
+def freq_to_cfo(freq, fft_len, samp_rate):
+    # freq and samp_rate should be intuitive!
+    # fft_len takes into account how many samples are used for a correlation in order to calculate a CFO.
+    # OR: calculate the CFO relative to subcarrier bandwidth! Which is important in this case here!
+    sc_bw = samp_rate / float(fft_len)
+    return freq / sc_bw
+
+
+def phase_increment(freq, samp_rate):
+    return 2. * np.pi * freq / samp_rate
+
+
+def cfo_to_phase_increment(cfo, fft_len):
+    return (2. * np.pi) * cfo / float(fft_len)
+
+
+def get_complex_sine(freq, samp_rate, n_samps):
+    phase_inc = phase_increment(freq, samp_rate)
+    return complex_sine(phase_inc, n_samps)
+
+
+def complex_sine(phase_inc, n_samps, init_phase=0.0):
+    if np.abs(phase_inc) < np.finfo(type(phase_inc)).eps:
+        print('zero CFO')
+        v = np.zeros(n_samps)
+    else:
+        v = np.arange(init_phase, init_phase + n_samps * phase_inc, phase_inc)
+    if len(v) > n_samps:
+        v = v[0:n_samps]
+    return np.cos(v) + 1j * np.sin(v)
 
 
 def initialize_sync_algorithm(preamble, K):
@@ -240,38 +277,68 @@ def simplified_sync_algo(rx, x_preamble, subcarriers, cp_len):
     x_preamble = initialize_sync_algorithm(x_preamble, subcarriers)
     oac = auto_correlate_signal(rx, subcarriers)
     # this 2 divisor is up to debate. Seems necessary for larger cp_len relative to fft_len
+    # plt.scatter(rx.real, rx.imag)
     ac = np.roll(oac, cp_len // 2)
 
     nm = np.argmax(np.abs(ac))
-    cfo = np.angle(ac[nm]) / np.pi
+    cfo = np.angle(ac[nm]) / (2. * np.pi)
 
-    s = correct_frequency_offset(rx, cfo / (2. * subcarriers))
+    phase_inc = cfo_to_phase_increment(-cfo, subcarriers)
+    # print 'phase_increment: ', phase_inc, 'phase: ', phase, ', K * inc: ', K * phase_inc
+    wave = complex_sine(phase_inc, len(rx), 0.0)
+
+    # s = correct_frequency_offset(rx, cfo / (2. * subcarriers))
+    # plt.scatter(s.real, s.imag, color='r')
+    s = rx
     xc = np.correlate(s, x_preamble, 'valid')
+    xc_f = np.correlate(s * wave, x_preamble, 'valid')
     cc = multiply_valid(np.abs(ac), np.abs(xc))
     nc = np.argmax(np.abs(cc))
+
+    # plt.plot(np.abs(ac[nm - subcarriers:nm + subcarriers]))
+    sc = s[nm - subcarriers:nm + subcarriers]
+    print(len(sc))
+    xcc = cross_correlate_fft_cyclic(sc, x_preamble)
+    print(len(xcc))
+    # plt.plot(np.abs(xcc) * 0.001)
+    ccc = np.abs(ac[nm - subcarriers:nm + subcarriers]) * np.abs(xcc)
+    # plt.plot(ccc * 0.001)
+    ncc = np.argmax(np.abs(ccc))
+    phase = np.angle(xc[nc])
+    print 'unfixed phase: ', phase, ' and fixed: ', np.angle(xc_f[nc]), phase + np.angle(xc_f[nc]), phase_inc * subcarriers
+    print 'cyclic: ', ncc, 'ncc: ', nm + ncc - subcarriers, 'cp_len: ', cp_len
+    # plt.show()
+
     print 'simplified: nc: {} (nm: {}), cfo: {:.5f}, abs_corr_val: {:.5f}'.format(nc, nm, cfo, np.abs(ac[nm]))
-    return nc, cfo, cc
+    return nc, cfo, cc, phase
 
 
-def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo):
+def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo, init_phase=0.0, ref_data=False):
     block_len = M * K
     data = get_random_qpsk(block_len, seed=generate_seed('awesomepayloadblabla'))
+    print 'QPSK source energy: ', calculate_average_signal_energy(data)
     x = get_gfdm_frame(data, alpha, M, K, L, cp_len, ramp_len)
 
-
-
-    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(K, seed=generate_seed('awesome')), 'rrc', alpha, K, L, cp_len, ramp_len)
+    pn_symbols = get_random_qpsk(K, seed=generate_seed('awesome'))
+    preamble, x_preamble = generate_sync_symbol(pn_symbols, 'rrc', alpha, K, L, cp_len, ramp_len)
     print 'frame energy:', calculate_average_signal_energy(x), 'preamble energy:', calculate_average_signal_energy(preamble)
-    preamble *= np.sqrt(calculate_average_signal_energy(x) / calculate_average_signal_energy(preamble))
 
     frame = np.concatenate((preamble, x))
+    print 'tx frame len', len(frame), 'len(preamble)', len(preamble)
 
     # simulate Noise and frequency offset!
-    frame = correct_frequency_offset(frame, test_cfo / (-2. * K))
+    phase_inc = cfo_to_phase_increment(test_cfo, K)
+    print 'phase_increment: ', phase_inc
+    wave = complex_sine(phase_inc, len(frame), init_phase)
+    # phase_shift = np.repeat(np.exp(1j * init_phase), len(frame))
+    # wave *= phase_shift
+    frame *= wave
     noise_variance = calculate_awgn_noise_variance(frame, snr_dB)
     s = get_complex_noise_vector(2 * block_len + len(frame), noise_variance)
     s[block_len:block_len + len(frame)] += frame
-    return s, x_preamble
+    if ref_data:
+        return s, x_preamble, pn_symbols, data
+    return s, x_preamble, pn_symbols
 
 
 def sync_test():
@@ -284,41 +351,64 @@ def sync_test():
     cp_len = K
     ramp_len = cp_len / 2
 
-    test_cfo = -.2
+    test_cfo = -.0
     snr_dB = 40.0
     false_alarm_probability = 1e-3
     print 'Channel parameters, SNR:', snr_dB, 'dB with a relative subcarrier offset:', test_cfo
     print 'assumed samp_rate:', samp_rate, ' with sc_bw:', samp_rate / K
 
-    frame, x_preamble = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
+    frame, x_preamble, pn_symbols, data = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo, .25, True)
+    p_len = 2 * K + cp_len + ramp_len
+    frame_len = M * K + p_len
 
-    print np.correlate(x_preamble, x_preamble), auto_correlate_halfs(x_preamble)
+    print 'test correlate', np.correlate(x_preamble, x_preamble), auto_correlate_halfs(x_preamble)
+    print 'test correlate', np.angle(np.correlate(x_preamble * np.exp(-1j * .25), x_preamble)), auto_correlate_halfs(x_preamble)
     print 'frame duration: ', 1e6 * len(frame) / samp_rate, 'us'
     print M, '*', K, '=', block_len, '(', block_len + cp_len, ')'
     print 'frame start in test vector: ', block_len + cp_len
     s = frame
 
-    s *= 100. / np.sqrt(len(x_preamble))
     nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(s, x_preamble, K, cp_len)
     print 'FOUND FRAMESTART nc:', nc, np.abs(napcc[nc]), abs_corr_vals[nc]
-    # print 'signal_len:', len(s), ', auto_corr_len:', len(auto_corr_vals), ', cross_corr_len:', len(napcc), len(s) - len(napcc)
-    thr = calculate_threshold_factor(false_alarm_probability) * np.sum(apcc[nc - K:nc + K]) / (2 * K)
-    print 'threshold: ', thr
-    plt.plot(abs_corr_vals, label='auto corr')
-    plt.plot(apcc, label='cross corr')# * (np.abs(napcc[nc] / np.abs(apcc[nc]))))
-    plt.plot(napcc, label='combined')
-    threshold_peak = np.zeros(len(napcc), dtype=float)
-    threshold_peak[nc] = napcc[nc]
-    plt.plot((threshold_peak > thr) * (napcc[nc] / thr))
-    print 'threshold exceeded points: ', np.sum(threshold_peak > thr)
+    snc, scfo, scc, phase = simplified_sync_algo(s, x_preamble, K, cp_len)
+    frame_start = snc + p_len
+    print 'data frame_start: ', frame_start, ', len(preamble)=', p_len
+    prx_frame = frame[snc:snc + frame_len]
+    rx_preamble = prx_frame[0:2 * K]
+    rx = frame[frame_start:frame_start + M * K]
+    # rx_preamble = frame[snc:snc + 2 * K]
+    r = gfdm_demodulate_fft(rx, alpha, M, K, L)
+    plt.scatter(r.real, r.imag)
+    # r_frame = correct_frequency_offset(rx, scfo / (2. * K), K)
 
-    for thr in (.3, .4, .5, .6):
-        peak = abs_corr_vals > thr
-        plt.plot(peak * thr)
-        print 'n exceed thr: ', thr, ':', np.sum(peak)
+    phase_inc = cfo_to_phase_increment(-scfo, K)
+    print 'phase_increment: ', phase_inc, 'phase: ', phase, ', K * inc: ', K * phase_inc
+    wave = complex_sine(phase_inc, len(rx), -phase)
+    # wave = complex_sine(phase_inc, len(rx), 0.0)
+    # phase_shift = np.repeat(np.exp(1j * init_phase), len(frame))
+    # wave *= phase_shift
+    r_frame = rx * wave
 
-    plt.xlim((1000, 1200))
-    plt.legend()
+    rx_corr = np.correlate(rx_preamble, x_preamble)
+    wave = complex_sine(phase_inc, len(rx_preamble), 0.0)
+    crx_preamble = rx_preamble * wave
+    crx_corr = np.correlate(crx_preamble, x_preamble)
+    f_corr = np.correlate(crx_preamble * (-phase), x_preamble)
+    print 'correlations: ', np.angle(rx_corr), np.angle(crx_corr), np.angle(f_corr)
+
+    s = gfdm_demodulate_fft(r_frame, alpha, M, K, L)
+    plt.scatter(s.real, s.imag, color='r')
+
+    x = gfdm_demodulate_fft(r_frame, alpha, M, K, L, sic_rounds=2)
+    plt.scatter(x.real, x.imag, color='g')
+    plt.scatter(data.real, data.imag, color='m', marker='x', s=100)
+    print np.all(np.abs(data - x) < .5)
+    print np.sum(np.abs(data - x)) / len(x)
+    print np.max(np.abs(data - x))
+
+    # plt.xlim((1000, 1200))
+    # plt.legend()
+    plt.grid()
     plt.show()
 
 
@@ -345,8 +435,55 @@ def preamble_auto_corr_test():
 
 def main():
     np.set_printoptions(precision=4, suppress=True)
-    preamble_auto_corr_test()
+    # preamble_auto_corr_test()
     sync_test()
+    return
+    # cfo = 1.024e-5
+    samp_rate = 12.5e6
+    freq = 20.
+    fft_len = 256
+    sc_bw = samp_rate / fft_len
+    cfo = freq_to_cfo(freq, fft_len, samp_rate)
+    ph_i = cfo_to_phase_increment(cfo, fft_len)
+    phase_inc = phase_increment(freq, samp_rate)
+    print 'samp_rate: {}, frequency: {}, fft_len: {}'.format(samp_rate, freq, fft_len)
+    print 'subcarrier bandwidth: {}, cfo: {}, phase increment: {}/{}'.format(sc_bw, cfo, ph_i, phase_inc)
+
+
+    # wave = get_complex_sine(freq, samp_rate, 129)
+    # s = np.ones(129)
+    # s = correct_frequency_offset(s, cfo, fft_len)
+    # # print wave
+    # print np.abs(wave - s)
+
+    preamble, x_preamble = generate_sync_symbol(get_random_qpsk(fft_len, seed=generate_seed('awesome')), 'rrc', .5, fft_len, 2, fft_len // 2, fft_len // 8)
+
+    init_phase = 0.8
+    wave = complex_sine(cfo_to_phase_increment(cfo, fft_len), len(preamble))
+    # phase_shift = np.repeat(, len(preamble))
+    wave *= np.exp(1j * init_phase)
+    preamble *= wave
+
+    print phase_inc
+
+    ac = auto_correlate_halfs(preamble[64:64 + 2 * fft_len])
+    fp = np.angle(ac)
+    ac_phase_inc = fp / fft_len
+    print 'auto corr phase: {}, AC phase {}, phase_inc: {}'.format(phase_inc, fp, ac_phase_inc)
+
+    xc = cross_correlate_signal(preamble, x_preamble)
+    ap = np.angle(xc[64])
+    # print ap, (ap - init_phase) / (cfo * 2 * np.pi)
+
+    residual = ap - init_phase
+    res_phase = residual / (2 * fft_len)
+    print residual, res_phase, phase_inc / res_phase
+    # print fp, fp / (2 * np.pi)
+    # print (ap - init_phase) - fp
+
+    plt.plot(np.abs(xc) / 10000.)
+    plt.plot(np.angle(xc))
+    plt.show()
 
 
 if __name__ == '__main__':

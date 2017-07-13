@@ -23,14 +23,14 @@ from setuptools import setup
 from setuptools.extension import Extension
 from Cython.Build import cythonize
 import subprocess
-import shlex
 import inspect
 import os
 
 
 # the actual classes to be compiled!
-cython_targets = ["modulator_kernel_cc", "add_cyclic_prefix_cc", "resource_mapper_kernel_cc", "receiver_kernel_cc",\
-                  "detect_frame_energy_kernel_cl", "auto_cross_corr_multicarrier_sync_cc", "resource_demapper_kernel_cc"]
+cython_targets = ["modulator_kernel_cc", "add_cyclic_prefix_cc", "resource_mapper_kernel_cc", "receiver_kernel_cc",
+                  "detect_frame_energy_kernel_cl", "auto_cross_corr_multicarrier_sync_cc",
+                  "resource_demapper_kernel_cc", "gfdm_kernel_utils", "preamble_channel_estimator_cc"]
 # assume those are the only additional libraries to link against.
 libraries = ['fftw3f', 'volk']
 
@@ -42,8 +42,19 @@ deps = [
 ]
 
 
-def get_pkg_option(option, pkg_name):
-    return shlex.split(subprocess.check_output(("pkg-config", "--" + option, pkg_name)))
+def run_pkg_config(opts, params):
+    return subprocess.check_output(("pkg-config", "--" + opts, params))
+
+
+def sanitize_pkg_output(pkg_str):
+    ps = pkg_str.split()
+    ps = [i for i in ps if not i == '\n']
+    return ps
+
+
+def get_pkg_option(opt, name):
+    ps = run_pkg_config(opt, name)
+    return sanitize_pkg_output(ps)
 
 
 def get_library_shared_objects(lib):

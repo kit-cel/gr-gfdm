@@ -24,8 +24,11 @@
 
 #include <complex>
 #include <vector>
+#include <fftw3.h>
 #include <boost/shared_ptr.hpp>
 #include <stdexcept>
+
+#include "gfdm_kernel_utils.h"
 
 namespace gr {
   namespace gfdm {
@@ -34,7 +37,7 @@ namespace gr {
      * \brief Simplified version of "Improved Preamble-Aided Timing Estimation for OFDM Systems"
      *
      */
-    class auto_cross_corr_multicarrier_sync_cc
+    class auto_cross_corr_multicarrier_sync_cc : public gfdm_kernel_utils
     {
     public:
       typedef std::complex<float> gfdm_complex;
@@ -44,7 +47,14 @@ namespace gr {
       ~auto_cross_corr_multicarrier_sync_cc();
 
       int detect_frame_start(const gfdm_complex *p_in, int ninput_size);
+      void cross_correlate_preamble(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
+      void fixed_lag_auto_correlate(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
+      int find_peak(float* vals, const int ninput_size);
+      float calculate_preamble_attenuation(const gfdm_complex* p_in);
+      void normalize_power_level(gfdm_complex* p_out, const gfdm_complex* p_in, const float norm_factor, const int ninput_size);
       float last_cfo(){return d_last_cfo;};
+      float frame_phase(){return d_frame_phase;};
+      float preamble_attenuation(){ return d_preamble_attenuation;};
       int subcarriers(){ return d_subcarriers;};
       int cp_len(){ return d_cp_len;};
     private:
@@ -59,11 +69,20 @@ namespace gr {
       float* d_abs_xcorr;
 
       float d_last_cfo;
+      float d_frame_phase;
+      float d_preamble_attenuation;
 
-      int find_peak(float* vals, const int ninput_size);
+      fftwf_plan d_fxc_plan;
+      fftwf_plan d_ixc_plan;
+      gfdm_complex* d_fxc_in;
+      gfdm_complex* d_fxc_out;
+      gfdm_complex* d_ixc_in;
+      gfdm_complex* d_ixc_out;
+      gfdm_complex* d_freq_preamble;
+
+      float d_reference_preamble_energy;
+
       float calculate_normalized_cfo(const gfdm_complex corr_val);
-      void cross_correlate_preamble(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
-      void fixed_lag_auto_correlate(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
       void adjust_buffer_size(const int ninput_size);
     };
 

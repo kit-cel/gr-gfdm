@@ -28,6 +28,12 @@ def generate_seed(my_string):
     return abs(hash(my_string)) % (2 ** 32)  # seed must be a positive 32-bit integer!
 
 
+def get_pseudo_random_bytes(bmin, bmax, bnum, seed_str):
+    seed = generate_seed(seed_str)
+    np.random.seed(seed)
+    return np.random.randint(bmin, bmax, bnum)
+    
+
 def get_random_qpsk(nsamples, seed=None, dtype=np.complex):
     if seed:
         np.random.seed(seed)
@@ -36,6 +42,13 @@ def get_random_qpsk(nsamples, seed=None, dtype=np.complex):
     energy = 1./np.sqrt(2)
     d = (d[0] + 1j * d[1])*energy
     return d.astype(dtype=dtype)
+
+
+def demodulate_qpsk(syms):
+    t = np.array([syms.real, syms.imag])
+    t = t < 0.0
+    t = t.astype(dtype=int)
+    return t.T.flatten()
 
 
 def get_random_samples(nsamples, seed=None, dtype=np.complex):
@@ -67,7 +80,6 @@ def randomQAMSymbols(length, M):
 def map_qpsk_stream(data):
     energy = 1./np.sqrt(2)
     return list(map(lambda x: energy*(np.sign(x.real)+1j*np.sign(x.imag)),data.flatten()))
-
 
 
 def get_zero_f_data(k, K, M):

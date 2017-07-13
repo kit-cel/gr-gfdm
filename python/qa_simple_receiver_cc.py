@@ -83,8 +83,6 @@ class qa_simple_receiver_cc(gr_unittest.TestCase):
         self.tb.run()
         # check data
         res = np.array(dst.data())
-        # res /= M * K
-        # print "MAXIMUM result value: ", np.max(abs(res))
 
         self.assertComplexTuplesAlmostEqual(ref, res, 4)
 

@@ -36,6 +36,7 @@ cdef extern from "receiver_kernel_cc.h" namespace "gr::gfdm":
         vector[float complex] filter_taps()
         vector[float complex] ic_filter_taps()
         void generic_work(float complex* p_out, const float complex* p_in);
+        void generic_work_equalize(float complex* p_out, const float complex* p_in, const float complex* f_eq_in)
         void fft_filter_downsample(float complex* p_out, const float complex* p_in);
         void transform_subcarriers_to_td(float complex* p_out, const float complex* p_in);
         void cancel_sc_interference(float complex* p_out, const float complex* p_td_in, const float complex* p_fd_in);
@@ -53,3 +54,22 @@ cdef extern from "auto_cross_corr_multicarrier_sync_cc.h" namespace "gr::gfdm":
         auto_cross_corr_multicarrier_sync_cc(int, int, vector[float complex]) except +
         int detect_frame_start(const float complex* p_in, const int ninput_size);
         float last_cfo()
+        int subcarriers()
+        void cross_correlate_preamble(float complex* p_out, const float complex* p_in, const int ninput_size)
+        void fixed_lag_auto_correlate(float complex* p_out, const float complex* p_in, const int ninput_size)
+        int find_peak(float* vals, const int ninput_size)
+        float calculate_preamble_attenuation(const float complex* p_in)
+        void normalize_power_level(float complex* p_out, const float complex* p_in, const float norm_factor, const int ninput_size)
+
+cdef extern from "preamble_channel_estimator_cc.h" namespace "gr::gfdm":
+    cdef cppclass preamble_channel_estimator_cc:
+        preamble_channel_estimator_cc(int, int, int, bool, vector[float complex]) except +
+        int fft_len()
+        int timeslots()
+        int active_subcarriers()
+        bool is_dc_free()
+        vector[float] preamble_filter_taps()
+        void estimate_preamble_channel(float complex* fd_preamble_channel, const float complex* rx_preamble)
+        void filter_preamble_estimate(float complex* filtered, const float complex* estimate)
+        void interpolate_frame(float complex* frame_estimate, const float complex* estimate)
+        void estimate_frame(float complex* frame_estimate, const float complex* rx_preamble)

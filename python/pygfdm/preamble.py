@@ -32,7 +32,7 @@ COMMENT
 import numpy as np
 import commpy as cp
 from modulation import gfdm_tx, gfdm_tx_fft2
-from utils import get_random_qpsk, generate_seed
+from utils import get_random_qpsk, generate_seed, calculate_signal_energy
 from mapping import map_to_waveform_resources
 from mapping import get_data_matrix
 from cyclic_prefix import add_cyclic_prefix, get_raised_cosine_ramp, get_window_len, pinch_block, add_cyclic_starfix
@@ -92,10 +92,17 @@ def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcar
     return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len)
 
 
+def symmetric_mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len):
+    pn_vals = get_random_qpsk(active_subcarriers // 2, seed)
+    pn_vals = np.concatenate((pn_vals, np.conj(pn_vals[::-1])))
+    pn_sym = map_to_waveform_resources(pn_vals, active_subcarriers, fft_len, subcarrier_map)
+    return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len), pn_vals
+
+
 def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
     M = 2  # fixed for preamble
     pn_symbols = np.concatenate((pn_symbols, pn_symbols))
-    D = get_data_matrix(pn_symbols, K, group_by_subcarrier=True) # careful here! group by subcarrier is correct!
+    D = get_data_matrix(pn_symbols, K, group_by_subcarrier=True)  # careful here! group by subcarrier is correct!
     symbol = x_symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=False)
     symbol = add_cyclic_starfix(symbol, cp_len, ramp_len)
     window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K, ramp_len))
@@ -105,6 +112,9 @@ def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
 
 def generate_sync_symbol(pn_symbols, filtertype, alpha, K, L, cp_len, ramp_len):
     H = get_frequency_domain_filter(filtertype, alpha, 2, K, L)
+    filter_energy = calculate_signal_energy(H)
+    scaling_factor = 1. / np.sqrt(filter_energy / 2)
+    H = H * scaling_factor
     return get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len)
 
 

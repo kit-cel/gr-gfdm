@@ -66,7 +66,7 @@ def gfdm_filter_subcarriers(R, H, K, M, L):
     :param L: overlapping factor
     :return: filtered subcarriers in fd
     '''
-    H = H / float(K)
+    # H = H / float(K)
     D = R.flatten()
     F = D * np.tile(H, K)
     return np.reshape(F, (-1, L * M)).T
@@ -87,12 +87,14 @@ def gfdm_superposition_subcarriers(R, K, M, L):
         S[k] = np.sum(np.reshape(D[k], (L, -1)), axis=0)
     return S.T
 
+
 def gfdm_transform_subcarriers_to_tdomain(R, K, M, L):
     S = np.zeros((K,M), np.complex)
     D = R.T
     for k in xrange(K):
         S[k] = np.fft.ifft(D[k])
     return S.T
+
 
 def gfdm_get_ic_f_taps(f_taps, M):
     return np.multiply(f_taps[0:M], f_taps[-M:])
@@ -101,6 +103,7 @@ def gfdm_get_ic_f_taps(f_taps, M):
 def gfdm_map_subcarriers(R, K, M, L):
     D = map_qpsk_stream(R)
     return np.reshape(D, (-1, K))
+
 
 def gfdm_remove_sc_interference(R, D, K, M, L, H_sic):
     D = D.T
@@ -128,6 +131,7 @@ def gfdm_demodulate_block_sic(R, H, K, M, L, J=0):
     D_3 = gfdm_superposition_subcarriers(D_2, K, M, L)
     D_4 = gfdm_transform_subcarriers_to_tdomain(D_3, K, M, L)
     for j in xrange(J):
+        print 'IC iter', j
         D_5 = gfdm_map_subcarriers(D_4, K, M, L)
         D_6 = gfdm_remove_sc_interference(D_3, D_5, K, M, L, H_sic)
         D_4 = gfdm_transform_subcarriers_to_tdomain(D_6, K, M, L)
@@ -141,7 +145,7 @@ def gfdm_gr_receiver(data, filtertype, alpha, M, K, overlap, compat_mode=True):
 
 def gfdm_demodulate_fft(data, alpha, M, K, overlap, sic_rounds=0):
     H = get_frequency_domain_filter('rrc', alpha, M, K, overlap)
-    return gfdm_demodulate_block_sic(data, H.conj(), K, M, overlap)
+    return gfdm_demodulate_block_sic(data, H.conj(), K, M, overlap, sic_rounds)
 
 
 def get_repetition_matrix(timeslots, overlap):
