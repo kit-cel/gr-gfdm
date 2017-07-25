@@ -18,7 +18,6 @@
 # Boston, MA 02110-1301, USA.
 
 install(FILES
-    gfdm_framer_cc.xml
     gfdm_modulator_cc.xml
     gfdm_sync_cc.xml
     gfdm_cyclic_prefixer_cc.xml
@@ -27,7 +26,6 @@ install(FILES
     gfdm_simple_modulator_cc.xml
     gfdm_simple_receiver_cc.xml
     gfdm_advanced_receiver_sb_cc.xml
-    gfdm_advanced_receiver_tsb_cc.xml
     gfdm_resource_mapper_cc.xml
     gfdm_frame_energy_detector_cc.xml
     gfdm_simple_preamble_sync_cc.xml
