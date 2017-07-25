@@ -45,6 +45,7 @@ namespace gr {
       void generic_work(gr_complex *p_out, const gr_complex *p_in);
       void generic_work_equalize(gr_complex *out, const gr_complex *in, const gr_complex* f_eq_in);
       void set_ic(int ic_iter) { d_ic_iter = ic_iter; }
+      int get_ic(void) { return d_ic_iter; }
       int block_size() { return d_kernel->block_size();}
 
     private:

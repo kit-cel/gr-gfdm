@@ -122,6 +122,20 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         res = np.array(snk.data())
         self.assertComplexTuplesAlmostEqual(data, res, 2)
 
+    def test_004_setIC(self):
+        ic = 2
+        timeslots = 9
+        subcarriers = 32
+        active_subcarriers = 20
+        overlap = 2
+        f_taps = filters.get_frequency_domain_filter('rrc', .5, timeslots, subcarriers, overlap)
+        gfdm_constellation = digital.constellation_qpsk().base()
+        subcarrier_map = get_subcarrier_map(subcarriers, active_subcarriers)
+        demod = gfdm.advanced_receiver_sb_cc(timeslots, subcarriers, overlap, 64, f_taps, gfdm_constellation, subcarrier_map)
+        demod.set_ic(ic)
+        self.assertEqual(ic, demod.get_ic())
+
+
 
 if __name__ == '__main__':
     # gr_unittest.run(qa_advanced_receiver_sb_cc, "qa_advanced_receiver_sb_cc.xml")
