@@ -129,6 +129,12 @@ find_package(Gnuradio "3.7.2" REQUIRED)
 if(NOT CPPUNIT_FOUND)
     message(FATAL_ERROR "CppUnit required to compile gfdm")
 endif()
+if(CMAKE_BUILD_TYPE)
+if(${CMAKE_BUILD_TYPE} STREQUAL "Coverage")
+  include(CodeCoverage)
+  setup_target_for_coverage(coverage "ctest || exit 0" coverage)
+endif()
+endif()
 
 ########################################################################
 # Setup doxygen option
