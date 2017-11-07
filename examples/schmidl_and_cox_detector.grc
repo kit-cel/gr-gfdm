@@ -109,7 +109,7 @@
     </param>
   </block>
   <block>
-    <key>blocks_complex_to_mag_squared</key>
+    <key>blocks_complex_to_mag</key>
     <param>
       <key>alias</key>
       <value></value>
@@ -124,11 +124,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>True</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(816, 272)</value>
+      <value>(840, 272)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -136,7 +136,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>blocks_complex_to_mag_squared_0_0_0</value>
+      <value>blocks_complex_to_mag_0</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -822,7 +822,7 @@
     </param>
   </block>
   <connection>
-    <source_block_id>blocks_complex_to_mag_squared_0_0_0</source_block_id>
+    <source_block_id>blocks_complex_to_mag_0</source_block_id>
     <sink_block_id>blocks_divide_xx_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
@@ -858,12 +858,6 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>blocks_moving_average_xx_0</source_block_id>
-    <sink_block_id>blocks_complex_to_mag_squared_0_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
     <source_block_id>blocks_moving_average_xx_0_0</source_block_id>
     <sink_block_id>blocks_divide_xx_0_0</sink_block_id>
     <source_key>0</source_key>
@@ -883,7 +877,7 @@
   </connection>
   <connection>
     <source_block_id>ieee802_11_moving_average_xx_1</source_block_id>
-    <sink_block_id>blocks_complex_to_mag_squared_0_0_0</sink_block_id>
+    <sink_block_id>blocks_complex_to_mag_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
