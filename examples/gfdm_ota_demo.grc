@@ -1195,7 +1195,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>21</value>
+      <value>9</value>
     </param>
   </block>
   <block>
@@ -2218,6 +2218,10 @@
     <param>
       <key>minoutbuf</key>
       <value>0</value>
+    </param>
+    <param>
+      <key>peak_rise_factor</key>
+      <value>10.</value>
     </param>
     <param>
       <key>ref_preamble</key>
