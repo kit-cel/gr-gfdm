@@ -44,6 +44,9 @@ namespace gr
       void set_ic(int ic_iter)
       { d_adv_kernel->set_ic(ic_iter); }
 
+      int get_ic(void)
+      { return d_adv_kernel->get_ic(); }
+
       // Where all the action really happens
       int work(int noutput_items,
                gr_vector_const_void_star &input_items,

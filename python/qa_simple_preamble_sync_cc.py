@@ -80,7 +80,7 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
         for t in tags:
             print 'srcid {}, key {}, offset {}, value {}'.format(t.srcid, t.key, t.offset, t.value)
 
-        self.assertComplexTuplesAlmostEqual(res, ref[0:len(res)], 5)
+        self.assertComplexTuplesAlmostEqual(res, ref[0:len(res)], 1)
 
 
 if __name__ == '__main__':

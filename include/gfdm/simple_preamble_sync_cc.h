@@ -29,7 +29,7 @@ namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief <+description of block+>
+     * \brief Synchronizes GFDM frame to known preamble
      * \ingroup gfdm
      *
      */

@@ -26,7 +26,6 @@ include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 list(APPEND gfdm_sources
-    framer_cc_impl.cc
     gfdm_utils.cc
     receiver_kernel_cc.cc
     modulator_cc_impl.cc
@@ -40,7 +39,6 @@ list(APPEND gfdm_sources
     simple_receiver_cc_impl.cc
     improved_sync_algorithm_kernel_cc.cc
     advanced_receiver_sb_cc_impl.cc
-    advanced_receiver_tsb_cc_impl.cc
     resource_mapper_kernel_cc.cc
     resource_mapper_cc_impl.cc
     detect_frame_energy_kernel_cl.cc

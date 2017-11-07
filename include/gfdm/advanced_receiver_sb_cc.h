@@ -55,6 +55,7 @@ namespace gr
                        std::vector<int> subcarrier_map);
 
       virtual void set_ic(int ic_iter) = 0;
+      virtual int get_ic(void) = 0;
     };
 
   } // namespace gfdm
