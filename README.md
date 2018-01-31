@@ -87,3 +87,7 @@ References
 
 3. N. Michailow et al. “Generalized frequency division multiplexing: Analysis of an alternative multi-carrier technique for next generation cellular systems”. In: Wireless Communication Systems (ISWCS), 2012 International Symposium on. IEEE, 2012, S. 171–175. doi: 10.1109/ISWCS.2012.6328352.
 
+4. J. Demel, C. Bockelmann, A. Dekorsy "Evaluation of a Software Defined GFDM Implementation for Industry 4.0 Applications". In: IEEE International Conference on Industrial Technology (ICIT 2017), Toronto, Canada, 22. - 25. March 2017
+
+5. J. Demel, C. Bockelmann, A. Dekorsy, Andrej Rode, Sebastian Koslowski, Friedrich K. Jondral "An optimized GFDM software implementation for future Cloud-RAN and field tests". In: GNU Radio Conference 2017, San Diego, USA, 11. - 15. September 2017
+
