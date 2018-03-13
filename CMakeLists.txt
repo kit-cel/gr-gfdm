@@ -125,6 +125,7 @@ find_package(Doxygen)
 # API compatible version required.
 set(GR_REQUIRED_COMPONENTS RUNTIME FFT FILTER DIGITAL)
 find_package(Gnuradio "3.7.2" REQUIRED)
+find_package(Volk "1.3")
 
 if(NOT CPPUNIT_FOUND)
     message(FATAL_ERROR "CppUnit required to compile gfdm")
