@@ -22,7 +22,6 @@
 
 import numpy as np
 import commpy as cp
-import matplotlib.pyplot as plt
 
 
 def gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor=1.):
@@ -89,6 +88,7 @@ def check_taps_validity(alpha, ts, sc):
 
 
 def plot_filter(filter_type, alpha, ts, sc, overlap):
+    import matplotlib.pyplot as plt
     time_taps = gfdm_filter_taps(filter_type, alpha, ts, sc)
     freq_taps = gfdm_freq_taps(time_taps)
     freq_taps_sparse = gfdm_freq_taps_sparse(freq_taps, ts, overlap)

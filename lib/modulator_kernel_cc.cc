@@ -86,13 +86,13 @@ namespace gr
     {
       gfdm_complex res = gfdm_complex(0.0, 0.0);
       volk_32fc_x2_conjugate_dot_prod_32fc(&res, &frequency_taps[0], &frequency_taps[0], frequency_taps.size());
-      std::cout << "BEFORE energy of taps: " << std::abs(res) << std::endl;
+      //std::cout << "BEFORE energy of taps: " << std::abs(res) << std::endl;
 
       const gfdm_complex scaling_factor = gfdm_complex(1. / std::sqrt(std::abs(res) / n_timeslots), 0.0f);
       volk_32fc_s32fc_multiply_32fc(d_filter_taps, &frequency_taps[0], scaling_factor, frequency_taps.size());
 
       volk_32fc_x2_conjugate_dot_prod_32fc(&res, d_filter_taps, d_filter_taps, frequency_taps.size());
-      std::cout << "AFTER  energy of taps: " << std::abs(res) << std::endl;
+      //std::cout << "AFTER  energy of taps: " << std::abs(res) << std::endl;
     }
 
     std::vector<modulator_kernel_cc::gfdm_complex> modulator_kernel_cc::filter_taps()

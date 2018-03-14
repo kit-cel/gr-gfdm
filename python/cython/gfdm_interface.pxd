@@ -38,6 +38,7 @@ cdef extern from "receiver_kernel_cc.h" namespace "gr::gfdm":
         void generic_work(float complex* p_out, const float complex* p_in);
         void generic_work_equalize(float complex* p_out, const float complex* p_in, const float complex* f_eq_in)
         void fft_filter_downsample(float complex* p_out, const float complex* p_in);
+        void fft_equalize_filter_downsample(float complex* p_out, const float complex* p_in, const float complex* f_eq_in);
         void transform_subcarriers_to_td(float complex* p_out, const float complex* p_in);
         void cancel_sc_interference(float complex* p_out, const float complex* p_td_in, const float complex* p_fd_in);
 

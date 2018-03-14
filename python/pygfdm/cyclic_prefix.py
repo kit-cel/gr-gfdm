@@ -30,7 +30,6 @@ This file holds functions necessary for cyclic prefix/suffix insertion. Also, it
 
 import numpy as np
 import scipy.signal as signal
-import matplotlib.pyplot as plt
 
 
 def get_window_len(cp_len, n_timeslots, n_subcarriers, cs_len=0):
@@ -89,6 +88,7 @@ def pinch_cp_add_block(data, timeslots, subcarriers, cp_len, ramp_len):
 
 
 def plot_window_ramps():
+    import matplotlib.pyplot as plt
     n_subcarriers = 16
     n_timeslots = 15
     cp_len = n_subcarriers # / 2

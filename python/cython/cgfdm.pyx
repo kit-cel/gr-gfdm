@@ -159,6 +159,15 @@ cdef class py_receiver_kernel_cc:
         cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
         self.cpp_fft_filter_downsample(res, samples)
         return res
+        
+    def fft_equalize_filter_downsample(self, np.ndarray[np.complex64_t, ndim=1] samples, np.ndarray[np.complex64_t, ndim=1] fd_equalizer_taps):
+        if samples.size != self.block_size():
+            raise ValueError("CGFDM: Size of input array ({}) MUST be equal to timeslots * active_subcarriers ({})!".format(samples.size, self.block_size()))
+        if fd_equalizer_taps.size != self.block_size():
+            raise ValueError("CGFDM: Size of equalizer array ({}) MUST be equal to timeslots * active_subcarriers ({})!".format(fd_equalizer_taps.size, self.block_size()))
+        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
+        self.kernel.fft_equalize_filter_downsample(<float complex*> res.data, <float complex*> samples.data, <float complex*> fd_equalizer_taps.data);
+        return res
 
     def transform_subcarriers_to_td(self, np.ndarray[np.complex64_t, ndim=1] samples):
         if samples.shape[0] != self.block_size():
@@ -175,6 +184,7 @@ cdef class py_receiver_kernel_cc:
         cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
         self.cpp_cancel_sc_interference(res, td_in, fd_in)
         return res
+
 
 cdef class py_detect_frame_energy_kernel_cl:
     cdef gfdm_interface.detect_frame_energy_kernel_cl* kernel
