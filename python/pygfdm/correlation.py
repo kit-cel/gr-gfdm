@@ -29,7 +29,6 @@ COMMENT
 '''
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def auto_correlate_halfs(s):
@@ -168,6 +167,7 @@ def cross_correlate_fft_cyclic(s, p):
 
 
 def main():
+    import matplotlib.pyplot as plt
     np.set_printoptions(precision=4, suppress=True)
     validate_cross_correlation_algorithms()
     l = 30

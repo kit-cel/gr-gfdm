@@ -5,8 +5,12 @@ from future_builtins import *
 import numpy as np
 import scipy.signal as signal
 import cgfdm as gfdm
-import matplotlib.pyplot as plt
 import pygfdm
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    pass
 
 
 def map_to_waveform_resources(syms, subcarrier_map, active_subcarriers, fft_len):

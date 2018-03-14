@@ -29,8 +29,6 @@ import cyclic_prefix
 import filters
 # import synchronization as sync
 
-import matplotlib.pyplot as plt
-
 
 class frame_estimator():
     def __init__(self, x_preamble, fft_len, timeslots, active_subcarriers):

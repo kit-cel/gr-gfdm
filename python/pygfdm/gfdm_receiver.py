@@ -25,7 +25,6 @@ from mapping import get_data_stream
 from filters import get_frequency_domain_filter, gfdm_freq_taps, gfdm_filter_taps, gfdm_freq_taps_sparse
 from gfdm_modulation import get_random_GFDM_block
 from utils import get_random_qpsk, calculate_average_signal_energy, map_qpsk_stream
-import matplotlib.pyplot as plt
 
 '''
 [0] Low Complexity GFDM Receiver Based On Sparse Frequency Domain Processing

@@ -30,7 +30,6 @@ COMMENT
 '''
 
 import numpy as np
-import matplotlib.pyplot as plt
 from modulation import gfdm_modulation_matrix
 from filters import get_frequency_domain_filter, gfdm_filter_taps
 from gfdm_modulation import gfdm_modulate_block, gfdm_modulate_fft
@@ -274,6 +273,7 @@ def multiply_valid(first, second):
 
 
 def simplified_sync_algo(rx, x_preamble, subcarriers, cp_len):
+    # import matplotlib.pyplot as plt
     x_preamble = initialize_sync_algorithm(x_preamble, subcarriers)
     oac = auto_correlate_signal(rx, subcarriers)
     # this 2 divisor is up to debate. Seems necessary for larger cp_len relative to fft_len
@@ -342,6 +342,7 @@ def generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cf
 
 
 def sync_test():
+    import matplotlib.pyplot as plt
     samp_rate = 10e6  # an assumption to work with
     alpha = .3
     M = 33
@@ -434,6 +435,7 @@ def preamble_auto_corr_test():
 
 
 def main():
+    import matplotlib.pyplot as plt
     np.set_printoptions(precision=4, suppress=True)
     # preamble_auto_corr_test()
     sync_test()

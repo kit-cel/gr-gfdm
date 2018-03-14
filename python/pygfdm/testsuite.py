@@ -4,7 +4,6 @@ import numpy as np
 import commpy as cp
 from . import modulation as mod
 from . import utils as ut
-import matplotlib.pyplot as mp
 import multiprocessing
 import functools
 
@@ -35,6 +34,7 @@ class Tester():
         self.funcs['sync_symbol'] = mod.sync_symbol2
 
     def Transceiver(self):
+        import matplotlib.pyplot as mp
         mk = self.env['m']*self.env['k']
         self.sym = mod.randomQAMSymbols(mk*self.env['blocks'], self.env['qam'])
         tx_array = np.array([])
@@ -104,6 +104,7 @@ class Tester():
             rx_array = np.concatenate((rx_array, rx))
 
     def Transceiver_sync(self):
+        import matplotlib.pyplot as mp
         fo = self.env['fo']/(2*self.env['k']*self.env['os'])
         mk = self.env['m']*self.env['k']
         self.sym = mod.randomQAMSymbols(mk*self.env['blocks'], self.env['qam'])

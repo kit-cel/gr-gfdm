@@ -21,7 +21,10 @@ import gfdm_receiver
 import filters
 import validation_utils
 
+try:
 import matplotlib.pyplot as plt
+except ImportError:
+    pass
 
 import cgfdm
 

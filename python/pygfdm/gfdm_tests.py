@@ -20,7 +20,6 @@
 #
 
 import numpy as np
-import matplotlib.pyplot as plt
 from gfdm_modulation import gfdm_gr_modulator
 from gfdm_receiver import gfdm_gr_receiver
 from receiver import gfdm_rx_fft2
@@ -79,6 +78,7 @@ def test_transceiver_legacy_01():
 
 
 def test_transceiver_00():
+    import matplotlib.pyplot as plt
     K = 32
     M = 8
     overlap = 2
@@ -94,6 +94,7 @@ def test_transceiver_00():
 
 
 def test_transceiver_01():
+    import matplotlib.pyplot as plt
     K = 32
     M = 8
     overlap = 3
