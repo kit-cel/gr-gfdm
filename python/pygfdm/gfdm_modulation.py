@@ -27,8 +27,6 @@ A few hints on used papers, consider them to be a good read.
 '''
 
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from modulation import gfdm_modulation_matrix, gfdm_tx_fft2
 from filters import gfdm_filter_taps, get_frequency_domain_filter
 from mapping import get_data_matrix, map_to_waveform_resource_grid, get_subcarrier_map
@@ -241,6 +239,8 @@ def validate_subcarrier_location(alpha, M, K, overlap, oversampling_factor):
 
 
 def compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor):
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
     goofy_ordering = False
     taps = gfdm_filter_taps('rrc', alpha, M, K, oversampling_factor)
     A0 = gfdm_modulation_matrix(taps, M, K, oversampling_factor, group_by_subcarrier=goofy_ordering)
@@ -264,6 +264,8 @@ def compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor):
         fA = np.argmax(abs(np.fft.fft(xA))) / M
         plt.plot(abs(np.fft.fft(xA)), '-', label='matrix' + str(k), color=color)
         print fm, fA, f0
+    plt.legend()
+    plt.show()
 
 
 def compare_subcarrier_combination():
@@ -305,8 +307,7 @@ def main():
     validate_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
 
     # compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
-    # plt.legend()
-    # plt.show()
+
 
 
 if __name__ == '__main__':
