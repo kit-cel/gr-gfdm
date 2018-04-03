@@ -109,6 +109,87 @@
     </param>
   </block>
   <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1216, 264)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>modulated_preambles</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>pre_module.mapped_preamble(seed, 'rrc', .2, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, ramp_len)</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1144, 184)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>preamble</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>modulated_preambles[0]</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(640, 188)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>seed</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>utils.generate_seed('awesome preamble')</value>
+    </param>
+  </block>
+  <block>
     <key>parameter</key>
     <param>
       <key>alias</key>
@@ -153,6 +234,206 @@
     <param>
       <key>value</key>
       <value>110</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_keep_m_in_n</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(208, 428)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_keep_m_in_n_0</value>
+    </param>
+    <param>
+      <key>m</key>
+      <value>block_len</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>n</key>
+      <value>frame_len</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>offset</key>
+      <value>len(preamble) + cp_len</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_keep_m_in_n</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(208, 540)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_keep_m_in_n_0_0</value>
+    </param>
+    <param>
+      <key>m</key>
+      <value>len(modulated_preambles[1])</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>n</key>
+      <value>frame_len</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>offset</key>
+      <value>cp_len</value>
+    </param>
+  </block>
+  <block>
+    <key>pad_sink</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1096, 556)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>chan</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Channel Estimate</value>
+    </param>
+    <param>
+      <key>num_streams</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>optional</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>vlen</key>
+      <value>1</value>
+    </param>
+  </block>
+  <block>
+    <key>parameter</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(408, 184)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>cp_len</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>CP length</value>
+    </param>
+    <param>
+      <key>short_id</key>
+      <value></value>
+    </param>
+    <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>intx</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>32</value>
     </param>
   </block>
   <block>
@@ -277,7 +558,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(528, 360)</value>
+      <value>(608, 412)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -285,7 +566,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>gfdm_advanced_receiver_sb_cc_0</value>
+      <value>gfdm_advanced_receiver_sb_cc_0_0</value>
     </param>
     <param>
       <key>ic_iter</key>
@@ -314,6 +595,65 @@
     <param>
       <key>subcarrier_map</key>
       <value>subcarrier_map</value>
+    </param>
+  </block>
+  <block>
+    <key>gfdm_channel_estimator_cc</key>
+    <param>
+      <key>active_subcarriers</key>
+      <value>active_subcarriers</value>
+    </param>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>fft_len</key>
+      <value>subcarriers</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(360, 524)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>gfdm_channel_estimator_cc_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>preamble</key>
+      <value>modulated_preambles[1]</value>
+    </param>
+    <param>
+      <key>timeslots</key>
+      <value>timeslots</value>
+    </param>
+    <param>
+      <key>is_dc_free</key>
+      <value>True</value>
     </param>
   </block>
   <block>
@@ -364,61 +704,6 @@
     </param>
   </block>
   <block>
-    <key>gfdm_remove_prefix_cc</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>block_len</key>
-      <value>timeslots * subcarriers</value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>frame_len</key>
-      <value>frame_len</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(336, 384)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>gfdm_remove_prefix_cc_0</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>offset</key>
-      <value>offset</value>
-    </param>
-    <param>
-      <key>gfdm_sync_tag_key</key>
-      <value>frame_start_tag_key</value>
-    </param>
-  </block>
-  <block>
     <key>gfdm_resource_demapper_cc</key>
     <param>
       <key>active_subcarriers</key>
@@ -438,11 +723,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(800, 376)</value>
+      <value>(864, 428)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -450,7 +735,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>gfdm_resource_demapper_cc_0</value>
+      <value>gfdm_resource_demapper_cc_0_0</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -540,6 +825,37 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(8, 220)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_cyclic_prefix_0</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>from gfdm.pygfdm import utils</value>
+    </param>
+  </block>
+  <block>
+    <key>import</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(8, 172)</value>
     </param>
     <param>
@@ -584,6 +900,37 @@
     <param>
       <key>import</key>
       <value>import numpy as np</value>
+    </param>
+  </block>
+  <block>
+    <key>import</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(8, 268)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>import_synchronization</value>
+    </param>
+    <param>
+      <key>import</key>
+      <value>from gfdm.pygfdm import preamble as pre_module</value>
     </param>
   </block>
   <block>
@@ -692,7 +1039,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1024, 404)</value>
+      <value>(1096, 460)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -700,7 +1047,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>pad_sink_0</value>
+      <value>pad_sink_out</value>
     </param>
     <param>
       <key>type</key>
@@ -735,7 +1082,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(200, 404)</value>
+      <value>(56, 444)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -764,6 +1111,53 @@
     <param>
       <key>vlen</key>
       <value>1</value>
+    </param>
+  </block>
+  <block>
+    <key>parameter</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(504, 212)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>ramp_len</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Ramp length</value>
+    </param>
+    <param>
+      <key>short_id</key>
+      <value></value>
+    </param>
+    <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>intx</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>16</value>
     </param>
   </block>
   <block>
@@ -955,26 +1349,50 @@
     </param>
   </block>
   <connection>
-    <source_block_id>gfdm_advanced_receiver_sb_cc_0</source_block_id>
-    <sink_block_id>gfdm_resource_demapper_cc_0</sink_block_id>
+    <source_block_id>blocks_keep_m_in_n_0</source_block_id>
+    <sink_block_id>gfdm_advanced_receiver_sb_cc_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_remove_prefix_cc_0</source_block_id>
-    <sink_block_id>gfdm_advanced_receiver_sb_cc_0</sink_block_id>
+    <source_block_id>blocks_keep_m_in_n_0_0</source_block_id>
+    <sink_block_id>gfdm_channel_estimator_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gfdm_resource_demapper_cc_0</source_block_id>
-    <sink_block_id>pad_sink_0</sink_block_id>
+    <source_block_id>gfdm_advanced_receiver_sb_cc_0_0</source_block_id>
+    <sink_block_id>gfdm_resource_demapper_cc_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gfdm_channel_estimator_cc_0</source_block_id>
+    <sink_block_id>chan</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gfdm_channel_estimator_cc_0</source_block_id>
+    <sink_block_id>gfdm_advanced_receiver_sb_cc_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>1</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gfdm_resource_demapper_cc_0_0</source_block_id>
+    <sink_block_id>pad_sink_out</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
     <source_block_id>pad_source_0</source_block_id>
-    <sink_block_id>gfdm_remove_prefix_cc_0</sink_block_id>
+    <sink_block_id>blocks_keep_m_in_n_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>pad_source_0</source_block_id>
+    <sink_block_id>blocks_keep_m_in_n_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
