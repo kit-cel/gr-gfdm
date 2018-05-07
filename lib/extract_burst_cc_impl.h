@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2017 Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -30,10 +30,14 @@ namespace gr {
     {
      private:
       int d_burst_len;
+      int d_tag_backoff;
       pmt::pmt_t d_burst_start_tag;
 
+      float get_scale_factor(pmt::pmt_t info);
+      void normalize_power_level(gr_complex* p_out, const gr_complex* p_in, const float norm_factor, const int ninput_size);
+
      public:
-      extract_burst_cc_impl(int burst_len, std::string burst_start_tag);
+      extract_burst_cc_impl(int burst_len, int tag_backoff, std::string burst_start_tag);
       ~extract_burst_cc_impl();
 
       // Where all the action really happens

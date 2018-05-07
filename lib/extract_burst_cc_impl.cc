@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2017 <+YOU OR YOUR COMPANY+>.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -25,25 +25,26 @@
 #include <gnuradio/io_signature.h>
 #include "extract_burst_cc_impl.h"
 #include <cmath>
+#include <volk/volk.h>
 
 namespace gr {
   namespace gfdm {
 
     extract_burst_cc::sptr
-    extract_burst_cc::make(int burst_len, std::string burst_start_tag)
+    extract_burst_cc::make(int burst_len, int tag_backoff, std::string burst_start_tag)
     {
       return gnuradio::get_initial_sptr
-        (new extract_burst_cc_impl(burst_len, burst_start_tag));
+        (new extract_burst_cc_impl(burst_len, tag_backoff, burst_start_tag));
     }
 
     /*
      * The private constructor
      */
-    extract_burst_cc_impl::extract_burst_cc_impl(int burst_len, std::string burst_start_tag)
+    extract_burst_cc_impl::extract_burst_cc_impl(int burst_len, int tag_backoff, std::string burst_start_tag)
       : gr::block("extract_burst_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
-              d_burst_len(burst_len)
+              d_burst_len(burst_len), d_tag_backoff(tag_backoff)
     {
       set_output_multiple(burst_len);
       d_burst_start_tag = pmt::string_to_symbol(burst_start_tag);
@@ -62,6 +63,26 @@ namespace gr {
     {
       /* <+forecast+> e.g. ninput_items_required[0] = noutput_items */
         ninput_items_required[0] = noutput_items;
+    }
+
+    float
+    extract_burst_cc_impl::get_scale_factor(pmt::pmt_t info){
+      float scale_factor = 1.0f;
+      if(pmt::is_dict(info)){
+        pmt::pmt_t scl = pmt::dict_ref(info,
+                                      pmt::mp("scale_factor"),
+                                      pmt::PMT_NIL);
+        if(pmt::is_real(scl)){
+          scale_factor = pmt::to_double(scl);
+        }
+      }
+      return scale_factor;
+    }
+
+    void
+    extract_burst_cc_impl::normalize_power_level(gr_complex* p_out, const gr_complex* p_in, const float norm_factor, const int ninput_size)
+    {
+      volk_32f_s32f_multiply_32f((float*) p_out, (const float*) p_in, norm_factor, 2 * ninput_size);
     }
 
     int
@@ -83,18 +104,34 @@ namespace gr {
       const int n_max_bursts = std::min(int(tags.size()), n_out_bursts);
       for (int i = 0; i < n_max_bursts; ++i) {
         int burst_start = tags[i].offset - nitems_read(0);
+        int actual_start = burst_start - d_tag_backoff;
+
+        pmt::pmt_t info = tags[i].value;
+        const float scale_factor = get_scale_factor(info);
+
         if(avail_items - burst_start >= d_burst_len){
-          memcpy(out, in + burst_start, sizeof(gr_complex) * d_burst_len);
+
+          if(actual_start < 0){
+            int num_prepend_zeros = std::abs(actual_start);
+            memset(out, 0, sizeof(gr_complex) * num_prepend_zeros);
+            // memcpy(out + num_prepend_zeros, in, sizeof(gr_complex) * d_burst_len);
+            normalize_power_level(out + num_prepend_zeros, in, scale_factor, d_burst_len);
+          }
+          else{
+            // memcpy(out, in + actual_start, sizeof(gr_complex) * d_burst_len);
+            normalize_power_level(out, in + actual_start, scale_factor, d_burst_len);
+          }
+
 
           add_item_tag(0, nitems_written(0) + produced_items, d_burst_start_tag,
-                       pmt::from_long(d_burst_len), pmt::string_to_symbol(name()));
+                       tags[i].value, pmt::string_to_symbol(name()));
 
           produced_items += d_burst_len;
           consumed_items = burst_start + d_burst_len;
           out += d_burst_len;
         }
         else{
-          consumed_items = burst_start;
+          consumed_items = std::max(0, actual_start);
           break;
         }
       }
