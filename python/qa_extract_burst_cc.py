@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 # Copyright 2017 Johannes Demel.
-# 
+#
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this software; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-# 
+#
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
@@ -56,7 +56,7 @@ class qa_extract_burst_cc(gr_unittest.TestCase):
         # print('data len', len(data), 'ref len', len(ref))
 
         src = blocks.vector_source_c(data, False, 1, tags)
-        burster = gfdm.extract_burst_cc(burst_len, tag_key)
+        burster = gfdm.extract_burst_cc(burst_len, 0, tag_key)
         snk = blocks.vector_sink_c()
         self.tb.connect(src, burster, snk)
         self.tb.run()
@@ -64,11 +64,10 @@ class qa_extract_burst_cc(gr_unittest.TestCase):
         res = np.array(snk.data())
         rx_tags = snk.tags()
         for i, t in enumerate(rx_tags):
-            assert pmt.symbol_to_string(t.key) == tag_key
-            assert pmt.to_long(t.value) == burst_len
-            assert pmt.symbol_to_string(t.srcid) == burster.name()
-            assert t.offset == i * burst_len
-            # print t.offset, t.value
+            self.assertEquals(pmt.symbol_to_string(t.key), tag_key)
+            self.assertTrue(pmt.is_true(t.value))
+            self.assertEquals(pmt.symbol_to_string(t.srcid), burster.name())
+            self.assertEquals(t.offset, i * burst_len)
 
         # check data
         self.assertComplexTuplesAlmostEqual(ref, res)

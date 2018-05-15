@@ -24,7 +24,7 @@ from gnuradio import blocks
 import gfdm_swig as gfdm
 from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.gfdm_modulation import gfdm_modulate_block
-from pygfdm.mapping import get_data_matrix, map_to_waveform_resources
+from pygfdm.mapping import get_data_matrix, map_to_waveform_resources, get_subcarrier_map
 from pygfdm.utils import get_random_qpsk, calculate_signal_energy
 from pygfdm.cyclic_prefix import get_window_len, get_raised_cosine_ramp, add_cyclic_prefix, pinch_block, add_cyclic_starfix
 from pygfdm.preamble import get_sync_symbol
@@ -57,7 +57,8 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         pn_symbols = get_random_qpsk(K)
         H_preamble = get_frequency_domain_filter('rrc', alpha, 2, K, L)
         preamble = get_sync_symbol(pn_symbols, H_preamble, K, L, cp_len, ramp_len)[0]
-        smap = np.arange(active) + (K - active) // 2
+        # smap = np.arange(active) + (K - active) // 2
+        smap = get_subcarrier_map(K, active, dc_free=True)
 
         ref = np.array([], dtype=np.complex)
         data = np.array([], dtype=np.complex)

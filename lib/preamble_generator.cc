@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Andrej Rode.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -59,11 +59,11 @@ namespace gr {
       std::memset(&ifft_in[0],0x00,sizeof(gr_complex)*sync_fft_len);
       for (int sc=0; sc<nsubcarrier;sc++)
       {
-        std::vector<gr_complex> sc_tmp(2*2,0j);
+        std::vector<gr_complex> sc_tmp(2*2,gr_complex(0.0, 0.0));
         sc_fft_in[0] = d_symbols[sc];
         sc_fft_in[1] = d_symbols[sc];
         sc_fft->execute();
-                
+
         for (int l=0; l<2;l++)
         {
           ::volk_32fc_x2_multiply_32fc(&sc_tmp[l*2],&filter_taps[l*2],&sc_fft_out[0],2);
@@ -73,8 +73,8 @@ namespace gr {
         for (int n=0; n< 2*2; n++)
         {
           ifft_in[(((ifft_offset+n) % sync_fft_len) + sync_fft_len) % sync_fft_len] += sc_tmp[(n+(2*2)/2) % (2*2)];
-        }      
-      
+        }
+
       }
       ifft->execute();
       ::volk_32fc_s32fc_multiply_32fc(&d_samp_preamble[0],&ifft_out[0], static_cast<gr_complex>(1.0/(2*nsubcarrier)),sync_fft_len);
@@ -87,13 +87,13 @@ namespace gr {
     preamble_generator::~preamble_generator()
     {
     }
-    
+
     preamble_generator::sptr
     preamble_generator::make(int nsubcarrier, double filter_alpha, int sync_fft_len)
     {
       return preamble_generator::sptr(
           new preamble_generator(nsubcarrier, filter_alpha, sync_fft_len));
-      
+
     }
 
   } /* namespace gfdm */

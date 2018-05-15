@@ -58,3 +58,4 @@ GR_ADD_TEST(qa_remove_prefix_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}
 GR_ADD_TEST(qa_extract_burst_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_extract_burst_cc.py)
 GR_ADD_TEST(qa_py_channel_estimator_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_py_channel_estimator_cc.py)
 GR_ADD_TEST(qa_channel_estimator_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_channel_estimator_cc.py)
+GR_ADD_TEST(qa_transmitter_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_transmitter_cc.py)

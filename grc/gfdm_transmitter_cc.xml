@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<block>
+  <name>GFDM Transmitter</name>
+  <key>gfdm_transmitter_cc</key>
+  <category>[GFDM]</category>
+  <import>import gfdm</import>
+  <make>gfdm.transmitter_cc($timeslots, $subcarriers, $active_subcarriers,
+                                  $cp_len, $cs_len, $ramp_len, $subcarrier_map,
+                                  $per_timeslot, $overlap, $frequency_taps, $window_taps, $preamble)</make>
+  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
+       Sub-nodes:
+       * name
+       * key (makes the value accessible as $keyname, e.g. in the make node)
+       * type -->
+  <param>
+    <name>Timeslots</name>
+    <key>timeslots</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>Subcarriers</name>
+    <key>subcarriers</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>Active subcarriers</name>
+    <key>active_subcarriers</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>CP length</name>
+    <key>cp_len</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>CS length</name>
+    <key>cs_len</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>Ramp length</name>
+    <key>ramp_len</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>Subcarrier map</name>
+    <key>subcarrier_map</key>
+    <type>raw</type>
+  </param>
+
+  <param>
+    <name>per Timeslot</name>
+    <key>per_timeslot</key>
+    <value>True</value>
+    <type>bool</type>
+  </param>
+
+  <param>
+    <name>Overlap</name>
+    <key>overlap</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>Frequency domain taps</name>
+    <key>frequency_taps</key>
+    <type>raw</type>
+  </param>
+
+  <param>
+    <name>Window taps</name>
+    <key>window_taps</key>
+    <type>raw</type>
+  </param>
+
+  <param>
+    <name>Preamble</name>
+    <key>preamble</key>
+    <type>raw</type>
+  </param>
+
+  <sink>
+    <name>in</name>
+    <type>complex</type>
+  </sink>
+
+  <source>
+    <name>out</name>
+    <type>complex</type>
+  </source>
+</block>

@@ -32,5 +32,6 @@ install(FILES
     gfdm_resource_demapper_cc.xml
     gfdm_extract_burst_cc.xml
     gfdm_py_channel_estimator_cc.xml
-    gfdm_channel_estimator_cc.xml DESTINATION share/gnuradio/grc/blocks
+    gfdm_channel_estimator_cc.xml
+    gfdm_transmitter_cc.xml DESTINATION share/gnuradio/grc/blocks
 )

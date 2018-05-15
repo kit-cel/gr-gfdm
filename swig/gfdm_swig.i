@@ -29,6 +29,8 @@
 #include "gfdm/resource_demapper_cc.h"
 #include "gfdm/extract_burst_cc.h"
 #include "gfdm/channel_estimator_cc.h"
+#include "gfdm/transmitter_kernel.h"
+#include "gfdm/transmitter_cc.h"
 %}
 
 %include "gfdm/modulator_cc.h"
@@ -64,3 +66,6 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, resource_demapper_cc);
 GR_SWIG_BLOCK_MAGIC2(gfdm, extract_burst_cc);
 %include "gfdm/channel_estimator_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, channel_estimator_cc);
+%include "gfdm/transmitter_kernel.h"
+%include "gfdm/transmitter_cc.h"
+GR_SWIG_BLOCK_MAGIC2(gfdm, transmitter_cc);

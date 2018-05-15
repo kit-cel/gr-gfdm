@@ -47,5 +47,7 @@ install(FILES
     extract_burst_cc.h
     preamble_channel_estimator_cc.h
     gfdm_kernel_utils.h
-    channel_estimator_cc.h DESTINATION include/gfdm
+    channel_estimator_cc.h
+    transmitter_kernel.h
+    transmitter_cc.h DESTINATION include/gfdm
 )

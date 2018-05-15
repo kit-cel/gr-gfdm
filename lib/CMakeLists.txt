@@ -51,7 +51,9 @@ list(APPEND gfdm_sources
     extract_burst_cc_impl.cc
     preamble_channel_estimator_cc.cc
     gfdm_kernel_utils.cc
-    channel_estimator_cc_impl.cc)
+    channel_estimator_cc_impl.cc
+    transmitter_kernel.cc
+    transmitter_cc_impl.cc)
 
 set(gfdm_sources "${gfdm_sources}" PARENT_SCOPE)
 if(NOT gfdm_sources)
