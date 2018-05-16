@@ -50,7 +50,7 @@
     </param>
     <param>
       <key>max_nouts</key>
-      <value>0</value>
+      <value>1024</value>
     </param>
     <param>
       <key>qt_qss_theme</key>
@@ -454,7 +454,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(624, 228)</value>
+      <value>(864, 404)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1190,7 +1190,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(968, 604)</value>
+      <value>(936, 604)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1245,7 +1245,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(776, 600)</value>
+      <value>(816, 600)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1296,7 +1296,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1224, 900)</value>
+      <value>(1280, 964)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1371,6 +1371,61 @@
     </param>
   </block>
   <block>
+    <key>blocks_delay</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>delay</key>
+      <value>len(preamble) * 2 + cp_len - 1</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(240, 876)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_delay_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>num_ports</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>vlen</key>
+      <value>1</value>
+    </param>
+  </block>
+  <block>
     <key>blocks_message_debug</key>
     <param>
       <key>alias</key>
@@ -1390,7 +1445,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1768, 400)</value>
+      <value>(1744, 464)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1421,7 +1476,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(712, 364)</value>
+      <value>(216, 252)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1468,11 +1523,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>2</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(720, 484)</value>
+      <value>(616, 484)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1574,7 +1629,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(880, 348)</value>
+      <value>(384, 236)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1637,7 +1692,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(272, 404)</value>
+      <value>(160, 412)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1696,7 +1751,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1192, 660)</value>
+      <value>(1144, 692)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1743,7 +1798,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1376, 660)</value>
+      <value>(1336, 692)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1779,61 +1834,6 @@
     </param>
   </block>
   <block>
-    <key>blocks_tag_debug</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>display</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(1800, 668)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>blocks_tag_debug_0_0</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>byte</value>
-    </param>
-    <param>
-      <key>filter</key>
-      <value>""</value>
-    </param>
-    <param>
-      <key>name</key>
-      <value>Rec</value>
-    </param>
-    <param>
-      <key>num_inputs</key>
-      <value>2</value>
-    </param>
-    <param>
-      <key>vlen</key>
-      <value>1</value>
-    </param>
-  </block>
-  <block>
     <key>blocks_tag_gate</key>
     <param>
       <key>alias</key>
@@ -1853,7 +1853,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(240, 356)</value>
+      <value>(160, 356)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1904,7 +1904,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1600, 668)</value>
+      <value>(1568, 700)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2006,7 +2006,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1736, 524)</value>
+      <value>(1696, 580)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2168,7 +2168,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(280, 476)</value>
+      <value>(160, 476)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2227,7 +2227,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1168, 740)</value>
+      <value>(1096, 764)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2266,7 +2266,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1760, 588)</value>
+      <value>(1672, 636)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2309,7 +2309,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(872, 468)</value>
+      <value>(784, 468)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2380,7 +2380,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(496, 396)</value>
+      <value>(384, 396)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2463,7 +2463,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(328, 700)</value>
+      <value>(80, 700)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2522,7 +2522,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(728, 724)</value>
+      <value>(480, 660)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2609,7 +2609,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(456, 292)</value>
+      <value>(640, 244)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2881,7 +2881,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1168, 796)</value>
+      <value>(1104, 836)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -3236,7 +3236,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(496, 976)</value>
+      <value>(248, 972)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -3599,7 +3599,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(520, 884)</value>
+      <value>(264, 940)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -3962,7 +3962,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(976, 692)</value>
+      <value>(776, 684)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -4321,15 +4321,15 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(984, 988)</value>
+      <value>(624, 988)</value>
     </param>
     <param>
       <key>gui_hint</key>
-      <value>sync_tab@0: 0, 0, 1,1</value>
+      <value>sync_tab@0: 2, 0, 1,1</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -4605,7 +4605,7 @@
     </param>
     <param>
       <key>tr_chan</key>
-      <value>0</value>
+      <value>2</value>
     </param>
     <param>
       <key>tr_delay</key>
@@ -4684,15 +4684,15 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(976, 900)</value>
+      <value>(632, 892)</value>
     </param>
     <param>
       <key>gui_hint</key>
-      <value>sync_tab@0: 0, 0, 1,1</value>
+      <value>sync_tab@0: 1, 0, 1,1</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -4956,7 +4956,7 @@
     </param>
     <param>
       <key>nconnections</key>
-      <value>1</value>
+      <value>2</value>
     </param>
     <param>
       <key>size</key>
@@ -5518,6 +5518,12 @@
     <sink_key>1</sink_key>
   </connection>
   <connection>
+    <source_block_id>blocks_delay_0</source_block_id>
+    <sink_block_id>qtgui_time_sink_x_0_0_0_2_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
     <source_block_id>blocks_message_strobe_0</source_block_id>
     <sink_block_id>blocks_random_pdu_0</sink_block_id>
     <source_key>strobe</source_key>
@@ -5555,12 +5561,6 @@
   </connection>
   <connection>
     <source_block_id>blocks_stream_to_tagged_stream_0</source_block_id>
-    <sink_block_id>blocks_tag_debug_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_stream_to_tagged_stream_0</source_block_id>
     <sink_block_id>blocks_tagged_stream_to_pdu_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
@@ -5576,6 +5576,12 @@
     <sink_block_id>digital_crc32_async_bb_1_0</sink_block_id>
     <source_key>pdus</source_key>
     <sink_key>in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>blocks_throttle_0_0</source_block_id>
+    <sink_block_id>blocks_delay_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
   </connection>
   <connection>
     <source_block_id>blocks_throttle_0_0</source_block_id>
@@ -5626,6 +5632,12 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
+    <source_block_id>gfdm_transmitter_cc_0</source_block_id>
+    <sink_block_id>qtgui_time_sink_x_0_0_0_2_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>1</sink_key>
+  </connection>
+  <connection>
     <source_block_id>hier_gfdm_fastsync_0</source_block_id>
     <sink_block_id>hier_gfdm_receiver_tagged_0</sink_block_id>
     <source_key>0</source_key>
@@ -5636,6 +5648,12 @@
     <sink_block_id>qtgui_time_sink_x_0_0_0_2_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>hier_gfdm_fastsync_0</source_block_id>
+    <sink_block_id>qtgui_time_sink_x_0_0_0_2_0</sink_block_id>
+    <source_key>1</source_key>
+    <sink_key>1</sink_key>
   </connection>
   <connection>
     <source_block_id>hier_gfdm_receiver_tagged_0</source_block_id>
