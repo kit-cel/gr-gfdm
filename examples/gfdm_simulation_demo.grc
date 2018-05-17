@@ -296,6 +296,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(1040, 652)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>chan_taps</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>[1. + 1.j, .5 - .0j]</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(536, 12)</value>
     </param>
     <param>
@@ -433,6 +460,69 @@
     <param>
       <key>value</key>
       <value>64</value>
+    </param>
+  </block>
+  <block>
+    <key>variable_qtgui_range</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>1e-3</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1144, 636)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value>4,1,1,1</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>fq_off</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>F Offset</value>
+    </param>
+    <param>
+      <key>min_len</key>
+      <value>200</value>
+    </param>
+    <param>
+      <key>orient</key>
+      <value>Qt.Horizontal</value>
+    </param>
+    <param>
+      <key>start</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>step</key>
+      <value>0.1e-3</value>
+    </param>
+    <param>
+      <key>stop</key>
+      <value>3e-3</value>
+    </param>
+    <param>
+      <key>rangeType</key>
+      <value>float</value>
+    </param>
+    <param>
+      <key>widget</key>
+      <value>counter_slider</value>
     </param>
   </block>
   <block>
@@ -725,6 +815,69 @@
     <param>
       <key>value</key>
       <value>vu.generate_reference_frame(timeslots, fft_len, active_subcarriers, cp_len, cs_len, .2)</value>
+    </param>
+  </block>
+  <block>
+    <key>variable_qtgui_range</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>0.1</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(936, 532)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value>4,0,1,1</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>noise_voltage</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Noise</value>
+    </param>
+    <param>
+      <key>min_len</key>
+      <value>200</value>
+    </param>
+    <param>
+      <key>orient</key>
+      <value>Qt.Horizontal</value>
+    </param>
+    <param>
+      <key>start</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>step</key>
+      <value>0.05</value>
+    </param>
+    <param>
+      <key>stop</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>rangeType</key>
+      <value>float</value>
+    </param>
+    <param>
+      <key>widget</key>
+      <value>counter_slider</value>
     </param>
   </block>
   <block>
@@ -1248,7 +1401,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1311,7 +1464,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1358,7 +1511,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1403,6 +1556,69 @@
     <param>
       <key>vlen</key>
       <value>1</value>
+    </param>
+  </block>
+  <block>
+    <key>channels_channel_model</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>block_tags</key>
+      <value>False</value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>epsilon</key>
+      <value>1.0</value>
+    </param>
+    <param>
+      <key>freq_offset</key>
+      <value>fq_off</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(744, 620)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>channels_channel_model_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>noise_voltage</key>
+      <value>noise_voltage</value>
+    </param>
+    <param>
+      <key>seed</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>taps</key>
+      <value>chan_taps / np.sqrt(np.linalg.norm(chan_taps))</value>
     </param>
   </block>
   <block>
@@ -1748,6 +1964,10 @@
       <value>0</value>
     </param>
     <param>
+      <key>peak_rise_factor</key>
+      <value>10.</value>
+    </param>
+    <param>
       <key>ref_preamble</key>
       <value>modulated_preambles[1]</value>
     </param>
@@ -1863,7 +2083,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -3723,8 +3943,20 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
+    <source_block_id>channels_channel_model_0</source_block_id>
+    <sink_block_id>gfdm_synchronization_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
     <source_block_id>digital_chunks_to_symbols_xx_0</source_block_id>
     <sink_block_id>blocks_throttle_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>digital_chunks_to_symbols_xx_0</source_block_id>
+    <sink_block_id>hier_gfdm_transmitter_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -3736,7 +3968,7 @@
   </connection>
   <connection>
     <source_block_id>frame_gap_vector_insert</source_block_id>
-    <sink_block_id>gfdm_synchronization_0</sink_block_id>
+    <sink_block_id>channels_channel_model_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

@@ -57,7 +57,6 @@ class qa_transmitter_chain_cc(gr_unittest.TestCase):
         pn_symbols = get_random_qpsk(K)
         H_preamble = get_frequency_domain_filter('rrc', alpha, 2, K, L)
         preamble = get_sync_symbol(pn_symbols, H_preamble, K, L, cp_len, ramp_len)[0]
-        # smap = np.arange(active) + (K - active) // 2
         smap = get_subcarrier_map(K, active, dc_free=True)
 
         ref = np.array([], dtype=np.complex)

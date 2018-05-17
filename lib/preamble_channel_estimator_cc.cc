@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2017 Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -32,8 +32,8 @@
 namespace gr {
   namespace gfdm {
 
-    preamble_channel_estimator_cc::preamble_channel_estimator_cc(int timeslots, int fft_len, int active_subcarriers, bool is_dc_free, std::vector<gfdm_complex> preamble):
-      d_timeslots(timeslots), d_fft_len(fft_len), d_active_subcarriers(active_subcarriers), d_is_dc_free(is_dc_free), d_n_gaussian_taps(9)
+    preamble_channel_estimator_cc::preamble_channel_estimator_cc(int timeslots, int fft_len, int active_subcarriers, bool is_dc_free, int which_estimator, std::vector<gfdm_complex> preamble):
+      d_timeslots(timeslots), d_fft_len(fft_len), d_active_subcarriers(active_subcarriers), d_is_dc_free(is_dc_free), d_which_estimator(which_estimator), d_n_gaussian_taps(9)
     {
       d_preamble_fft_in = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * fft_len, volk_get_alignment());
       d_preamble_fft_out = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * fft_len, volk_get_alignment());
@@ -55,29 +55,26 @@ namespace gr {
       d_preamble_estimate = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * fft_len, volk_get_alignment());
       d_filtered_estimate = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * active_subcarriers + (is_dc_free ? 1 : 0), volk_get_alignment());
 
-//      self._x_preamble = x_preamble
-//      self._fft_len = fft_len
-//      self._timeslots = timeslots
-//      self._inv_freq_x_preamble0 = 1. / np.fft.fft(x_preamble[0:fft_len])
-//      self._inv_freq_x_preamble1 = 1. / np.fft.fft(x_preamble[fft_len:])
-//
-//      active_sc = np.arange((self._fft_len - active_subcarriers)//2, (self._fft_len + active_subcarriers)//2+1)
-//      active_sc = active_sc[3:-3]
-//      freqs = np.fft.fftfreq(fft_len)
-//      freqs = np.fft.fftshift(freqs)
-//      self._active_preamble_freqs = freqs[active_sc]
-//      self._active_sc = active_sc
-//      fr_freqs = np.fft.fftfreq(self._fft_len * self._timeslots)
-//      self._frame_freqs = np.fft.fftshift(fr_freqs)
-//
-//      g = signal.gaussian(9, 1.0)
-//      g_factor = 1.
-//      g /= np.sqrt(g_factor * g.dot(g))
-//      self._p_filter = g
+
+      d_one_reference = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * timeslots * fft_len, volk_get_alignment());
+      for(int i = 0; i < frame_len(); ++i){
+        d_one_reference[i] = gfdm_complex(1.0f, 0.0f);
+      }
     }
 
     preamble_channel_estimator_cc::~preamble_channel_estimator_cc()
     {
+      fftwf_destroy_plan(d_preamble_fft_plan);
+      volk_free(d_preamble_fft_in);
+      volk_free(d_preamble_fft_out);
+      volk_free(d_inv_freq_preamble0);
+      volk_free(d_inv_freq_preamble1);
+      volk_free(d_intermediate_channel_estimate);
+      volk_free(d_gaussian_taps);
+      volk_free(d_filter_intermediate);
+      volk_free(d_preamble_estimate);
+      volk_free(d_filtered_estimate);
+      volk_free(d_one_reference);
     }
 
     void preamble_channel_estimator_cc::initialize_gaussian_filter(float* taps, const float sigma_sq, const int n_taps)
@@ -200,11 +197,26 @@ namespace gr {
     }
 
     void
-    preamble_channel_estimator_cc::estimate_frame(gfdm_complex* frame_estimate, const gfdm_complex* rx_preamble)
+    preamble_channel_estimator_cc::prepare_for_zf(gfdm_complex* transformed_frame,
+                                                const gfdm_complex* frame_estimate)
+    {
+      volk_32fc_x2_divide_32fc(transformed_frame, d_one_reference,
+                               frame_estimate, frame_len());
+      volk_32fc_conjugate_32fc(transformed_frame, transformed_frame, frame_len());
+    }
+
+
+    void
+    preamble_channel_estimator_cc::estimate_frame(gfdm_complex* frame_estimate,
+                                                  const gfdm_complex* rx_preamble)
     {
       estimate_preamble_channel(d_preamble_estimate, rx_preamble);
       filter_preamble_estimate(d_filtered_estimate, d_preamble_estimate);
       interpolate_frame(frame_estimate, d_filtered_estimate);
+      switch(d_which_estimator){
+        case 1: prepare_for_zf(frame_estimate, frame_estimate); break;
+      }
+
     }
 
   } /* namespace gfdm */

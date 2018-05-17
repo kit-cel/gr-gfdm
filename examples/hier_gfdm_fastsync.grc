@@ -864,7 +864,7 @@
     </param>
     <param>
       <key>use_sc_rot</key>
-      <value>False</value>
+      <value>True</value>
     </param>
     <param>
       <key>_coordinate</key>

@@ -537,12 +537,16 @@
       <value>1</value>
     </param>
     <param>
+      <key>which_estimator</key>
+      <value>which_estimator</value>
+    </param>
+    <param>
       <key>fft_len</key>
       <value>subcarriers</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(360, 524)</value>
+      <value>(360, 516)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1326,6 +1330,53 @@
     <param>
       <key>value</key>
       <value>5</value>
+    </param>
+  </block>
+  <block>
+    <key>parameter</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(672, 92)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>which_estimator</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Estimator Type</value>
+    </param>
+    <param>
+      <key>short_id</key>
+      <value></value>
+    </param>
+    <param>
+      <key>hide</key>
+      <value>none</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>intx</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>0</value>
     </param>
   </block>
   <connection>
