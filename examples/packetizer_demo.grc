@@ -10,7 +10,7 @@
     </param>
     <param>
       <key>window_size</key>
-      <value></value>
+      <value>1920, 1080</value>
     </param>
     <param>
       <key>category</key>
@@ -73,12 +73,20 @@
       <value>True</value>
     </param>
     <param>
+      <key>sizing_mode</key>
+      <value>fixed</value>
+    </param>
+    <param>
       <key>thread_safe_setters</key>
       <value></value>
     </param>
     <param>
       <key>title</key>
       <value></value>
+    </param>
+    <param>
+      <key>placement</key>
+      <value>(0,0)</value>
     </param>
   </block>
   <block>
@@ -225,7 +233,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -405,7 +413,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -460,7 +468,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -491,6 +499,10 @@
       <value>False</value>
     </param>
     <param>
+      <key>single_key</key>
+      <value>""</value>
+    </param>
+    <param>
       <key>vlen</key>
       <value>1</value>
     </param>
@@ -511,7 +523,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -558,7 +570,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -601,7 +613,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1025,6 +1037,10 @@
       <value>samp_rate</value>
     </param>
     <param>
+      <key>stemplot</key>
+      <value>False</value>
+    </param>
+    <param>
       <key>tr_chan</key>
       <value>0</value>
     </param>
@@ -1105,7 +1121,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1386,6 +1402,10 @@
     <param>
       <key>srate</key>
       <value>samp_rate</value>
+    </param>
+    <param>
+      <key>stemplot</key>
+      <value>False</value>
     </param>
     <param>
       <key>tr_chan</key>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<?grc format='1' created='3.7.11'?>
+<?grc format='1' created='3.7.12'?>
 <flow_graph>
   <timestamp>Tue Jun 14 17:57:04 2016</timestamp>
   <block>
@@ -73,12 +73,20 @@
       <value>True</value>
     </param>
     <param>
+      <key>sizing_mode</key>
+      <value>fixed</value>
+    </param>
+    <param>
       <key>thread_safe_setters</key>
       <value></value>
     </param>
     <param>
       <key>title</key>
       <value>GFDM over-the-air RX</value>
+    </param>
+    <param>
+      <key>placement</key>
+      <value>(0,0)</value>
     </param>
   </block>
   <block>
@@ -404,6 +412,33 @@
     </param>
     <param>
       <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(264, 212)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>modulated_preambles</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>pre_module.mapped_preamble(seed, 'rrc', .2, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len)</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
       <value>True</value>
     </param>
     <param>
@@ -435,7 +470,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(696, 68)</value>
+      <value>(264, 156)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -447,7 +482,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>synchronization.mapped_preamble_gnuradio(seed, 'rrc', .5, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len)</value>
+      <value>modulated_preambles[0]</value>
     </param>
   </block>
   <block>
@@ -501,7 +536,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>usrp_rate / 16.</value>
+      <value>usrp_rate / 8.</value>
     </param>
   </block>
   <block>
@@ -713,7 +748,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>file</key>
@@ -853,7 +888,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(8, 148)</value>
+      <value>(8, 276)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -861,11 +896,11 @@
     </param>
     <param>
       <key>id</key>
-      <value>import_synchronization</value>
+      <value>import_synchronization_0</value>
     </param>
     <param>
       <key>import</key>
-      <value>from gfdm.pygfdm import synchronization</value>
+      <value>from gfdm.pygfdm import preamble as pre_module</value>
     </param>
   </block>
   <block>
@@ -1480,6 +1515,10 @@
     <param>
       <key>srate</key>
       <value>samp_rate</value>
+    </param>
+    <param>
+      <key>stemplot</key>
+      <value>False</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -2925,7 +2964,7 @@
     </param>
     <param>
       <key>dev_addr</key>
-      <value>"addr=192.168.10.5"</value>
+      <value>"addr=134.102.176.201"</value>
     </param>
     <param>
       <key>dev_args</key>

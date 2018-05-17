@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<?grc format='1' created='3.7.10'?>
+<?grc format='1' created='3.7.12'?>
 <flow_graph>
   <timestamp>Tue Jun 14 17:57:04 2016</timestamp>
   <block>
@@ -73,12 +73,20 @@
       <value>True</value>
     </param>
     <param>
+      <key>sizing_mode</key>
+      <value>fixed</value>
+    </param>
+    <param>
       <key>thread_safe_setters</key>
       <value></value>
     </param>
     <param>
       <key>title</key>
       <value>GFDM over-the-air test</value>
+    </param>
+    <param>
+      <key>placement</key>
+      <value>(0,0)</value>
     </param>
   </block>
   <block>
@@ -241,7 +249,7 @@
     </param>
     <param>
       <key>stop</key>
-      <value>.1</value>
+      <value>1.</value>
     </param>
     <param>
       <key>rangeType</key>
@@ -645,7 +653,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>usrp_rate / 8.</value>
+      <value>usrp_rate / 16.</value>
     </param>
   </block>
   <block>
@@ -889,7 +897,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>2</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -936,7 +944,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>2</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1090,10 +1098,22 @@
     </param>
   </block>
   <block>
-    <key>hier_gfdm_transmitter</key>
+    <key>gfdm_transmitter_cc</key>
+    <param>
+      <key>active_subcarriers</key>
+      <value>active_subcarriers</value>
+    </param>
     <param>
       <key>alias</key>
       <value></value>
+    </param>
+    <param>
+      <key>cp_len</key>
+      <value>cp_len</value>
+    </param>
+    <param>
+      <key>cs_len</key>
+      <value>cs_len</value>
     </param>
     <param>
       <key>comment</key>
@@ -1108,8 +1128,12 @@
       <value>True</value>
     </param>
     <param>
+      <key>frequency_taps</key>
+      <value>f_taps</value>
+    </param>
+    <param>
       <key>_coordinate</key>
-      <value>(376, 300)</value>
+      <value>(376, 296)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1117,7 +1141,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>hier_gfdm_transmitter_0</value>
+      <value>gfdm_transmitter_cc_0</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -1126,22 +1150,6 @@
     <param>
       <key>minoutbuf</key>
       <value>0</value>
-    </param>
-    <param>
-      <key>active_subcarriers</key>
-      <value>active_subcarriers</value>
-    </param>
-    <param>
-      <key>cp_len</key>
-      <value>cp_len</value>
-    </param>
-    <param>
-      <key>cs_len</key>
-      <value>cs_len</value>
-    </param>
-    <param>
-      <key>filter_taps</key>
-      <value>f_taps</value>
     </param>
     <param>
       <key>overlap</key>
@@ -1170,6 +1178,10 @@
     <param>
       <key>window_taps</key>
       <value>window_taps</value>
+    </param>
+    <param>
+      <key>per_timeslot</key>
+      <value>True</value>
     </param>
   </block>
   <block>
@@ -1609,6 +1621,10 @@
     <param>
       <key>srate</key>
       <value>1. * samp_rate</value>
+    </param>
+    <param>
+      <key>stemplot</key>
+      <value>False</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -2542,7 +2558,7 @@
     </param>
     <param>
       <key>dev_addr</key>
-      <value>"addr=192.168.10.7"</value>
+      <value>"addr=134.102.176.200"</value>
     </param>
     <param>
       <key>dev_args</key>
@@ -2550,7 +2566,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -2731,7 +2747,7 @@
   </connection>
   <connection>
     <source_block_id>digital_chunks_to_symbols_xx_0</source_block_id>
-    <sink_block_id>hier_gfdm_transmitter_0</sink_block_id>
+    <sink_block_id>gfdm_transmitter_cc_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -2748,7 +2764,7 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>hier_gfdm_transmitter_0</source_block_id>
+    <source_block_id>gfdm_transmitter_cc_0</source_block_id>
     <sink_block_id>blocks_multiply_const_vxx_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>

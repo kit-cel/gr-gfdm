@@ -73,12 +73,20 @@
       <value>True</value>
     </param>
     <param>
+      <key>sizing_mode</key>
+      <value>fixed</value>
+    </param>
+    <param>
       <key>thread_safe_setters</key>
       <value></value>
     </param>
     <param>
       <key>title</key>
       <value></value>
+    </param>
+    <param>
+      <key>placement</key>
+      <value>(0,0)</value>
     </param>
   </block>
   <block>
@@ -288,7 +296,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>np.zeros((samp_rate / 1000) - len(my_ref[0]))</value>
+      <value>np.zeros(int(samp_rate / 1000) - len(my_ref[0]))</value>
     </param>
   </block>
   <block>
@@ -1231,7 +1239,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(16, 212)</value>
+      <value>(0, 212)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1452,6 +1460,10 @@
     <param>
       <key>burst_start_tag</key>
       <value>'energy_start'</value>
+    </param>
+    <param>
+      <key>tag_backoff</key>
+      <value>32</value>
     </param>
     <param>
       <key>burst_len</key>
@@ -2957,6 +2969,10 @@
       <value>samp_rate</value>
     </param>
     <param>
+      <key>stemplot</key>
+      <value>False</value>
+    </param>
+    <param>
       <key>tr_chan</key>
       <value>0</value>
     </param>
@@ -3318,6 +3334,10 @@
     <param>
       <key>srate</key>
       <value>samp_rate * 0 + 1.</value>
+    </param>
+    <param>
+      <key>stemplot</key>
+      <value>False</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -3683,6 +3703,10 @@
       <value>samp_rate * 0 + 1</value>
     </param>
     <param>
+      <key>stemplot</key>
+      <value>False</value>
+    </param>
+    <param>
       <key>tr_chan</key>
       <value>0</value>
     </param>
@@ -4031,7 +4055,7 @@
     </param>
     <param>
       <key>name</key>
-      <value>""</value>
+      <value>"Sine"</value>
     </param>
     <param>
       <key>nconnections</key>
@@ -4044,6 +4068,10 @@
     <param>
       <key>srate</key>
       <value>samp_rate</value>
+    </param>
+    <param>
+      <key>stemplot</key>
+      <value>False</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -4407,6 +4435,10 @@
     <param>
       <key>srate</key>
       <value>samp_rate</value>
+    </param>
+    <param>
+      <key>stemplot</key>
+      <value>False</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -5622,7 +5654,7 @@
     </param>
     <param>
       <key>dev_addr</key>
-      <value>"addr=192.168.10.5"</value>
+      <value>"addr=134.102.176.200"</value>
     </param>
     <param>
       <key>dev_args</key>
@@ -6957,7 +6989,7 @@
     </param>
     <param>
       <key>dev_addr</key>
-      <value>"addr=192.168.10.7"</value>
+      <value>"addr=134.102.176.201"</value>
     </param>
     <param>
       <key>dev_args</key>
