@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Andrej Rode, Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -37,9 +37,14 @@ namespace gr
     public:
       advanced_receiver_sb_cc_impl(int n_timeslots, int n_subcarriers, int overlap, int ic_iter,
                                    std::vector<gr_complex> frequency_taps,
-                                   gr::digital::constellation_sptr constellation, std::vector<int> subcarrier_map);
+                                   gr::digital::constellation_sptr constellation,
+                                   std::vector<int> subcarrier_map, int do_phase_compensation);
 
       ~advanced_receiver_sb_cc_impl();
+
+      void set_phase_compensation(int do_phase_compensation){
+        d_adv_kernel->set_phase_compensation(do_phase_compensation);}
+      int get_phase_compensation(){return d_adv_kernel->get_phase_compensation();}
 
       void set_ic(int ic_iter)
       { d_adv_kernel->set_ic(ic_iter); }

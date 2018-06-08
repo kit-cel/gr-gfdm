@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Andrej Rode, Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -34,11 +34,11 @@ namespace gr
     advanced_receiver_sb_cc::sptr
     advanced_receiver_sb_cc::make(int n_timeslots, int n_subcarriers, int overlap, int ic_iter,
                                   std::vector<gr_complex> frequency_taps, gr::digital::constellation_sptr constellation,
-                                  std::vector<int> subcarrier_map)
+                                  std::vector<int> subcarrier_map, int do_phase_compensation)
     {
       return gnuradio::get_initial_sptr
               (new advanced_receiver_sb_cc_impl(n_timeslots, n_subcarriers, overlap, ic_iter, frequency_taps,
-                                                constellation, subcarrier_map));
+                                                constellation, subcarrier_map, do_phase_compensation));
     }
 
     /*
@@ -47,12 +47,18 @@ namespace gr
     advanced_receiver_sb_cc_impl::advanced_receiver_sb_cc_impl(int n_timeslots, int n_subcarriers, int overlap,
                                                                int ic_iter, std::vector<gr_complex> frequency_taps,
                                                                gr::digital::constellation_sptr constellation,
-                                                               std::vector<int> subcarrier_map)
+                                                               std::vector<int> subcarrier_map, int do_phase_compensation)
             : gr::sync_block("advanced_receiver_sb_cc",
                              gr::io_signature::make(1, 2, sizeof(gr_complex)),
                              gr::io_signature::make(1, 1, sizeof(gr_complex)))
     {
-      d_adv_kernel = advanced_receiver_kernel_cc::sptr(new advanced_receiver_kernel_cc(n_timeslots, n_subcarriers, overlap, frequency_taps, subcarrier_map, ic_iter, constellation));
+      // int do_phase_compensation = 1;
+      d_adv_kernel = advanced_receiver_kernel_cc::sptr(
+                        new advanced_receiver_kernel_cc(n_timeslots, n_subcarriers,
+                                                        overlap, frequency_taps,
+                                                        subcarrier_map, ic_iter,
+                                                        constellation,
+                                                        do_phase_compensation));
       set_output_multiple(d_adv_kernel->block_size());
     }
 

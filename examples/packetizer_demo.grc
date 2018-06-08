@@ -97,60 +97,6 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(688, 52)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>access_code_none</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>str('00420084').encode('hex')</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(336, 52)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>hdr_format</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>digital.header_format_counter(access_code_none, 3, 1)</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
       <value>True</value>
     </param>
     <param>
@@ -527,7 +473,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(912, 576)</value>
+      <value>(888, 420)</value>
     </param>
     <param>
       <key>_rotation</key>

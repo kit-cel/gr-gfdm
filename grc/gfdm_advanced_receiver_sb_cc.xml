@@ -4,8 +4,9 @@
   <key>gfdm_advanced_receiver_sb_cc</key>
   <category>[GFDM]</category>
   <import>import gfdm</import>
-  <make>gfdm.advanced_receiver_sb_cc($timeslots, $subcarriers, $overlap, $ic_iter, $frequency_taps, $constellation, $subcarrier_map)</make>
+  <make>gfdm.advanced_receiver_sb_cc($timeslots, $subcarriers, $overlap, $ic_iter, $frequency_taps, $constellation, $subcarrier_map, $do_phase_compensation)</make>
   <callback>set_ic($ic_iter)</callback>
+  <callback>set_phase_compensation($do_phase_compensation)</callback>
   <param>
     <name>M timeslots</name>
     <key>timeslots</key>
@@ -45,6 +46,12 @@
     <name>subcarrier map</name>
     <key>subcarrier_map</key>
     <type>raw</type>
+  </param>
+  <param>
+    <name>Do phase compensation</name>
+    <key>do_phase_compensation</key>
+    <value>0</value>
+    <type>int</type>
   </param>
 
 

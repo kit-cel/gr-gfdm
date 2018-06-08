@@ -481,7 +481,7 @@
     </param>
     <param>
       <key>label</key>
-      <value>out</value>
+      <value>pdu</value>
     </param>
     <param>
       <key>num_streams</key>
