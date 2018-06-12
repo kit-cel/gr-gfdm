@@ -73,12 +73,20 @@
       <value>True</value>
     </param>
     <param>
+      <key>sizing_mode</key>
+      <value>fixed</value>
+    </param>
+    <param>
       <key>thread_safe_setters</key>
       <value></value>
     </param>
     <param>
       <key>title</key>
       <value>GFDM Simulation Demo</value>
+    </param>
+    <param>
+      <key>placement</key>
+      <value>(0,0)</value>
     </param>
   </block>
   <block>
@@ -478,11 +486,11 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1144, 636)</value>
+      <value>(1160, 636)</value>
     </param>
     <param>
       <key>gui_hint</key>
-      <value>4,1,1,1</value>
+      <value>7,1,1,1</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -837,7 +845,7 @@
     </param>
     <param>
       <key>gui_hint</key>
-      <value>4,0,1,1</value>
+      <value>8,0,1,1</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -3029,6 +3037,10 @@
       <value>samp_rate</value>
     </param>
     <param>
+      <key>stemplot</key>
+      <value>False</value>
+    </param>
+    <param>
       <key>tr_chan</key>
       <value>0</value>
     </param>
@@ -3390,6 +3402,10 @@
     <param>
       <key>srate</key>
       <value>samp_rate</value>
+    </param>
+    <param>
+      <key>stemplot</key>
+      <value>False</value>
     </param>
     <param>
       <key>tr_chan</key>
@@ -3755,6 +3771,10 @@
       <value>samp_rate * 0 + 1</value>
     </param>
     <param>
+      <key>stemplot</key>
+      <value>False</value>
+    </param>
+    <param>
       <key>tr_chan</key>
       <value>0</value>
     </param>
@@ -3819,7 +3839,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1112, 540)</value>
+      <value>(1088, 540)</value>
     </param>
     <param>
       <key>gui_hint</key>
