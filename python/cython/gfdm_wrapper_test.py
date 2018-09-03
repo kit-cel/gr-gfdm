@@ -136,7 +136,7 @@ def preamble_sync_test():
     nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(rx, x_preamble, subcarriers,
                                                                       cp_len)
     print('find frame start res @{} and cfo: {}'.format(nc, cfo))
-    s_nm, s_cfo, simple_ac = simplified_sync_algo(rx, x_preamble, subcarriers, cp_len)
+    s_nm, s_cfo, simple_ac, phase = simplified_sync_algo(rx, x_preamble, subcarriers, cp_len)
     print('simple algo res @{} and cfo: {}'.format(s_nm, s_cfo))
     sync_kernel = cgfdm.py_auto_cross_corr_multicarrier_sync_cc(subcarriers, cp_len, x_preamble)
     kpos, kcfo = sync_kernel.detect_frame(rx.astype(dtype=np.complex64))

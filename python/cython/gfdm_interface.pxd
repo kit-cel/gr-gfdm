@@ -64,7 +64,7 @@ cdef extern from "auto_cross_corr_multicarrier_sync_cc.h" namespace "gr::gfdm":
 
 cdef extern from "preamble_channel_estimator_cc.h" namespace "gr::gfdm":
     cdef cppclass preamble_channel_estimator_cc:
-        preamble_channel_estimator_cc(int, int, int, bool, vector[float complex]) except +
+        preamble_channel_estimator_cc(int, int, int, bool, int, vector[float complex]) except +
         int fft_len()
         int timeslots()
         int active_subcarriers()

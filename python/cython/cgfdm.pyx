@@ -159,7 +159,7 @@ cdef class py_receiver_kernel_cc:
         cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.block_size(),), dtype=np.complex64)
         self.cpp_fft_filter_downsample(res, samples)
         return res
-        
+
     def fft_equalize_filter_downsample(self, np.ndarray[np.complex64_t, ndim=1] samples, np.ndarray[np.complex64_t, ndim=1] fd_equalizer_taps):
         if samples.size != self.block_size():
             raise ValueError("CGFDM: Size of input array ({}) MUST be equal to timeslots * active_subcarriers ({})!".format(samples.size, self.block_size()))
@@ -251,8 +251,8 @@ cdef class py_auto_cross_corr_multicarrier_sync_cc:
 cdef class py_preamble_channel_estimator_cc:
     cdef gfdm_interface.preamble_channel_estimator_cc* kernel
 
-    def __cinit__(self, int timeslots, int fft_len, int active_subcarriers, is_dc_free, np.ndarray preamble):
-        self.kernel = new gfdm_interface.preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, is_dc_free, preamble.astype(dtype=np.complex64))
+    def __cinit__(self, int timeslots, int fft_len, int active_subcarriers, is_dc_free, which_estimator, np.ndarray preamble):
+        self.kernel = new gfdm_interface.preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, is_dc_free, which_estimator, preamble.astype(dtype=np.complex64))
 
     def __del__(self):
         del self.kernel
