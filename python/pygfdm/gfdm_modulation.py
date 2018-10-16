@@ -187,7 +187,9 @@ def implementation_validation():
         xmat = A.dot(d) / np.sqrt(len(d))
         D = get_data_matrix(d, K, group_by_subcarrier=True)
         xfft = gfdm_modulate_block(D, H, M, K, overlap, False) / np.sqrt(len(d))
+        xfft *= np.linalg.norm(xmat) / np.linalg.norm(xfft)
         rel_err = np.linalg.norm(xmat - xfft) / np.linalg.norm(xmat)
+        assert np.all(np.abs(xmat - xfft) < 1e-3)
         if rel_err > max_rel_error:
             max_rel_error = rel_err
         if rel_err > 1e-3:
@@ -212,8 +214,7 @@ def gr_conformity_validation():
         xo = gfdm_tx_fft2(d, 'rrc', alpha, M, K, overlap, oversampling_factor)
         xn = gfdm_gr_modulator(d, 'rrc', alpha, M, K, overlap)
 
-        if not np.all(xo == xn):
-            raise RuntimeError('Function results deviate')
+        assert np.all(np.abs(xo - xn) < 1e-4)
 
 
 def validate_subcarrier_location(alpha, M, K, overlap, oversampling_factor):
