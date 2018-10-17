@@ -32,7 +32,7 @@ import gfdmlib as vc
 
 class MapperTests(unittest.TestCase):
     def setUp(self):
-        self.params = vc.defaultGFDM.get_defaultGFDM('BER')
+        self.params = vc.get_defaultGFDM('BER')
         self.params.Non = self.params.Kon * self.params.Mon
         self.subcarrier_map = np.arange(self.params.Kon)
 
@@ -87,7 +87,7 @@ class MapperTests(unittest.TestCase):
 
 class ModulatorTests(unittest.TestCase):
     def setUp(self):
-        self.params = vc.defaultGFDM.get_defaultGFDM('BER')
+        self.params = vc.get_defaultGFDM('BER')
         self.params.Non = self.params.Kon * self.params.Mon
         self.subcarrier_map = np.arange(self.params.Kon)
 
@@ -112,26 +112,48 @@ class ModulatorTests(unittest.TestCase):
         self.params.Kon = 52
         self.params.Non = self.params.Kon * self.params.Mon
         self.params.N = self.params.K * self.params.M
+        self.params.pulse = 'rrc'
         taps = vc.gfdmutil.get_transmitter_pulse(self.params)
+
         g2 = taps[::self.params.K // self.params.L]
         G2 = np.fft.fft(g2)
 
-        freq_taps = get_frequency_domain_filter(self.params.pulse,
+        freq_taps = get_frequency_domain_filter('rrc',
                                                 self.params.a, self.params.M,
                                                 self.params.K, self.params.L)
         freq_taps *= np.abs(G2[0]) / np.abs(freq_taps[0])
         self.assertTrue(np.all(np.abs(freq_taps - G2) < 1e-3))
 
-    def test_003_std_config(self):
-        self.validate_parameter_set(64, 52, 5, 5e-4)
+    def test_003_rc_fd_filter(self):
+        self.params.K = 64
+        self.params.Kon = 52
+        self.params.Non = self.params.Kon * self.params.Mon
+        self.params.N = self.params.K * self.params.M
+        self.params.pulse = 'rc'
+        taps = vc.gfdmutil.get_transmitter_pulse(self.params)
 
-    def test_004_vc_video(self):
-        self.validate_parameter_set(64, 52, 9, 5e-4)
+        g2 = taps[::self.params.K // self.params.L]
+        G2 = np.fft.fft(g2)
 
-    def test_005_vc_ll(self):
-        self.validate_parameter_set(32, 28, 3, 5e-3)
+        freq_taps = get_frequency_domain_filter('rc',
+                                                self.params.a, self.params.M,
+                                                self.params.K, self.params.L)
+        freq_taps *= np.abs(G2[0]) / np.abs(freq_taps[0])
 
-    def test_006_parameter_list(self):
+        # plot_taps(G2.real, freq_taps.real)
+        # print(np.max(np.abs(G2 - freq_taps)))
+        self.assertTrue(np.all(np.abs(freq_taps - G2) < 1e-3))
+
+    def test_004_std_config(self):
+        self.validate_parameter_set(64, 52, 5, 5e-14)
+
+    def test_005_vc_video(self):
+        self.validate_parameter_set(64, 52, 9, 5e-14)
+
+    def test_006_vc_ll(self):
+        self.validate_parameter_set(32, 28, 3, 5e-14)
+
+    def test_007_parameter_list(self):
         Ms = np.array([3, 5, 6, 9, 12, 15])
         Ks = np.array([8, 16, 32, 64, 128, 256, 512])
         myset = itertools.product(Ks, Ms)
@@ -147,6 +169,7 @@ class ModulatorTests(unittest.TestCase):
         self.params.M = self.params.Mon = M
         self.params.Non = self.params.Kon * self.params.Mon
         self.params.N = self.params.K * self.params.M
+        self.params.pulse = 'rc_fd'
 
         self.subcarrier_map = get_subcarrier_map(self.params.K,
                                                  self.params.Kon, dc_free=True)
@@ -154,11 +177,14 @@ class ModulatorTests(unittest.TestCase):
         # vtaps = vc.gfdmutil.get_transmitter_pulse(self.params)
         # vtaps = vtaps[::self.params.K // self.params.L]
         # taps = np.fft.fft(vtaps)
-        taps = get_frequency_domain_filter(self.params.pulse, self.params.a,
-                                           self.params.M, self.params.K,
-                                           self.params.L)
+        # taps = get_frequency_domain_filter(self.params.pulse, self.params.a,
+        #                                    self.params.M, self.params.K,
+        #                                    self.params.L)
+        taps = vc.gfdmutil.get_transmitter_pulse(self.params)
+        g2 = taps[::self.params.K // self.params.L]
+        taps = np.fft.fft(g2)
 
-        mod = vc.Modulator.DefaultModulator(self.params)
+        mod = vc.DefaultModulator(self.params)
 
         d = np.random.randn(self.params.Non) + 1.j * np.random.randn(self.params.Non)
         dframe = map_to_waveform_resource_grid(d, self.params.Kon,
@@ -172,6 +198,13 @@ class ModulatorTests(unittest.TestCase):
         gdata *= 1. / np.linalg.norm(gdata)
         print(np.max(np.abs(vdata - gdata)))
         self.assertTrue(np.all(np.abs(vdata - gdata) < tolerance))
+
+
+def plot_taps(ataps, btaps):
+    import matplotlib.pyplot as plt
+    plt.plot(ataps)
+    plt.plot(btaps)
+    plt.show()
 
 
 def main():
