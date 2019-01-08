@@ -6,7 +6,7 @@
   <import>import gfdm</import>
   <make>gfdm.transmitter_cc($timeslots, $subcarriers, $active_subcarriers,
                                   $cp_len, $cs_len, $ramp_len, $subcarrier_map,
-                                  $per_timeslot, $overlap, $frequency_taps, $window_taps, $preamble)</make>
+                                  $per_timeslot, $overlap, $frequency_taps, $window_taps, $preamble, $tsb_tag_key)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
@@ -83,6 +83,13 @@
     <name>Preamble</name>
     <key>preamble</key>
     <type>raw</type>
+  </param>
+
+  <param>
+    <name>Length Tag Key</name>
+    <key>tsb_tag_key</key>
+    <value>"packet_len"</value>
+    <type>string</type>
   </param>
 
   <sink>

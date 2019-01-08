@@ -31,20 +31,25 @@ namespace gr {
   namespace gfdm {
 
     extract_burst_cc::sptr
-    extract_burst_cc::make(int burst_len, int tag_backoff, std::string burst_start_tag)
+    extract_burst_cc::make(int burst_len, int tag_backoff, std::string burst_start_tag,
+                           bool activate_cfo_correction)
     {
       return gnuradio::get_initial_sptr
-        (new extract_burst_cc_impl(burst_len, tag_backoff, burst_start_tag));
+        (new extract_burst_cc_impl(burst_len, tag_backoff, burst_start_tag,
+                                   activate_cfo_correction));
     }
 
     /*
      * The private constructor
      */
-    extract_burst_cc_impl::extract_burst_cc_impl(int burst_len, int tag_backoff, std::string burst_start_tag)
+    extract_burst_cc_impl::extract_burst_cc_impl(int burst_len, int tag_backoff,
+                                                 std::string burst_start_tag,
+                                                 bool activate_cfo_correction)
       : gr::block("extract_burst_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
-              d_burst_len(burst_len), d_tag_backoff(tag_backoff)
+              d_burst_len(burst_len), d_tag_backoff(tag_backoff),
+              d_activate_cfo_correction(activate_cfo_correction)
     {
       set_output_multiple(burst_len);
       d_burst_start_tag = pmt::string_to_symbol(burst_start_tag);
@@ -79,11 +84,37 @@ namespace gr {
       return scale_factor;
     }
 
+    gr_complex
+    extract_burst_cc_impl::get_phase_rotation(pmt::pmt_t info){
+      gr_complex fq_comp_rot= 1;
+      pmt::pmt_t sc_rot= pmt::dict_ref(info,
+                                       pmt::mp("sc_rot"),
+                                       pmt::PMT_NIL);
+
+      if(pmt::is_complex(sc_rot)) {
+        fq_comp_rot= std::conj(pmt::to_complex(sc_rot));
+        fq_comp_rot/= std::abs(fq_comp_rot);
+      }
+      return fq_comp_rot;
+    }
+
     void
     extract_burst_cc_impl::normalize_power_level(gr_complex* p_out, const gr_complex* p_in, const float norm_factor, const int ninput_size)
     {
-      volk_32f_s32f_multiply_32f((float*) p_out, (const float*) p_in, norm_factor, 2 * ninput_size);
+      volk_32f_s32f_multiply_32f((float*) p_out, (const float*) p_in,
+                                 norm_factor, 2 * ninput_size);
     }
+
+    void
+    extract_burst_cc_impl::compensate_cfo(gr_complex* p_out, const gr_complex* p_in, const gr_complex phase_increment, const int ninput_size)
+    {
+      gr_complex initial_phase = gr_complex(1.0f, 0.0f);
+      volk_32fc_s32fc_x2_rotator_32fc(p_out, p_in,
+                                      phase_increment,
+                                      &initial_phase,
+                                      ninput_size);
+    }
+
 
     int
     extract_burst_cc_impl::general_work (int noutput_items,
@@ -122,6 +153,10 @@ namespace gr {
             normalize_power_level(out, in + actual_start, scale_factor, d_burst_len);
           }
 
+          if (d_activate_cfo_correction){
+            gr_complex fq_comp_rot= get_phase_rotation(info);
+            compensate_cfo(out, out, fq_comp_rot, d_burst_len);
+          }
 
           add_item_tag(0, nitems_written(0) + produced_items, d_burst_start_tag,
                        tags[i].value, pmt::string_to_symbol(name()));

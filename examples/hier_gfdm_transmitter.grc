@@ -21,6 +21,10 @@
       <value></value>
     </param>
     <param>
+      <key>copyright</key>
+      <value></value>
+    </param>
+    <param>
       <key>description</key>
       <value></value>
     </param>
@@ -73,12 +77,20 @@
       <value>True</value>
     </param>
     <param>
+      <key>sizing_mode</key>
+      <value>fixed</value>
+    </param>
+    <param>
       <key>thread_safe_setters</key>
       <value></value>
     </param>
     <param>
       <key>title</key>
       <value>GFDM Transmitter chain</value>
+    </param>
+    <param>
+      <key>placement</key>
+      <value>(0,0)</value>
     </param>
   </block>
   <block>
@@ -133,6 +145,33 @@
     <param>
       <key>value</key>
       <value>window_len + preamble_len</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1192, 140)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>preamble_gap</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>256</value>
     </param>
   </block>
   <block>
@@ -764,7 +803,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1168, 284)</value>
+      <value>(1224, 284)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -905,7 +944,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1016, 268)</value>
+      <value>(1072, 268)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -933,11 +972,66 @@
     </param>
     <param>
       <key>period</key>
-      <value>frame_len</value>
+      <value>frame_len + preamble_gap</value>
     </param>
     <param>
       <key>vector</key>
       <value>preamble</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_vector_insert_x</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(952, 412)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>preamble_vector_insert_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>offset</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>period</key>
+      <value>window_len + preamble_gap</value>
+    </param>
+    <param>
+      <key>vector</key>
+      <value>np.zeros(preamble_gap)</value>
     </param>
   </block>
   <block>
@@ -1177,7 +1271,7 @@
   </block>
   <connection>
     <source_block_id>gfdm_cyclic_prefixer_cc_0</source_block_id>
-    <sink_block_id>preamble_vector_insert</sink_block_id>
+    <sink_block_id>preamble_vector_insert_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -1202,6 +1296,12 @@
   <connection>
     <source_block_id>preamble_vector_insert</source_block_id>
     <sink_block_id>pad_sink_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>preamble_vector_insert_0</source_block_id>
+    <sink_block_id>preamble_vector_insert</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

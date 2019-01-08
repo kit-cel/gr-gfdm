@@ -46,7 +46,10 @@ namespace gr {
        * class. gfdm::extract_burst_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int burst_len, int tag_backoff, std::string burst_start_tag);
+      static sptr make(int burst_len, int tag_backoff, std::string burst_start_tag,
+                       bool activate_cfo_correction=false);
+
+      virtual void activate_cfo_compensation(bool activate_cfo_compensation) = 0;
     };
 
   } // namespace gfdm

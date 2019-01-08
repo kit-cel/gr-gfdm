@@ -31,6 +31,8 @@ namespace gr {
     {
      private:
       transmitter_kernel::sptr d_kernel;
+      std::string d_length_tag_key_str;
+      pmt::pmt_t d_length_tag_key;
 
      public:
       transmitter_cc_impl(int timeslots, int subcarriers, int active_subcarriers,
@@ -38,7 +40,8 @@ namespace gr {
                           std::vector<int> subcarrier_map, bool per_timeslot, int overlap,
                           std::vector<gr_complex> frequency_taps,
                           std::vector<gr_complex> window_taps,
-                          std::vector<gr_complex> preamble);
+                          std::vector<gr_complex> preamble,
+                          const std::string &tsb_tag_key="");
       ~transmitter_cc_impl();
 
       // Where all the action really happens

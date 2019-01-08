@@ -82,13 +82,17 @@ class qa_transmitter_cc (gr_unittest.TestCase):
         src = blocks.vector_source_c(data)
         dut = gfdm.transmitter_cc(timeslots, subcarriers, active_subcarriers,
                                   cp_len, cs_len, ramp_len, smap, True,
-                                  overlap, taps, window_taps, preamble)
+                                  overlap, taps, window_taps, preamble, "packet_len")
         dst = blocks.vector_sink_c()
 
         self.tb.connect(src, dut, dst)
         self.tb.run()
         res = np.array(dst.data())[0:len(ref)]
         self.assertComplexTuplesAlmostEqual(ref, res, 5)
+
+        tags = dst.tags()
+        for t in tags:
+            print(t.offset, t.value)
 
 
 if __name__ == '__main__':

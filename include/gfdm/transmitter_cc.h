@@ -52,7 +52,8 @@ namespace gr {
                        bool per_timeslot, int overlap,
                        std::vector<gr_complex> frequency_taps,
                        std::vector<gr_complex> window_taps,
-                       std::vector<gr_complex> preamble);
+                       std::vector<gr_complex> preamble,
+                       const std::string &tsb_tag_key="");
     };
 
   } // namespace gfdm
