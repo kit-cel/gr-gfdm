@@ -33,5 +33,6 @@ install(FILES
     gfdm_extract_burst_cc.xml
     gfdm_py_channel_estimator_cc.xml
     gfdm_channel_estimator_cc.xml
-    gfdm_transmitter_cc.xml DESTINATION share/gnuradio/grc/blocks
+    gfdm_transmitter_cc.xml
+    gfdm_short_burst_shaper.xml DESTINATION share/gnuradio/grc/blocks
 )

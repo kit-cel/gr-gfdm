@@ -49,5 +49,6 @@ install(FILES
     gfdm_kernel_utils.h
     channel_estimator_cc.h
     transmitter_kernel.h
-    transmitter_cc.h DESTINATION include/gfdm
+    transmitter_cc.h
+    short_burst_shaper.h DESTINATION include/gfdm
 )
