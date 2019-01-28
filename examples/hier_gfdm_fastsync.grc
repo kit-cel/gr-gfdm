@@ -10,7 +10,7 @@
     </param>
     <param>
       <key>window_size</key>
-      <value></value>
+      <value>1920,1080</value>
     </param>
     <param>
       <key>category</key>
@@ -442,7 +442,7 @@
     </param>
     <param>
       <key>minoutbuf</key>
-      <value>0</value>
+      <value>frame_len</value>
     </param>
   </block>
   <block>

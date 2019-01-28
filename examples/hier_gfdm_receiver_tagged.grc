@@ -10,7 +10,7 @@
     </param>
     <param>
       <key>window_size</key>
-      <value></value>
+      <value>1920,1080</value>
     </param>
     <param>
       <key>category</key>
@@ -18,6 +18,10 @@
     </param>
     <param>
       <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>copyright</key>
       <value></value>
     </param>
     <param>
@@ -562,7 +566,7 @@
     </param>
     <param>
       <key>minoutbuf</key>
-      <value>0</value>
+      <value>block_len</value>
     </param>
     <param>
       <key>subcarriers</key>
@@ -621,7 +625,7 @@
     </param>
     <param>
       <key>minoutbuf</key>
-      <value>0</value>
+      <value>block_len</value>
     </param>
     <param>
       <key>preamble</key>
@@ -727,7 +731,7 @@
     </param>
     <param>
       <key>minoutbuf</key>
-      <value>0</value>
+      <value>len(modulated_preambles[1])</value>
     </param>
     <param>
       <key>offset</key>
@@ -782,7 +786,7 @@
     </param>
     <param>
       <key>minoutbuf</key>
-      <value>0</value>
+      <value>block_len</value>
     </param>
     <param>
       <key>offset</key>
@@ -833,7 +837,7 @@
     </param>
     <param>
       <key>minoutbuf</key>
-      <value>0</value>
+      <value>timeslots * active_subcarriers</value>
     </param>
     <param>
       <key>subcarriers</key>
