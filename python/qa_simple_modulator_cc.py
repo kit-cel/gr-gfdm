@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 # Copyright 2016 Johannes Demel.
-# 
+#
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this software; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
@@ -46,8 +46,7 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         # data = np.repeat(np.arange(1, K + 1), M)
         data = get_random_qpsk(M * K)
         D = get_data_matrix(data, K, group_by_subcarrier=False)
-        # print data
-        # print D
+
         src = blocks.vector_source_c(data)
         mod = gfdm.simple_modulator_cc(M, K, L, taps)
         dst = blocks.vector_sink_c()
@@ -68,7 +67,7 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         self.assertComplexTuplesAlmostEqual(ref, res, 5)
 
     def test_002_big_data(self):
-        print "big data test"
+        print("big data test")
         reps = 5
         alpha = .5
         M = 127
@@ -83,9 +82,6 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
             D = get_data_matrix(d, K, group_by_subcarrier=False)
             ref = np.append(ref, gfdm_modulate_block(D, taps, M, K, L, False))
             data = np.append(data, d)
-        # print data
-        # print ref
-        # print "MAXIMUM ref value: ", np.max(abs(ref))
 
         src = blocks.vector_source_c(data)
         mod = gfdm.simple_modulator_cc(M, K, L, taps)
@@ -97,11 +93,9 @@ class qa_simple_modulator_cc(gr_unittest.TestCase):
         # check data
         res = np.array(dst.data())
         # res /= M * K
-        # print "MAXIMUM result value: ", np.max(abs(res))
 
         self.assertComplexTuplesAlmostEqual(ref, res, 2)
 
 
 if __name__ == '__main__':
-    # gr_unittest.run(qa_simple_modulator_cc, "qa_simple_modulator_cc.xml")
     gr_unittest.run(qa_simple_modulator_cc)

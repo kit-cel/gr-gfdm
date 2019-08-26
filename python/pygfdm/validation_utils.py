@@ -21,13 +21,13 @@
 
 import numpy as np
 import scipy.signal as signal
-import utils
-import mapping
-import preamble
-import gfdm_modulation
-import cyclic_prefix
-import filters
-# import synchronization as sync
+from .utils import generate_seed, get_random_qpsk, get_random_samples
+from .mapping import get_subcarrier_map
+from .preamble import mapped_preamble, symmetric_mapped_preamble
+from .gfdm_modulation import modulate_mapped_gfdm_block
+from .cyclic_prefix import add_cyclic_starfix, get_raised_cosine_ramp
+from .cyclic_prefix import pinch_block, get_window_len
+from .filters import get_frequency_domain_filter
 
 
 class frame_estimator():
@@ -78,65 +78,66 @@ class frame_estimator():
         return self._interpolate_frame(H)
 
 
-def generate_reference_frame(timeslots, subcarriers, active_subcarriers, cp_len, cs_len, alpha=.2):
-    p_seed = utils.generate_seed('awesome preamble')
-    f_seed = utils.generate_seed('awesome frame')
-    subcarrier_map = mapping.get_subcarrier_map(subcarriers, active_subcarriers, dc_free=True)
+def generate_reference_frame(timeslots, subcarriers, active_subcarriers,
+                             cp_len, cs_len, alpha=.2):
+    p_seed = generate_seed('awesome preamble')
+    f_seed = generate_seed('awesome frame')
+    subcarrier_map = get_subcarrier_map(subcarriers, active_subcarriers, dc_free=True)
     overlap = 2
-    frame_preamble, x_preamble = preamble.mapped_preamble(p_seed, 'rrc', alpha, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, cs_len)
-    d = utils.get_random_qpsk(timeslots * active_subcarriers, f_seed)
-    d_frame = mod_frame = gfdm_modulation.modulate_mapped_gfdm_block(d, timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
-    symbol = cyclic_prefix.add_cyclic_starfix(d_frame, cp_len, cs_len)
-    window_ramp = cyclic_prefix.get_raised_cosine_ramp(cs_len, cyclic_prefix.get_window_len(cp_len, timeslots, subcarriers, cs_len))
-    d_frame = cyclic_prefix.pinch_block(symbol, window_ramp)
+    frame_preamble, x_preamble = mapped_preamble(p_seed, 'rrc', alpha, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, cs_len)
+    d = get_random_qpsk(timeslots * active_subcarriers, f_seed)
+    d_frame = mod_frame = modulate_mapped_gfdm_block(d, timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
+    symbol = add_cyclic_starfix(d_frame, cp_len, cs_len)
+    window_ramp = get_raised_cosine_ramp(cs_len, get_window_len(cp_len, timeslots, subcarriers, cs_len))
+    d_frame = pinch_block(symbol, window_ramp)
 
-    H = filters.get_frequency_domain_filter('rrc', alpha, timeslots, subcarriers, overlap)
+    H = get_frequency_domain_filter('rrc', alpha, timeslots, subcarriers, overlap)
     return np.concatenate((frame_preamble, d_frame)), mod_frame, x_preamble, d, H
 
 
 def generate_sc_qpsk_frame(timeslots, subcarriers, active_subcarriers, cp_len, cs_len, alpha=.2):
-    p_seed = utils.generate_seed('awesome preamble')
-    f_seed = utils.generate_seed('awesome frame')
-    subcarrier_map = mapping.get_subcarrier_map(subcarriers, active_subcarriers, dc_free=True)
+    p_seed = generate_seed('awesome preamble')
+    f_seed = generate_seed('awesome frame')
+    subcarrier_map = get_subcarrier_map(subcarriers, active_subcarriers, dc_free=True)
     overlap = 2
-    frame_preamble, x_preamble = preamble.mapped_preamble(p_seed, 'rrc', alpha, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, cs_len)
-    d = .2 * utils.get_random_qpsk(timeslots * subcarriers // 4, f_seed)
+    frame_preamble, x_preamble = mapped_preamble(p_seed, 'rrc', alpha, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, cs_len)
+    d = .2 * get_random_qpsk(timeslots * subcarriers // 4, f_seed)
     d = signal.resample(d, len(d) * 4)
-    # d_frame = mod_frame = gfdm_modulation.modulate_mapped_gfdm_block(d, timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
-    symbol = cyclic_prefix.add_cyclic_starfix(d, cp_len, cs_len)
+    # d_frame = mod_frame = modulate_mapped_gfdm_block(d, timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
+    symbol = add_cyclic_starfix(d, cp_len, cs_len)
 
-    window_ramp = cyclic_prefix.get_raised_cosine_ramp(cs_len, cyclic_prefix.get_window_len(cp_len, timeslots, subcarriers, cs_len))
-    d_frame = cyclic_prefix.pinch_block(symbol, window_ramp)
+    window_ramp = get_raised_cosine_ramp(cs_len, get_window_len(cp_len, timeslots, subcarriers, cs_len))
+    d_frame = pinch_block(symbol, window_ramp)
 
-    H = filters.get_frequency_domain_filter('rrc', alpha, timeslots, subcarriers, overlap)
+    H = get_frequency_domain_filter('rrc', alpha, timeslots, subcarriers, overlap)
     return np.concatenate((frame_preamble, d_frame)), d, x_preamble, d, H
 
 
-def generate_integrated_frame(timeslots, subcarriers, active_subcarriers, cp_len, cs_len, alpha=.2):
-    p_seed = utils.generate_seed('awesome preamble')
-    f_seed = utils.generate_seed('awesome frame')
-    subcarrier_map = mapping.get_subcarrier_map(subcarriers, active_subcarriers, dc_free=True)
+def generate_integrated_frame(timeslots, subcarriers, active_subcarriers,
+                              cp_len, cs_len, alpha=.2):
+    p_seed = generate_seed('awesome preamble')
+    f_seed = generate_seed('awesome frame')
+    subcarrier_map = get_subcarrier_map(subcarriers, active_subcarriers, dc_free=True)
     overlap = 2
-    p, p_vals = preamble.symmetric_mapped_preamble(p_seed, 'rrc', alpha, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, cs_len)
+    p, p_vals = symmetric_mapped_preamble(p_seed, 'rrc', alpha, active_subcarriers, subcarriers, subcarrier_map, overlap, cp_len, cs_len)
     frame_preamble, x_preamble = p
-    p = gfdm_modulation.modulate_mapped_gfdm_block(np.concatenate((p_vals, p_vals, np.zeros((timeslots - 2) * active_subcarriers))), timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
+    p = modulate_mapped_gfdm_block(np.concatenate((p_vals, p_vals, np.zeros((timeslots - 2) * active_subcarriers))), timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
     x_preamble = p[0:len(x_preamble)]
 
-    d = utils.get_random_qpsk((timeslots - 4) * active_subcarriers, f_seed)
+    d = get_random_qpsk((timeslots - 4) * active_subcarriers, f_seed)
     d = np.tile(p_vals, timeslots)
     # d = np.concatenate((p_vals, p_vals, d, p_vals, p_vals))
-    # d = utils.get_random_qpsk((timeslots - 2) * active_subcarriers, f_seed)
+    # d = get_random_qpsk((timeslots - 2) * active_subcarriers, f_seed)
     # d = np.concatenate((p_vals, p_vals, d))
 
+    d_frame = mod_frame = modulate_mapped_gfdm_block(d, timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
 
-    d_frame = mod_frame = gfdm_modulation.modulate_mapped_gfdm_block(d, timeslots, subcarriers, active_subcarriers, overlap, alpha, dc_free=True)
+    symbol = add_cyclic_starfix(d_frame, cp_len, cs_len)
 
-    symbol = cyclic_prefix.add_cyclic_starfix(d_frame, cp_len, cs_len)
+    window_ramp = get_raised_cosine_ramp(cs_len, get_window_len(cp_len, timeslots, subcarriers, cs_len))
+    # d_frame = pinch_block(symbol, window_ramp)
 
-    window_ramp = cyclic_prefix.get_raised_cosine_ramp(cs_len, cyclic_prefix.get_window_len(cp_len, timeslots, subcarriers, cs_len))
-    # d_frame = cyclic_prefix.pinch_block(symbol, window_ramp)
-
-    H = filters.get_frequency_domain_filter('rrc', alpha, timeslots, subcarriers, overlap)
+    H = get_frequency_domain_filter('rrc', alpha, timeslots, subcarriers, overlap)
     return p, mod_frame, x_preamble, d, H
 
 
@@ -148,9 +149,9 @@ def main():
     fft_len = 64
     cp_len = fft_len // 2
     cs_len = cp_len // 2
-    subcarrier_map = mapping.get_subcarrier_map(fft_len, active_subcarriers, dc_free=True)
+    subcarrier_map = get_subcarrier_map(fft_len, active_subcarriers, dc_free=True)
     ref_frame, modulated_frame, x_preamble, data, freq_filter_taps = generate_integrated_frame(timeslots, fft_len, active_subcarriers, cp_len, cs_len, alpha)
-    test_frame = np.concatenate((.001 * utils.get_random_samples(1000), ref_frame, .001 * utils.get_random_samples(1000)))
+    test_frame = np.concatenate((.001 * get_random_samples(1000), ref_frame, .001 * get_random_samples(1000)))
 
 
 

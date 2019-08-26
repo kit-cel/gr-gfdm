@@ -20,8 +20,8 @@
 #
 
 import numpy as np
-from filters import gfdm_filter_taps, gfdm_freq_taps, gfdm_freq_taps_sparse
-from mapping import reshape_input
+from .filters import gfdm_filter_taps, gfdm_freq_taps, gfdm_freq_taps_sparse
+from .mapping import reshape_input
 
 
 def gfdm_modulation_matrix(filter_taps, M, K, oversampling_factor=1, group_by_subcarrier=False):

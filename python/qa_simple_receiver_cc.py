@@ -52,7 +52,6 @@ class qa_simple_receiver_cc(gr_unittest.TestCase):
         res = np.array(dst.data())
 
         ref = gfdm_demodulate_block(data, taps, K, M, L)
-        # print calculate_signal_energy(ref), calculate_signal_energy(res)
         res *= np.sqrt(calculate_signal_energy(ref) / calculate_signal_energy(res))
         self.assertComplexTuplesAlmostEqual(ref, res, 5)
 
@@ -66,13 +65,10 @@ class qa_simple_receiver_cc(gr_unittest.TestCase):
         taps = get_frequency_domain_filter('rrc', alpha, M, K, L)
         data = np.array([], dtype=np.complex)
         ref = np.array([], dtype=np.complex)
-        for i in xrange(reps):
+        for i in range(reps):
             d = get_random_qpsk(M * K)
             ref = np.append(ref, gfdm_demodulate_block(d, taps, K, M, L))
             data = np.append(data, d)
-        # print data
-        # print ref
-        # print "MAXIMUM ref value: ", np.max(abs(ref))
 
         src = blocks.vector_source_c(data)
         mod = gfdm.simple_receiver_cc(M, K, L, taps)
@@ -88,5 +84,4 @@ class qa_simple_receiver_cc(gr_unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # gr_unittest.run(qa_simple_receiver_cc, "qa_simple_receiver_cc.xml")
     gr_unittest.run(qa_simple_receiver_cc)

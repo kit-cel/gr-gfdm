@@ -1,4 +1,4 @@
-# Copyright 2011 Free Software Foundation, Inc.
+# Copyright 2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -17,21 +17,10 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-install(FILES
-    gfdm_modulator_cc.block.yml
-    gfdm_sync_cc.block.yml
-    gfdm_cyclic_prefixer_cc.block.yml
-    gfdm_preamble_generator.block.yml
-    gfdm_remove_prefix_cc.block.yml
-    gfdm_simple_modulator_cc.block.yml
-    gfdm_simple_receiver_cc.block.yml
-    gfdm_advanced_receiver_sb_cc.block.yml
-    gfdm_resource_mapper_cc.block.yml
-    gfdm_frame_energy_detector_cc.block.yml
-    gfdm_simple_preamble_sync_cc.block.yml
-    gfdm_resource_demapper_cc.block.yml
-    gfdm_extract_burst_cc.block.yml
-    gfdm_channel_estimator_cc.block.yml
-    gfdm_transmitter_cc.block.yml
-    gfdm_short_burst_shaper.block.yml DESTINATION share/gnuradio/grc/blocks
-)
+include(CMakeFindDependencyMacro)
+
+set(target_deps "@TARGET_DEPENDENCIES@")
+foreach(dep IN LISTS target_deps)
+    find_dependency(${dep})
+endforeach()
+include("${CMAKE_CURRENT_LIST_DIR}/@TARGET@Targets.cmake")

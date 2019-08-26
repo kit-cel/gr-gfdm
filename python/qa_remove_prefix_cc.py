@@ -58,7 +58,7 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
         data = np.array([], dtype=np.complex)
         ref = np.array([], dtype=np.complex)
         tags = []
-        print 'frame_len: ', frame_len
+        print('frame_len: ', frame_len)
         for i in range(n_frames):
             d_block = modulate_mapped_gfdm_block(get_random_qpsk(timeslots * active_subcarriers), timeslots, subcarriers, active_subcarriers, 2, falpha)
             frame = pinch_cp_add_block(d_block, timeslots, subcarriers, cp_len, cp_len // 2)

@@ -29,18 +29,18 @@ def gfdm_filter_taps(filtertype, alpha, M, K, oversampling_factor=1.):
     if filtertype == "rrc":
         time_h, h = cp.rrcosfilter(M * K * N, alpha, 1. * K * N, 1.)
     elif filtertype == "rc":
-        time_h, h = cp.rcosfilter(M * K * N, alpha, 1. * K * N, 1. )
+        time_h, h = cp.rcosfilter(M * K * N, alpha, 1. * K * N, 1.)
     return h
 
 
 def gfdm_freq_taps(h):
-    h = np.roll(h, h.shape[-1] / 2)
+    h = np.roll(h, h.shape[-1] // 2)
     H = np.fft.fft(h)
     return H
 
 
 def gfdm_freq_taps_sparse(H, M, L):
-    H_sparse = np.concatenate((H[0:(M * L) / 2], H[-(M * L) / 2:]))
+    H_sparse = np.concatenate((H[0:(M * L) // 2], H[-(M * L) // 2:]))
     return H_sparse
 
 

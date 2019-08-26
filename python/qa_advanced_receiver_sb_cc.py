@@ -48,7 +48,7 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         taps = filters.get_frequency_domain_filter('rrc', alpha, M, K, L)
         data = np.array([], dtype=np.complex)
         ref = np.array([], dtype=np.complex)
-        for i in xrange(reps):
+        for i in range(reps):
             d = utils.get_random_qpsk(M * K)
             ref = np.append(ref, gfdm_demodulate_block(d, taps, K, M, L))
             data = np.append(data, d)
@@ -79,8 +79,9 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         self.gfdm_constellation = gfdm_constellation = digital.constellation_qpsk().base()
         self.f_taps = f_taps = filters.get_frequency_domain_filter('rrc', 1.0, gfdm_var.timeslots, gfdm_var.subcarriers,
                                                                    gfdm_var.overlap)
-        self.random_bits = blocks.vector_source_b(map(int, np.random.randint(0, len(gfdm_constellation.points()),
-                                                                                n_frames * gfdm_var.timeslots * gfdm_var.subcarriers)),
+        source_bits = np.random.randint(0, len(gfdm_constellation.points()),
+                                        n_frames * gfdm_var.timeslots * gfdm_var.subcarriers).astype(np.uint8)
+        self.random_bits = blocks.vector_source_b(source_bits,
                                                   False)
         self.bits_to_symbols = digital.chunks_to_symbols_bc((gfdm_constellation.points()), 1)
         self.mod = gfdm.simple_modulator_cc(gfdm_var.timeslots, gfdm_var.subcarriers, gfdm_var.overlap, f_taps)
@@ -114,12 +115,15 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         mapper = gfdm.resource_mapper_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, True)
         mod = gfdm.simple_modulator_cc(timeslots, subcarriers, overlap, f_taps)
         demod = gfdm.advanced_receiver_sb_cc(timeslots, subcarriers, overlap, 64, f_taps, gfdm_constellation, subcarrier_map, 0)
+        demod.set_ic(64)
         demapper = gfdm.resource_demapper_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, True)
         snk = blocks.vector_sink_c()
         self.tb.connect(src, mapper, mod, demod, demapper, snk)
         self.tb.run()
 
         res = np.array(snk.data())
+        print(data[0:10])
+        print(res[0:10])
         self.assertComplexTuplesAlmostEqual(data, res, 2)
 
     def test_004_setIC(self):

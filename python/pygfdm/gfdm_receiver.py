@@ -20,15 +20,16 @@
 #
 
 import numpy as np
-from modulation import gfdm_modulation_matrix
-from mapping import get_data_stream
-from filters import get_frequency_domain_filter, gfdm_freq_taps, gfdm_filter_taps, gfdm_freq_taps_sparse
-from gfdm_modulation import get_random_GFDM_block
-from utils import get_random_qpsk, calculate_average_signal_energy, map_qpsk_stream
+from .modulation import gfdm_modulation_matrix
+from .mapping import get_data_stream
+from .filters import get_frequency_domain_filter, gfdm_freq_taps, gfdm_filter_taps, gfdm_freq_taps_sparse
+from .gfdm_modulation import get_random_GFDM_block
+from .utils import get_random_qpsk, calculate_average_signal_energy, map_qpsk_stream
 
 '''
 [0] Low Complexity GFDM Receiver Based On Sparse Frequency Domain Processing
 '''
+
 
 def gfdm_transform_input_to_fd(R):
     '''
@@ -48,10 +49,10 @@ def gfdm_extract_subcarriers(R, K, M, L):
 
     '''
     D = np.empty((K, M * L), np.complex)
-    for k in xrange(K):
-        for l in xrange(L):
+    for k in range(K):
+        for l in range(L):
             start_pos = ((k + l + K - 1) % K) * M
-            copy_pos = ((l + L / 2) % L) * M
+            copy_pos = ((l + L // 2) % L) * M
             D[k][copy_pos:copy_pos + M] = R[start_pos:start_pos + M]
     return D
 
@@ -82,15 +83,15 @@ def gfdm_superposition_subcarriers(R, K, M, L):
     '''
     S = np.zeros((K, M), np.complex)
     D = R.T
-    for k in xrange(K):
+    for k in range(K):
         S[k] = np.sum(np.reshape(D[k], (L, -1)), axis=0)
     return S.T
 
 
 def gfdm_transform_subcarriers_to_tdomain(R, K, M, L):
-    S = np.zeros((K,M), np.complex)
+    S = np.zeros((K, M), np.complex)
     D = R.T
-    for k in xrange(K):
+    for k in range(K):
         S[k] = np.fft.ifft(D[k])
     return S.T
 
@@ -123,14 +124,14 @@ def gfdm_demodulate_block(R, H, K, M, L):
 
 
 def gfdm_demodulate_block_sic(R, H, K, M, L, J=0):
-    H_sic = gfdm_get_ic_f_taps(H/float(K), M)
+    H_sic = gfdm_get_ic_f_taps(H / float(K), M)
     D_0 = gfdm_transform_input_to_fd(R)
     D_1 = gfdm_extract_subcarriers(D_0, K, M, L)
     D_2 = gfdm_filter_subcarriers(D_1, H, K, M, L)
     D_3 = gfdm_superposition_subcarriers(D_2, K, M, L)
     D_4 = gfdm_transform_subcarriers_to_tdomain(D_3, K, M, L)
-    for j in xrange(J):
-        print 'IC iter', j
+    for j in range(J):
+        print('IC iter', j)
         D_5 = gfdm_map_subcarriers(D_4, K, M, L)
         D_6 = gfdm_remove_sc_interference(D_3, D_5, K, M, L, H_sic)
         D_4 = gfdm_transform_subcarriers_to_tdomain(D_6, K, M, L)
@@ -227,13 +228,13 @@ def main():
     inv_matrix_rx *= np.sqrt(calculate_average_signal_energy(fft_res) / calculate_average_signal_energy(inv_matrix_rx))
     gr_res *= np.sqrt(calculate_average_signal_energy(fft_res) / calculate_average_signal_energy(gr_res))
 
-    print 'compare demodulation accuracy for different approaches'
+    print('compare demodulation accuracy for different approaches')
     for e in range(11):
         em = 10 ** (-1. * e)
         matrixvsloop = np.all(np.abs(fft_res - mf_matrix_rx) < em)
         grvsmatrix = np.all(np.abs(gr_res - mf_matrix_rx) < em)
         grvsloop = np.all(np.abs(gr_res - fft_res) < em)
-        print 'error margin {:.1e}\tMFmatriXvsGR: {}\tMFmatriXvsLoop: {}\tGRvsLoop: {}'.format(em, grvsmatrix, matrixvsloop, grvsloop)
+        print('error margin {:.1e}\tMFmatriXvsGR: {}\tMFmatriXvsLoop: {}\tGRvsLoop: {}'.format(em, grvsmatrix, matrixvsloop, grvsloop))
 
 
 if __name__ == '__main__':

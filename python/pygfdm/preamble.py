@@ -28,16 +28,16 @@ COMMENT
 [1] describes the algorithm while [0] additionally explains GFDM preamble generation.
 
 '''
-
+from __future__ import print_function, division, unicode_literals
 import numpy as np
 import commpy as cp
-from modulation import gfdm_tx, gfdm_tx_fft2
-from utils import get_random_qpsk, generate_seed, calculate_signal_energy
-from mapping import map_to_waveform_resources
-from mapping import get_data_matrix
-from cyclic_prefix import add_cyclic_prefix, get_raised_cosine_ramp, get_window_len, pinch_block, add_cyclic_starfix
-from filters import get_frequency_domain_filter
-from gfdm_modulation import gfdm_modulate_block
+from .modulation import gfdm_tx, gfdm_tx_fft2
+from .utils import get_random_qpsk, generate_seed, calculate_signal_energy
+from .mapping import map_to_waveform_resources
+from .mapping import get_data_matrix
+from .cyclic_prefix import add_cyclic_prefix, get_raised_cosine_ramp, get_window_len, pinch_block, add_cyclic_starfix
+from .filters import get_frequency_domain_filter
+from .gfdm_modulation import gfdm_modulate_block
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -122,7 +122,7 @@ def check_preamble_properties(preamble, x_preamble):
     x_1st = x_preamble[0:len(x_preamble) // 2]
     x_2nd = x_preamble[-len(x_preamble) // 2:]
     if not np.all(np.abs(x_1st - x_2nd) < 1e-12):
-        print np.abs(x_1st - x_2nd)
+        print(np.abs(x_1st - x_2nd))
         raise ValueError('preamble timeslots do not repeat!')
     from correlation import cross_correlate_naive, auto_correlate_halfs
     from utils import calculate_signal_energy
@@ -133,8 +133,8 @@ def check_preamble_properties(preamble, x_preamble):
     if np.abs(2. * auto_correlate_halfs(x_preamble) / x_energy) -1. > 1e-10:
         raise ValueError('auto correlating halfs of preamble fails!')
 
-    print 'normalized preamble xcorr val: ', np.correlate(x_preamble, x_preamble) / x_energy
-    print 'windowed normalized preamble: ', np.correlate(preamble[-len(x_preamble):], x_preamble) / x_energy
+    print('normalized preamble xcorr val: ', np.correlate(x_preamble, x_preamble) / x_energy)
+    print('windowed normalized preamble: ', np.correlate(preamble[-len(x_preamble):], x_preamble) / x_energy)
     fxc = np.correlate(preamble, x_preamble, 'full') / x_energy
     vxc = np.correlate(preamble, x_preamble, 'valid') / x_energy
     nxc = cross_correlate_naive(preamble, x_preamble) / x_energy

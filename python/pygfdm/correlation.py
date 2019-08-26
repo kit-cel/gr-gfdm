@@ -32,7 +32,7 @@ import numpy as np
 
 
 def auto_correlate_halfs(s):
-    pivot = len(s) / 2
+    pivot = len(s) // 2
     return np.sum(np.conjugate(s[0:pivot]) * s[pivot:])
 
 
@@ -123,12 +123,11 @@ def validate_valid_cross_correlation(s, p, tolerance):
 def check_results(s, p, tolerance, err_msg):
     err = np.abs(s - p) < tolerance
     if not np.all(err):
-        print s
-        print p
-        print err
+        print(s)
+        print(p)
+        print(err)
         raise ValueError('check_results: ' + err_msg)
     else:
-        # print 'passed: ' + err_msg
         pass
 
 

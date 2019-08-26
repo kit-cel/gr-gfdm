@@ -22,14 +22,15 @@
 This is the GNU Radio GFDM module. Place your Python package
 description here (python/__init__.py).
 '''
+from __future__ import unicode_literals
 
 # import swig generated symbols into the gfdm namespace
 try:
-	# this might fail if the module is python-only
-	from gfdm_swig import *
+    # this might fail if the module is python-only
+    from .gfdm_swig import *
 except ImportError:
-	pass
+    pass
 
 # import any pure python here
-from py_channel_estimator_cc import py_channel_estimator_cc
+from .py_channel_estimator_cc import py_channel_estimator_cc
 #

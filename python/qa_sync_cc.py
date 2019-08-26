@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 # Copyright 2016 Johannes Demel.
-# 
+#
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this software; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-# 
+#
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
@@ -49,18 +49,18 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         # normalize preamble
         preamble /= np.sqrt(np.abs(calculate_signal_energy(preamble)))
-        print 'norm_preamble energy:', calculate_signal_energy(preamble)
+        print('norm_preamble energy:', calculate_signal_energy(preamble))
 
         self.assertComplexTuplesAlmostEqual(kernel_preamble, preamble)
 
     def test_002_auto_correlate(self):
-        print 'auto correlation test'
+        print('auto correlation test')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
 
         test_cfo = -.1
         snr_dB = 15.0
@@ -75,13 +75,13 @@ class qa_sync_cc(gr_unittest.TestCase):
         self.assertComplexTuplesAlmostEqual(ac, kac, 6)
 
     def test_003_abs_integrate(self):
-        print 'abs_integrate test'
+        print('abs_integrate test')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
 
         test_cfo = -.1
         snr_dB = 15.0
@@ -102,13 +102,13 @@ class qa_sync_cc(gr_unittest.TestCase):
         self.assertFloatTuplesAlmostEqual(ic[cp_len:], kic[cp_len:], 6)
 
     def test_004_find_auto_correlation_peak(self):
-        print 'find auto correlation peak test'
+        print('find auto correlation peak test')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
 
         test_cfo = -.1
         snr_dB = 15.0
@@ -130,13 +130,13 @@ class qa_sync_cc(gr_unittest.TestCase):
         self.assertAlmostEqual(cfo, kcfo)
 
     def test_005_remove_cfo(self):
-        print 'remove CFO test'
+        print('remove CFO test')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
 
         test_cfo = -.1
         snr_dB = 15.0
@@ -157,13 +157,13 @@ class qa_sync_cc(gr_unittest.TestCase):
         # self.assertComplexTuplesAlmostEqual(s, ks, 1)  # VOLK rotator is inaccurate. Thus, accuracy == 3
 
     def test_006_cross_correlation(self):
-        print 'cross correlation test'
+        print('cross correlation test')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
 
         test_cfo = 0.0
         snr_dB = 15.0
@@ -177,37 +177,34 @@ class qa_sync_cc(gr_unittest.TestCase):
         self.assertComplexTuplesAlmostEqual(kcc, cc, 4)
 
     def test_007_frame(self):
-        print 'find frame test'
+        print('find frame test')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
 
         test_cfo = -.2
         snr_dB = 20.0
 
         signal, preamble, pn_symbols = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, snr_dB, test_cfo)
-        # print 'preamble size:', len(preamble), len(preamble) == 2 * K
-        # print 'init kernel'
         kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
         preamble = np.array(kernel.preamble())
         nc, cfo, auto_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, preamble, K, cp_len)
 
-        # print 'kernel.find_preamble'
         knc = np.array(kernel.find_preamble(signal))
-        print knc, nc
+        print(knc, nc)
         self.assertEqual(nc, knc)
 
     def test_008_auto_correlation_stepped(self):
-        print 'test window buffering for auto correlation'
+        print('test window buffering for auto correlation')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
 
         test_cfo = -.2
         snr_dB = 10.0
@@ -229,7 +226,7 @@ class qa_sync_cc(gr_unittest.TestCase):
             if len(w) > 4 * K and len(ref_buf) == 2 * K:
                 bi_buf = np.array(kernel.integration_buffer())
                 kbuf = np.concatenate((bi_buf, a))
-                print 'KBEF argmax', np.argmax(kbuf)
+                print('KBEF argmax', np.argmax(kbuf))
                 snc = int(kernel.find_preamble(w))  # necessary to update kernel state!
                 ai_buf = np.array(kernel.integration_buffer())
                 self.assertFloatTuplesAlmostEqual(ref_buf, ai_buf, 5)
@@ -239,13 +236,13 @@ class qa_sync_cc(gr_unittest.TestCase):
                 self.assertComplexTuplesAlmostEqual(inref_buf, in_buf)
 
     def test_009_step_window(self):
-        print 'long windowed test'
+        print('long windowed test')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
 
         test_cfo = -.2
         snr_dB = 10.0
@@ -276,13 +273,13 @@ class qa_sync_cc(gr_unittest.TestCase):
                     n_frame = len(window_nc)
                     prev_pos = nc_vec[n_frame - 1]
                     if abs_nc == prev_pos:
-                        print 'found:', abs_nc, 'previous:', prev_pos
+                        print('found:', abs_nc, 'previous:', prev_pos)
                     elif not abs_nc == nc_vec[n_frame]:
-                        print 'FAIL STATUS: reps', n_rep, 'detected frames:', n_frame, 'avail_frames:', len(nc_vec)
-                        print '#frame', n_frame, 'expected:', nc_vec[n_frame], 'found:', abs_nc, 'diff:', abs_nc - nc_vec[n_frame]
-                        print 'step_size:', step_size, 'step_start:', i, 'snc:', snc
-                        print nc_vec[n_frame-3:n_frame+3]
-                        print window_nc[-3:]
+                        print('FAIL STATUS: reps', n_rep, 'detected frames:', n_frame, 'avail_frames:', len(nc_vec))
+                        print('#frame', n_frame, 'expected:', nc_vec[n_frame], 'found:', abs_nc, 'diff:', abs_nc - nc_vec[n_frame])
+                        print('step_size:', step_size, 'step_start:', i, 'snc:', snc)
+                        print(nc_vec[n_frame-3:n_frame+3])
+                        print(window_nc[-3:])
                         self.assertEqual(abs_nc, nc_vec[n_frame])
                     else:
                         # print 'SUCCESSFULLY detected frame @', abs_nc
@@ -294,13 +291,13 @@ class qa_sync_cc(gr_unittest.TestCase):
 
     def test_010_sync_block(self):
         np.set_printoptions(precision=4)
-        print 'GR block sync!'
+        print('GR block sync!')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
         frame_len = 2 * K + cp_len + M * K
 
         test_cfo = -.2
@@ -312,7 +309,7 @@ class qa_sync_cc(gr_unittest.TestCase):
 
         kernel = gfdm.improved_sync_algorithm_kernel_cc(K, cp_len, preamble, 4000)
         nc, cfo, abs_corr_vals, corr_vals, napcc, apcc = find_frame_start(signal, np.array(kernel.preamble()), K, cp_len)
-        print 'Python frame start: ', nc
+        print('Python frame start: ', nc)
 
         signal = np.tile(signal, n_reps)
         src = blocks.vector_source_c(signal)
@@ -324,21 +321,25 @@ class qa_sync_cc(gr_unittest.TestCase):
         ref = signal[nc:nc + frame_len]
         ref = np.tile(ref, n_reps)
         res = np.array(snk.data())
-        print 'res length:', len(res) / n_reps
-        print 'frame size:', frame_len
+        print('res length:', len(res) / n_reps)
+        print('frame size:', frame_len)
         self.assertComplexTuplesAlmostEqual(ref, res)
 
     def test_011_block_noise_input(self):
-        print 'test_011_Noise only!'
+        print('test_011_Noise only!')
         alpha = .5
         M = 33
         K = 32
         L = 2
         cp_len = K
-        ramp_len = cp_len / 2
+        ramp_len = cp_len // 2
         frame_len = 2 * K + cp_len + M * K
 
-        signal, preamble, pn_symbols = generate_test_sync_samples(M, K, L, alpha, cp_len, ramp_len, 10.0, -.2)
+        signal, preamble, pn_symbols = generate_test_sync_samples(M, K, L,
+                                                                  alpha,
+                                                                  cp_len,
+                                                                  ramp_len,
+                                                                  10.0, -.2)
         noise_variance = .5
         signal = get_complex_noise_vector(4 * M * K, noise_variance)
 
@@ -349,11 +350,10 @@ class qa_sync_cc(gr_unittest.TestCase):
         self.tb.run()
 
         res = np.array(snk.data())
-        print 'res length:', len(res)
-        print 'frame size:', frame_len
+        print('res length:', len(res))
+        print('frame size:', frame_len)
         self.assertTrue(len(res) == 0)
 
 
 if __name__ == '__main__':
-    # gr_unittest.run(qa_sync_cc, "qa_sync_cc.xml")
     gr_unittest.run(qa_sync_cc)

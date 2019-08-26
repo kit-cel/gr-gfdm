@@ -115,7 +115,6 @@ namespace gr {
                                       ninput_size);
     }
 
-
     int
     extract_burst_cc_impl::general_work (int noutput_items,
                        gr_vector_int &ninput_items,
@@ -171,7 +170,7 @@ namespace gr {
         }
       }
 
-      consume_each (consumed_items);
+      consume_each(consumed_items);
       return produced_items;
     }
 

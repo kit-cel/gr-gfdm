@@ -22,7 +22,7 @@
 from __future__ import print_function, division
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-import gfdm.gfdm_swig as gfdm
+import gfdm_swig as gfdm
 import pmt
 import numpy as np
 

@@ -25,12 +25,12 @@ A few hints on used papers, consider them to be a good read.
 [1] Generalized Frequency Division Multiplexing for 5th Generation Cellular Networks
 [2] "Bit Error Rate Performance of Generalized Frequency Division Multiplexing"
 '''
-
+from __future__ import print_function, division, unicode_literals
 import numpy as np
-from modulation import gfdm_modulation_matrix, gfdm_tx_fft2
-from filters import gfdm_filter_taps, get_frequency_domain_filter
-from mapping import get_data_matrix, map_to_waveform_resource_grid, get_subcarrier_map
-from utils import get_random_samples, get_random_qpsk, get_zero_f_data, calculate_signal_energy
+from .modulation import gfdm_modulation_matrix, gfdm_tx_fft2
+from .filters import gfdm_filter_taps, get_frequency_domain_filter
+from .mapping import get_data_matrix, map_to_waveform_resource_grid, get_subcarrier_map
+from .utils import get_random_samples, get_random_qpsk, get_zero_f_data, calculate_signal_energy
 
 
 def gfdm_transform_subcarriers_to_fd(D, M):
@@ -100,9 +100,9 @@ def gfdm_combine_subcarriers_in_fd(F, M, K, L, compat_mode=True):
 
     # This last step confuses things! put one on DC!
     if compat_mode:
-        X = np.roll(X, -M / 2)
+        X = np.roll(X, -M // 2)
     else:
-        X = np.roll(X, -M * L / 2)
+        X = np.roll(X, -M * L // 2)
     return X
 
 
@@ -194,7 +194,7 @@ def implementation_validation():
             max_rel_error = rel_err
         if rel_err > 1e-3:
             raise RuntimeError('Relative error between FFT and Matrix implementation is above 1e-3!')
-    print 'maximum relative error is:', max_rel_error
+    print('maximum relative error is:', max_rel_error)
 
 
 def gr_conformity_validation():
@@ -264,7 +264,7 @@ def compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor):
         xA = A0.dot(get_data_matrix(data, K, group_by_subcarrier=goofy_ordering).flatten()) * (1. / K)
         fA = np.argmax(abs(np.fft.fft(xA))) / M
         plt.plot(abs(np.fft.fft(xA)), '-', label='matrix' + str(k), color=color)
-        print fm, fA, f0
+        print(fm, fA, f0)
     plt.legend()
     plt.show()
 
@@ -275,13 +275,13 @@ def compare_subcarrier_combination():
     overlap = 2
     data = get_zero_f_data(0, K, M)
     data += 2 * get_zero_f_data(3, K, M)
-    print data
+    print(data)
     F = get_data_matrix(data, K, False)
-    print F
+    print(F)
     F = np.reshape(np.tile(F.flatten(), overlap), (-1, K))
 
     X0 = np.real(gfdm_combine_subcarriers_in_fd(F, M, K, overlap))
-    print X0
+    print(X0)
     X = np.zeros(M * K, dtype=np.complex)
     for k in range(K):
         s = np.zeros(M * K, dtype=np.complex)
@@ -289,11 +289,10 @@ def compare_subcarrier_combination():
         s = np.roll(s, k * M - M / 2)
         X += s
 
-    print np.real(np.roll(X, -M / 2))
-    print np.all(np.roll(X, -M / 2) == X0)
-    print np.all(X == X0)
-    print np.real(X)
-
+    print(np.real(np.roll(X, -M / 2)))
+    print(np.all(np.roll(X, -M / 2) == X0))
+    print(np.all(X == X0))
+    print(np.real(X))
 
 
 def main():
@@ -308,7 +307,6 @@ def main():
     validate_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
 
     # compare_subcarrier_location(alpha, M, K, overlap, oversampling_factor)
-
 
 
 if __name__ == '__main__':
