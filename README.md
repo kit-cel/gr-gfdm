@@ -26,12 +26,11 @@ For generating a transmit symbol stream *gr-gfdm* provides following blocks:
 
 For reception of a GFDM symbol stream *gr-gfdm* provides following blocks:
 
-- synchronization
 - channel estimator
 - prefix remover
 - simple demodulator
 - advanced demodulator with IC
-- demapper 
+- demapper
 
 Signal processing in the blocks is performed in *kernels* which have no dependency on *GNU Radio*. Thus inclusion in interfaces to other programming languages is easier.
 
@@ -39,25 +38,26 @@ The modulator and demodulator are implemented using the low complexity approach 
 
 Tests of optimized C++ code are performed with a reference implementation in Python.
 Additionally the C++ code is wrapped with [cython](python/cython/README.md).
- 
 
+Synchronization algorithms are not part of this OOT. Instead we rely on `XFDMSync`. It is a better optimized multicarrier synchronization OOT.
 
 Requirements
 ------------
 - GNU Radio OOT
-  - GNU Radio 3.7.9 (verified)
-  - GR 3.7 API
+  - GNU Radio 3.8 (verified)
+  - GR 3.8 API
   - GR-FFT
   - GR-FILTER
   - VOLK
   - UHD (examples)
-    
+  - XFDMSync (synchronization)
+
 - PyGFDM
   - Numpy
   - Scipy
   - Commpy
   - Matplotlib
-  
+
 
 
 Build/Install instructions

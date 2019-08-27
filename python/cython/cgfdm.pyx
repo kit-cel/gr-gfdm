@@ -186,68 +186,6 @@ cdef class py_receiver_kernel_cc:
         return res
 
 
-cdef class py_detect_frame_energy_kernel_cl:
-    cdef gfdm_interface.detect_frame_energy_kernel_cl* kernel
-
-    def __cinit__(self, float alpha, int average_len):
-        self.kernel = new gfdm_interface.detect_frame_energy_kernel_cl(alpha, average_len)
-
-    def __del__(self):
-        del self.kernel
-
-    def average_len(self):
-        return self.kernel.average_len()
-
-    def alpha(self):
-        return self.kernel.alpha()
-
-    def set_alpha(self, float alpha):
-        self.kernel.set_alpha(alpha)
-
-    def detect_frame(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
-        return self.kernel.detect_frame(<float complex*> inbuf.data, inbuf.shape[0])
-
-cdef class py_auto_cross_corr_multicarrier_sync_cc:
-    cdef gfdm_interface.auto_cross_corr_multicarrier_sync_cc* kernel
-
-    def __cinit__(self, int subcarriers, int cp_len, np.ndarray preamble):
-        self.kernel = new gfdm_interface.auto_cross_corr_multicarrier_sync_cc(subcarriers, cp_len, preamble)
-
-    def __del__(self):
-        del self.kernel
-
-    def subcarriers(self):
-        return self.kernel.subcarriers()
-
-    def detect_frame(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
-        nc = self.kernel.detect_frame_start(<float complex*> inbuf.data, inbuf.shape[0])
-        cfo = self.kernel.last_cfo()
-        return nc, cfo
-
-    def fixed_lag_auto_correlate(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
-        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((inbuf.shape[0] - self.kernel.subcarriers(),), dtype=np.complex64)
-        self.kernel.fixed_lag_auto_correlate(<float complex*> res.data, <float complex*> inbuf.data, inbuf.shape[0])
-        return res
-
-    def cross_correlate_preamble(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
-        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((2 * self.kernel.subcarriers(),), dtype=np.complex64)
-        self.kernel.cross_correlate_preamble(<float complex*> res.data, <float complex*> inbuf.data, 2 * self.kernel.subcarriers())
-        return res
-
-    def find_peak(self, np.ndarray[np.float32_t, ndim=1] inbuf):
-        return self.kernel.find_peak(<float*> inbuf.data, inbuf.shape[0])
-
-    def normalize_power_level(self, np.ndarray[np.complex64_t, ndim=1] inbuf, norm_factor):
-        cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((inbuf.shape[0],), dtype=np.complex64)
-        self.kernel.normalize_power_level(<float complex*> res.data, <float complex*> inbuf.data, norm_factor, inbuf.shape[0])
-        return res
-
-    def calculate_preamble_attenuation(self, np.ndarray[np.complex64_t, ndim=1] inbuf):
-        if inbuf.shape[0] < 2 * self.kernel.subcarriers():
-            print 'calculate_preamble_attenuation: inbuf.shape[0]', inbuf.shape[0], 'expected at least: ', 2 * self.kernel.subcarriers()
-            raise ValueError("CGFDM: RX vector for preamble attenuation calculation is TOO SMALL!")
-        return self.kernel.calculate_preamble_attenuation(<float complex*> inbuf.data)
-
 cdef class py_preamble_channel_estimator_cc:
     cdef gfdm_interface.preamble_channel_estimator_cc* kernel
 
@@ -282,4 +220,3 @@ cdef class py_preamble_channel_estimator_cc:
         cdef np.ndarray[np.complex64_t, ndim=1] res = np.zeros((self.kernel.fft_len() * self.kernel.timeslots(),), dtype=np.complex64)
         self.kernel.estimate_frame(<float complex*> res.data, <float complex*> rx_preamble.data)
         return res
-

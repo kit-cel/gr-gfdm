@@ -42,26 +42,6 @@ cdef extern from "receiver_kernel_cc.h" namespace "gr::gfdm":
         void transform_subcarriers_to_td(float complex* p_out, const float complex* p_in);
         void cancel_sc_interference(float complex* p_out, const float complex* p_td_in, const float complex* p_fd_in);
 
-cdef extern from "detect_frame_energy_kernel_cl.h" namespace "gr::gfdm":
-    cdef cppclass detect_frame_energy_kernel_cl:
-        detect_frame_energy_kernel_cl(float, int) except +
-        int average_len();
-        float alpha();
-        void set_alpha(float);
-        long detect_frame(const float complex* p_in, const int ninput_items);
-
-cdef extern from "auto_cross_corr_multicarrier_sync_cc.h" namespace "gr::gfdm":
-    cdef cppclass auto_cross_corr_multicarrier_sync_cc:
-        auto_cross_corr_multicarrier_sync_cc(int, int, vector[float complex]) except +
-        int detect_frame_start(const float complex* p_in, const int ninput_size);
-        float last_cfo()
-        int subcarriers()
-        void cross_correlate_preamble(float complex* p_out, const float complex* p_in, const int ninput_size)
-        void fixed_lag_auto_correlate(float complex* p_out, const float complex* p_in, const int ninput_size)
-        int find_peak(float* vals, const int ninput_size)
-        float calculate_preamble_attenuation(const float complex* p_in)
-        void normalize_power_level(float complex* p_out, const float complex* p_in, const float norm_factor, const int ninput_size)
-
 cdef extern from "preamble_channel_estimator_cc.h" namespace "gr::gfdm":
     cdef cppclass preamble_channel_estimator_cc:
         preamble_channel_estimator_cc(int, int, int, bool, int, vector[float complex]) except +
