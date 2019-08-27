@@ -26,7 +26,6 @@ install(FILES
     modulator_cc.h
     gfdm_utils.h
     receiver_kernel_cc.h
-    sync_cc.h
     cyclic_prefixer_cc.h
     preamble_generator.h
     remove_prefix_cc.h
@@ -34,14 +33,9 @@ install(FILES
     modulator_kernel_cc.h
     add_cyclic_prefix_cc.h
     simple_receiver_cc.h
-    improved_sync_algorithm_kernel_cc.h
     advanced_receiver_sb_cc.h
     resource_mapper_kernel_cc.h
     resource_mapper_cc.h
-    detect_frame_energy_kernel_cl.h
-    frame_energy_detector_cc.h
-    auto_cross_corr_multicarrier_sync_cc.h
-    simple_preamble_sync_cc.h
     resource_demapper_kernel_cc.h
     resource_demapper_cc.h
     advanced_receiver_kernel_cc.h

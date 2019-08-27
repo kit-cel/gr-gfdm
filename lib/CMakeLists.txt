@@ -22,12 +22,10 @@
 # Setup library
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
-
 list(APPEND gfdm_sources
     gfdm_utils.cc
     receiver_kernel_cc.cc
     modulator_cc_impl.cc
-    sync_cc_impl.cc
     cyclic_prefixer_cc_impl.cc
     preamble_generator.cc
     remove_prefix_cc_impl.cc
@@ -35,12 +33,9 @@ list(APPEND gfdm_sources
     modulator_kernel_cc.cc
     add_cyclic_prefix_cc.cc
     simple_receiver_cc_impl.cc
-    improved_sync_algorithm_kernel_cc.cc
     advanced_receiver_sb_cc_impl.cc
     resource_mapper_kernel_cc.cc
     resource_mapper_cc_impl.cc
-    auto_cross_corr_multicarrier_sync_cc.cc
-    simple_preamble_sync_cc_impl.cc
     resource_demapper_kernel_cc.cc
     resource_demapper_cc_impl.cc
     advanced_receiver_kernel_cc.cc

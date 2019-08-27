@@ -102,7 +102,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [768, 180.0]
+    coordinate: [760, 124.0]
     rotation: 0
     state: enabled
 - name: frame_len
@@ -283,7 +283,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [592, 592.0]
+    coordinate: [768, 560.0]
     rotation: 0
     state: true
 - name: blocks_float_to_complex_0
@@ -299,7 +299,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [944, 592.0]
+    coordinate: [768, 688.0]
     rotation: 0
     state: true
 - name: blocks_moving_average_xx_0
@@ -319,8 +319,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [768, 564.0]
-    rotation: 0
+    coordinate: [768, 596.0]
+    rotation: 180
     state: true
 - name: blocks_multiply_const_vxx_0
   id: blocks_multiply_const_vxx
@@ -337,7 +337,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [808, 364.0]
+    coordinate: [688, 476.0]
     rotation: 0
     state: enabled
 - name: blocks_throttle_0
@@ -356,29 +356,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [640, 364.0]
-    rotation: 0
+    coordinate: [688, 428.0]
+    rotation: 180
     state: enabled
-- name: blocks_vector_source_x_0
-  id: blocks_vector_source_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    repeat: 'True'
-    tags: '[]'
-    type: complex
-    vector: np.concatenate((np.ones(subcarriers/4), np.zeros(subcarriers/2), np.ones(subcarriers/4)))
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [24, 444.0]
-    rotation: 0
-    state: disabled
 - name: digital_chunks_to_symbols_xx_0
   id: digital_chunks_to_symbols_xx
   parameters:
@@ -391,12 +371,12 @@ blocks:
     minoutbuf: '0'
     num_ports: '1'
     out_type: complex
-    symbol_table: '[1+1j, -1+1j, -1-1j, 1-1j]'
+    symbol_table: np.array([1+1j, -1+1j, -1-1j, 1-1j]) / np.sqrt(2.)
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [216, 368.0]
+    coordinate: [208, 368.0]
     rotation: 0
     state: enabled
 - name: hier_gfdm_transmitter_chain
@@ -519,7 +499,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [304, 524.0]
+    coordinate: [632, 348.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -599,7 +579,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1160, 480.0]
+    coordinate: [1040, 480.0]
     rotation: 0
     state: enabled
 - name: qtgui_time_sink_x_1
@@ -696,7 +676,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1160, 572.0]
+    coordinate: [1040, 588.0]
     rotation: 0
     state: enabled
 - name: qtgui_waterfall_sink_x_0
@@ -757,7 +737,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1160, 368.0]
+    coordinate: [1040, 384.0]
     rotation: 0
     state: enabled
 

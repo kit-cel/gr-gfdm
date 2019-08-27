@@ -88,39 +88,21 @@ blocks:
     coordinate: [1192, 52]
     rotation: 0
     state: enabled
-- name: burst_backoff
-  id: variable_qtgui_range
-  parameters:
-    comment: ''
-    gui_hint: 7, 3,1,1
-    label: ''
-    min_len: '200'
-    orient: Qt.Horizontal
-    rangeType: int
-    start: '0'
-    step: '1'
-    stop: 8 * look_ahead_val
-    value: int(look_ahead_val * 2.5)
-    widget: counter_slider
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1248, 512]
-    rotation: 0
-    state: enabled
 - name: chan_taps
-  id: variable
+  id: variable_qtgui_entry
   parameters:
     comment: ''
-    value: '[1. + 1.j, .5 - .0j]'
+    gui_hint: 'ctrl_tab@0: 2,0,1,1'
+    label: Channel taps
+    type: raw
+    value: '[1.+1.j, .5]'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1040, 652]
+    coordinate: [1224, 860.0]
     rotation: 0
-    state: enabled
+    state: true
 - name: cp_len
   id: variable
   parameters:
@@ -165,7 +147,7 @@ blocks:
   id: variable_qtgui_chooser
   parameters:
     comment: ''
-    gui_hint: 7,0,1,1
+    gui_hint: 'ctrl_tab@0: 4,0,1,1'
     label: Estimator type
     label0: MF
     label1: ZF
@@ -187,7 +169,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1472, 748.0]
+    coordinate: [1384, 796.0]
     rotation: 0
     state: true
 - name: f_taps
@@ -207,7 +189,7 @@ blocks:
   id: variable_qtgui_range
   parameters:
     comment: ''
-    gui_hint: 7,1,1,1
+    gui_hint: 'ctrl_tab@0: 0,0,1,1'
     label: F Offset
     min_len: '200'
     orient: Qt.Horizontal
@@ -221,7 +203,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1160, 636]
+    coordinate: [1224, 596.0]
     rotation: 0
     state: enabled
 - name: frame_dur
@@ -238,18 +220,6 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [1088, 356]
-    rotation: 0
-    state: enabled
-- name: frame_gap
-  id: variable
-  parameters:
-    comment: ''
-    value: np.zeros(int(1. * samp_rate / 1000.) - frame_len)
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [312, 284]
     rotation: 0
     state: enabled
 - name: frame_len
@@ -286,7 +256,7 @@ blocks:
   id: variable_qtgui_range
   parameters:
     comment: ''
-    gui_hint: 8,3,1,1
+    gui_hint: 'ctrl_tab@0: 3,0,1,1'
     label: IC Iterations
     min_len: '50'
     orient: Qt.Horizontal
@@ -300,19 +270,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1544, 544]
-    rotation: 0
-    state: enabled
-- name: look_ahead_val
-  id: variable
-  parameters:
-    comment: ''
-    value: cp_len * 2
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [152, 284]
+    coordinate: [1416, 660.0]
     rotation: 0
     state: enabled
 - name: modulated_preambles
@@ -328,24 +286,11 @@ blocks:
     coordinate: [824, 108]
     rotation: 0
     state: enabled
-- name: my_ref
-  id: variable
-  parameters:
-    comment: ''
-    value: vu.generate_reference_frame(timeslots, subcarriers, active_subcarriers,
-      cp_len, cs_len, .2)
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [480, 220]
-    rotation: 0
-    state: enabled
 - name: noise_voltage
   id: variable_qtgui_range
   parameters:
     comment: ''
-    gui_hint: 8,0,1,1
+    gui_hint: 'ctrl_tab@0: 1,0,1,1'
     label: Noise
     min_len: '200'
     orient: Qt.Horizontal
@@ -359,7 +304,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [936, 532]
+    coordinate: [1224, 724.0]
     rotation: 0
     state: enabled
 - name: overlap
@@ -558,8 +503,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [640, 436]
-    rotation: 0
+    coordinate: [536, 572.0]
+    rotation: 180
     state: enabled
 - name: blocks_stream_to_tagged_stream_0
   id: blocks_stream_to_tagged_stream
@@ -577,7 +522,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [352, 876.0]
+    coordinate: [104, 740.0]
     rotation: 0
     state: true
 - name: blocks_throttle_0
@@ -596,8 +541,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [952, 436]
-    rotation: 0
+    coordinate: [360, 572.0]
+    rotation: 180
     state: enabled
 - name: channels_channel_model_0
   id: channels_channel_model
@@ -617,8 +562,42 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [352, 692.0]
+    coordinate: [104, 572.0]
     rotation: 180
+    state: enabled
+- name: ctrl_tab
+  id: qtgui_tab_widget
+  parameters:
+    alias: sim_ctrl
+    comment: ''
+    gui_hint: 0,4,2,1
+    label0: Simulation Control
+    label1: Tab 1
+    label10: Tab 10
+    label11: Tab 11
+    label12: Tab 12
+    label13: Tab 13
+    label14: Tab 14
+    label15: Tab 15
+    label16: Tab 16
+    label17: Tab 17
+    label18: Tab 18
+    label19: Tab 19
+    label2: Tab 2
+    label3: Tab 3
+    label4: Tab 4
+    label5: Tab 5
+    label6: Tab 6
+    label7: Tab 7
+    label8: Tab 8
+    label9: Tab 9
+    num_tabs: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1224, 532.0]
+    rotation: 0
     state: enabled
 - name: demod_tab
   id: qtgui_tab_widget
@@ -651,7 +630,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1360, 516]
+    coordinate: [792, 636.0]
     rotation: 0
     state: enabled
 - name: digital_chunks_to_symbols_xx_0
@@ -671,28 +650,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [200, 428]
+    coordinate: [200, 440.0]
     rotation: 0
     state: enabled
-- name: frame_gap_vector_insert
-  id: blocks_vector_insert_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    period: frame_len + len(frame_gap)
-    type: complex
-    vector: frame_gap
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [792, 420]
-    rotation: 0
-    state: bypassed
 - name: hier_gfdm_receiver_tagged_0
   id: hier_gfdm_receiver_tagged
   parameters:
@@ -719,7 +679,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [816, 780.0]
+    coordinate: [520, 644.0]
     rotation: 0
     state: enabled
 - name: hier_gfdm_transmitter_0
@@ -868,7 +828,7 @@ blocks:
     color9: '"red"'
     comment: ''
     grid: 'True'
-    gui_hint: 'demod_tab@0: 0,0,3,3'
+    gui_hint: 'demod_tab@0: 0,0,2,2'
     label1: ''
     label10: ''
     label2: ''
@@ -928,106 +888,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1160, 900.0]
+    coordinate: [792, 812.0]
     rotation: 0
     state: enabled
-- name: qtgui_time_sink_x_0
-  id: qtgui_time_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'False'
-    axislabels: 'True'
-    color1: blue
-    color10: dark blue
-    color2: red
-    color3: green
-    color4: black
-    color5: cyan
-    color6: magenta
-    color7: yellow
-    color8: dark red
-    color9: dark green
-    comment: ''
-    ctrlpanel: 'False'
-    entags: 'True'
-    grid: 'False'
-    gui_hint: 'demod_tab@0: 0, 3, 1,1'
-    label1: Signal 1
-    label10: Signal 10
-    label2: Signal 2
-    label3: Signal 3
-    label4: Signal 4
-    label5: Signal 5
-    label6: Signal 6
-    label7: Signal 7
-    label8: Signal 8
-    label9: Signal 9
-    legend: 'True'
-    marker1: '-1'
-    marker10: '-1'
-    marker2: '-1'
-    marker3: '-1'
-    marker4: '-1'
-    marker5: '-1'
-    marker6: '-1'
-    marker7: '-1'
-    marker8: '-1'
-    marker9: '-1'
-    name: '"RX bursts"'
-    nconnections: '1'
-    size: '1024'
-    srate: samp_rate
-    stemplot: 'False'
-    style1: '1'
-    style10: '1'
-    style2: '1'
-    style3: '1'
-    style4: '1'
-    style5: '1'
-    style6: '1'
-    style7: '1'
-    style8: '1'
-    style9: '1'
-    tr_chan: '0'
-    tr_delay: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_slope: qtgui.TRIG_SLOPE_POS
-    tr_tag: '""'
-    type: complex
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    ylabel: Amplitude
-    ymax: '1'
-    ymin: '-1'
-    yunit: '""'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [840, 1044.0]
-    rotation: 0
-    state: disabled
 - name: qtgui_time_sink_x_0_0_0_0
   id: qtgui_time_sink_x
   parameters:
@@ -1115,113 +978,16 @@ blocks:
     width8: '1'
     width9: '1'
     ylabel: Amplitude
-    ymax: '1'
-    ymin: '-1'
+    ymax: '1.5'
+    ymin: '-1.5'
     yunit: '""'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 956]
+    coordinate: [344, 820.0]
     rotation: 0
     state: enabled
-- name: qtgui_time_sink_x_0_0_0_0_0
-  id: qtgui_time_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'False'
-    axislabels: 'True'
-    color1: blue
-    color10: dark blue
-    color2: red
-    color3: green
-    color4: black
-    color5: cyan
-    color6: magenta
-    color7: yellow
-    color8: dark red
-    color9: dark green
-    comment: ''
-    ctrlpanel: 'False'
-    entags: 'True'
-    grid: 'False'
-    gui_hint: 'sync_tab@0: 1, 0, 1,1'
-    label1: ''
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    legend: 'False'
-    marker1: '-1'
-    marker10: '-1'
-    marker2: '-1'
-    marker3: '-1'
-    marker4: '-1'
-    marker5: '-1'
-    marker6: '-1'
-    marker7: '-1'
-    marker8: '-1'
-    marker9: '-1'
-    name: '"RX bursts"'
-    nconnections: '1'
-    size: frame_len * 4
-    srate: samp_rate
-    stemplot: 'False'
-    style1: '1'
-    style10: '1'
-    style2: '1'
-    style3: '1'
-    style4: '1'
-    style5: '1'
-    style6: '1'
-    style7: '1'
-    style8: '1'
-    style9: '1'
-    tr_chan: '0'
-    tr_delay: '0'
-    tr_level: '0.05'
-    tr_mode: qtgui.TRIG_MODE_TAG
-    tr_slope: qtgui.TRIG_SLOPE_POS
-    tr_tag: '"frame_start"'
-    type: complex
-    update_time: '0.1'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    ylabel: Amplitude
-    ymax: '1'
-    ymin: '-1'
-    yunit: '""'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1104, 1004.0]
-    rotation: 0
-    state: disabled
 - name: qtgui_time_sink_x_0_0_0_1
   id: qtgui_time_sink_x
   parameters:
@@ -1253,7 +1019,7 @@ blocks:
     ctrlpanel: 'False'
     entags: 'True'
     grid: 'True'
-    gui_hint: 'demod_tab@0: 0, 3, 1,1'
+    gui_hint: 'demod_tab@0: 0, 2, 2, 2'
     label1: Re{estimate}
     label10: ''
     label2: Im{estimate}
@@ -1316,7 +1082,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1160, 788]
+    coordinate: [792, 708.0]
     rotation: 0
     state: enabled
 - name: sync_tab
@@ -1324,7 +1090,7 @@ blocks:
   parameters:
     alias: ''
     comment: ''
-    gui_hint: 3,0,4,4
+    gui_hint: 3,0,4,5
     label0: Synchronization
     label1: Tab 1
     label10: Tab 10
@@ -1350,19 +1116,18 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1088, 540]
+    coordinate: [344, 916.0]
     rotation: 0
     state: enabled
 
 connections:
 - [analog_random_source_x_0, '0', digital_chunks_to_symbols_xx_0, '0']
-- [blocks_multiply_const_vxx_0, '0', frame_gap_vector_insert, '0']
+- [blocks_multiply_const_vxx_0, '0', blocks_throttle_0, '0']
 - [blocks_stream_to_tagged_stream_0, '0', hier_gfdm_receiver_tagged_0, '0']
 - [blocks_stream_to_tagged_stream_0, '0', qtgui_time_sink_x_0_0_0_0, '0']
 - [blocks_throttle_0, '0', channels_channel_model_0, '0']
 - [channels_channel_model_0, '0', blocks_stream_to_tagged_stream_0, '0']
 - [digital_chunks_to_symbols_xx_0, '0', hier_gfdm_transmitter_0, '0']
-- [frame_gap_vector_insert, '0', blocks_throttle_0, '0']
 - [hier_gfdm_receiver_tagged_0, '0', qtgui_time_sink_x_0_0_0_1, '0']
 - [hier_gfdm_receiver_tagged_0, '1', qtgui_const_sink_x_0, '0']
 - [hier_gfdm_transmitter_0, '0', blocks_multiply_const_vxx_0, '0']
