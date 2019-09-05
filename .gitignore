@@ -1,4 +1,4 @@
-build/*
+build/
 .ycm_extra_conf.*
 *.swp
 *.pyc

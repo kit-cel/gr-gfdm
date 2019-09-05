@@ -500,7 +500,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [448, 292]
+    coordinate: [432, 292.0]
     rotation: 0
     state: enabled
 - name: blocks_multiply_const_vxx_0
@@ -537,7 +537,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [616, 280]
+    coordinate: [616, 276.0]
     rotation: 0
     state: enabled
 - name: blocks_repack_bits_bb_0

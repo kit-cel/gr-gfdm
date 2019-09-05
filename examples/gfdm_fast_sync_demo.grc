@@ -190,7 +190,22 @@ blocks:
     bus_structure: null
     coordinate: [56, 948]
     rotation: 0
-    state: enabled
+    state: disabled
+- name: chan_taps
+  id: variable_qtgui_entry
+  parameters:
+    comment: ''
+    gui_hint: 'ctrl_tab@0: 7,0,1,1'
+    label: Channel taps
+    type: raw
+    value: '[1.+1.j, .5]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1576, 652.0]
+    rotation: 0
+    state: true
 - name: core_preamble
   id: variable
   parameters:
