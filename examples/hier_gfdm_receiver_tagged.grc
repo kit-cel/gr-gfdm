@@ -110,6 +110,24 @@ blocks:
     coordinate: [352, 12]
     rotation: 0
     state: enabled
+- name: blocks_multiply_const_vxx_0_1
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: np.exp(1.j * phase_shift)
+    maxoutbuf: '0'
+    minoutbuf: frame_len
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 364.0]
+    rotation: 0
+    state: enabled
 - name: chan
   id: pad_sink
   parameters:
@@ -439,6 +457,23 @@ blocks:
     coordinate: [16, 444]
     rotation: 0
     state: enabled
+- name: phase_shift
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: Phase shift
+    short_id: ''
+    type: eng_float
+    value: '0.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1224, 52.0]
+    rotation: 0
+    state: enabled
 - name: ramp_len
   id: parameter
   parameters:
@@ -543,11 +578,12 @@ blocks:
     state: enabled
 
 connections:
+- [blocks_multiply_const_vxx_0_1, '0', gfdm_advanced_receiver_sb_cc_0_0, '0']
 - [gfdm_advanced_receiver_sb_cc_0_0, '0', gfdm_resource_demapper_cc_0_0, '0']
 - [gfdm_channel_estimator_cc_0, '0', chan, '0']
 - [gfdm_channel_estimator_cc_0, '0', gfdm_advanced_receiver_sb_cc_0_0, '1']
 - [gfdm_remove_prefix_cc_0, '0', gfdm_channel_estimator_cc_0, '0']
-- [gfdm_remove_prefix_cc_0_0, '0', gfdm_advanced_receiver_sb_cc_0_0, '0']
+- [gfdm_remove_prefix_cc_0_0, '0', blocks_multiply_const_vxx_0_1, '0']
 - [gfdm_resource_demapper_cc_0_0, '0', pad_sink_out, '0']
 - [pad_source_0, '0', gfdm_remove_prefix_cc_0, '0']
 - [pad_source_0, '0', gfdm_remove_prefix_cc_0_0, '0']

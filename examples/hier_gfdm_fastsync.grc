@@ -53,7 +53,7 @@ blocks:
     label: Active CFO compensation
     short_id: ''
     type: intx
-    value: '0'
+    value: '1'
   states:
     bus_sink: false
     bus_source: false

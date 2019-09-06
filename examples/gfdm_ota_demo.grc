@@ -1562,7 +1562,7 @@ blocks:
     center_freq8: '0'
     center_freq9: '0'
     clock_rate: '0.0'
-    clock_source0: external
+    clock_source0: ''
     clock_source1: ''
     clock_source2: ''
     clock_source3: ''
@@ -1571,7 +1571,7 @@ blocks:
     clock_source6: ''
     clock_source7: ''
     comment: ''
-    dev_addr: '"addr=134.102.176.200"'
+    dev_addr: '"addr=134.102.176.209"'
     dev_args: '""'
     gain0: tgain
     gain1: '0'
@@ -1719,8 +1719,8 @@ blocks:
     show_lo_controls: 'False'
     stream_args: ''
     stream_chans: '[]'
-    sync: sync
-    time_source0: external
+    sync: pc_clock
+    time_source0: ''
     time_source1: ''
     time_source2: ''
     time_source3: ''
@@ -1838,7 +1838,7 @@ blocks:
     center_freq8: '0'
     center_freq9: '0'
     clock_rate: '0.0'
-    clock_source0: external
+    clock_source0: ''
     clock_source1: ''
     clock_source2: ''
     clock_source3: ''
@@ -1879,7 +1879,7 @@ blocks:
     dc_offs_enb7: '""'
     dc_offs_enb8: '""'
     dc_offs_enb9: '""'
-    dev_addr: '"addr=134.102.176.201"'
+    dev_addr: '"addr=134.102.176.210"'
     dev_args: '""'
     gain0: rgain
     gain1: '0'
@@ -2090,8 +2090,8 @@ blocks:
     show_lo_controls: 'False'
     stream_args: ''
     stream_chans: '[]'
-    sync: sync
-    time_source0: external
+    sync: pc_clock
+    time_source0: ''
     time_source1: ''
     time_source2: ''
     time_source3: ''
