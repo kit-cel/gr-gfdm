@@ -106,6 +106,13 @@ namespace gr {
     }
 
     void
+    extract_burst_cc_impl::activate_cfo_compensation(bool activate_cfo_compensation)
+    {
+      std::cout << "activate_cfo_compensation=" << (activate_cfo_compensation ? "True" : "False") << std::endl;
+      d_activate_cfo_correction = activate_cfo_compensation;
+    }
+
+    void
     extract_burst_cc_impl::compensate_cfo(gr_complex* p_out, const gr_complex* p_in, const gr_complex phase_increment, const int ninput_size)
     {
       gr_complex initial_phase = gr_complex(1.0f, 0.0f);

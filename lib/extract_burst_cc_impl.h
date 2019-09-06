@@ -47,7 +47,7 @@ namespace gr {
       // Where all the action really happens
       void forecast (int noutput_items, gr_vector_int &ninput_items_required);
 
-      void activate_cfo_compensation(bool activate_cfo_compensation){d_activate_cfo_correction = activate_cfo_compensation;};
+      void activate_cfo_compensation(bool activate_cfo_compensation);
 
       int general_work(int noutput_items,
            gr_vector_int &ninput_items,
