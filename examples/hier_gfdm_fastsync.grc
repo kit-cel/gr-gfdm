@@ -44,6 +44,24 @@ blocks:
     coordinate: [616, 132]
     rotation: 0
     state: enabled
+- name: a_frames
+  id: pad_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    label: out
+    num_streams: '1'
+    optional: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [848, 252.0]
+    rotation: 0
+    state: enabled
 - name: activate_cfo_compensation
   id: parameter
   parameters:
@@ -59,6 +77,42 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [1368, 108]
+    rotation: 0
+    state: enabled
+- name: b_synced_stream
+  id: pad_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    label: stream
+    num_streams: '1'
+    optional: 'True'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [608, 324.0]
+    rotation: 0
+    state: enabled
+- name: c_correlation
+  id: pad_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    label: corr
+    num_streams: '1'
+    optional: 'True'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [608, 372.0]
     rotation: 0
     state: enabled
 - name: cp_len
@@ -93,60 +147,6 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [576, 20]
-    rotation: 0
-    state: enabled
-- name: frames
-  id: pad_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    label: out
-    num_streams: '1'
-    optional: 'False'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [848, 252.0]
-    rotation: 0
-    state: enabled
-- name: frames_0
-  id: pad_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    label: stream
-    num_streams: '1'
-    optional: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [608, 324.0]
-    rotation: 0
-    state: enabled
-- name: frames_0_0
-  id: pad_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    label: corr
-    num_streams: '1'
-    optional: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [608, 372.0]
     rotation: 0
     state: enabled
 - name: gfdm_extract_burst_cc_0
@@ -186,7 +186,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [280, 256]
+    coordinate: [240, 260.0]
     rotation: 0
     state: enabled
 - name: import_numpy
@@ -262,7 +262,7 @@ blocks:
     alias: ''
     comment: ''
     hide: none
-    label: SC Lower Threshold
+    label: SC High Threshold
     short_id: ''
     type: eng_float
     value: '.7'
@@ -326,10 +326,10 @@ blocks:
     state: enabled
 
 connections:
-- [gfdm_extract_burst_cc_0, '0', frames, '0']
-- [hier_multicarrier_sync_0, '0', frames_0, '0']
+- [gfdm_extract_burst_cc_0, '0', a_frames, '0']
+- [hier_multicarrier_sync_0, '0', b_synced_stream, '0']
 - [hier_multicarrier_sync_0, '0', gfdm_extract_burst_cc_0, '0']
-- [hier_multicarrier_sync_0, '1', frames_0_0, '0']
+- [hier_multicarrier_sync_0, '1', c_correlation, '0']
 - [pad_source_0, '0', hier_multicarrier_sync_0, '0']
 
 metadata:
