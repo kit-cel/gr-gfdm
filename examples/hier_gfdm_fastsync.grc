@@ -59,7 +59,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [848, 252.0]
+    coordinate: [1328, 284.0]
     rotation: 0
     state: enabled
 - name: activate_cfo_compensation
@@ -94,7 +94,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 324.0]
+    coordinate: [1088, 372.0]
     rotation: 0
     state: enabled
 - name: c_correlation
@@ -112,7 +112,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 372.0]
+    coordinate: [1088, 428.0]
     rotation: 0
     state: enabled
 - name: cp_len
@@ -147,7 +147,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 428.0]
+    coordinate: [752, 460.0]
     rotation: 0
     state: enabled
 - name: e_correlation_0
@@ -165,7 +165,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 476.0]
+    coordinate: [752, 524.0]
     rotation: 0
     state: enabled
 - name: frame_len
@@ -201,28 +201,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 228.0]
-    rotation: 0
-    state: enabled
-- name: hier_multicarrier_sync_0
-  id: hier_multicarrier_sync
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    output_tag_key: output_tag_key
-    ref_preamble: ref_preamble
-    sc_high_thr: sc_low_thr
-    sc_low_thr: sc_high_thr
-    xcorr_comp_freq: xcorr_comp_freq
-    xcorr_det_thr: xcorr_det_thr
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [240, 260.0]
+    coordinate: [1088, 260.0]
     rotation: 0
     state: enabled
 - name: import_numpy
@@ -335,7 +314,7 @@ blocks:
     label: Xcorr compensate freq.
     short_id: ''
     type: intx
-    value: '0'
+    value: '1'
   states:
     bus_sink: false
     bus_source: false
@@ -360,15 +339,74 @@ blocks:
     coordinate: [1184, 20]
     rotation: 0
     state: enabled
+- name: xfdm_sync_sc_delay_corr_0
+  id: xfdm_sync_sc_delay_corr
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    normalize: 'True'
+    seq_len: preamble_len // 2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 292.0]
+    rotation: 0
+    state: enabled
+- name: xfdm_sync_sc_tagger_0
+  id: xfdm_sync_sc_tagger
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    seq_len: preamble_len // 2
+    tag_key: output_tag_key
+    thres_high: sc_high_thr
+    thres_low: sc_low_thr
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 276.0]
+    rotation: 0
+    state: enabled
+- name: xfdm_sync_xcorr_tagger_0
+  id: xfdm_sync_xcorr_tagger
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sync_sequence: ref_preamble
+    tag_key: output_tag_key
+    threshold: xcorr_det_thr
+    use_sc_rot: xcorr_comp_freq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [728, 276.0]
+    rotation: 0
+    state: enabled
 
 connections:
 - [gfdm_extract_burst_cc_0, '0', a_frames, '0']
-- [hier_multicarrier_sync_0, '0', b_synced_stream, '0']
-- [hier_multicarrier_sync_0, '0', gfdm_extract_burst_cc_0, '0']
-- [hier_multicarrier_sync_0, '1', c_correlation, '0']
-- [hier_multicarrier_sync_0, '2', d_auto_stream_0, '0']
-- [hier_multicarrier_sync_0, '3', e_correlation_0, '0']
-- [pad_source_0, '0', hier_multicarrier_sync_0, '0']
+- [pad_source_0, '0', xfdm_sync_sc_delay_corr_0, '0']
+- [xfdm_sync_sc_delay_corr_0, '0', xfdm_sync_sc_tagger_0, '0']
+- [xfdm_sync_sc_delay_corr_0, '1', xfdm_sync_sc_tagger_0, '1']
+- [xfdm_sync_sc_tagger_0, '0', d_auto_stream_0, '0']
+- [xfdm_sync_sc_tagger_0, '0', xfdm_sync_xcorr_tagger_0, '0']
+- [xfdm_sync_sc_tagger_0, '1', e_correlation_0, '0']
+- [xfdm_sync_sc_tagger_0, '1', xfdm_sync_xcorr_tagger_0, '1']
+- [xfdm_sync_xcorr_tagger_0, '0', b_synced_stream, '0']
+- [xfdm_sync_xcorr_tagger_0, '0', gfdm_extract_burst_cc_0, '0']
+- [xfdm_sync_xcorr_tagger_0, '1', c_correlation, '0']
 
 metadata:
   file_format: 1
