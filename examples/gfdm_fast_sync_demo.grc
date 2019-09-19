@@ -1030,8 +1030,8 @@ blocks:
     minoutbuf: '0'
     output_tag_key: '"frame_start"'
     ref_preamble: core_preamble
-    sc_high_thr: '.8'
-    sc_low_thr: '.7'
+    sc_high_thr: '.95'
+    sc_low_thr: '.89'
     xcorr_comp_freq: 'False'
     xcorr_det_thr: '10.'
   states:
@@ -1050,6 +1050,7 @@ blocks:
     comment: ''
     compensate_phase: activate_phase_compensation
     cp_len: cp_len
+    cs_len: cs_len
     frame_len: frame_len
     frame_start_tag_key: '"frame_start"'
     gfdm_constellation: gfdm_constellation
@@ -1057,6 +1058,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     overlap: overlap
+    preamble: core_preamble
     ramp_len: ramp_len
     rx_filter_taps: rx_f_taps
     subcarrier_map: subcarrier_map
