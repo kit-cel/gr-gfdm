@@ -140,10 +140,11 @@ namespace gr {
       get_tags_in_window(tags, 0, 0, avail_items, d_burst_start_tag);
       const int n_max_bursts = std::min(int(tags.size()), n_out_bursts);
       for (int i = 0; i < n_max_bursts; ++i) {
-        int burst_start = tags[i].offset - nitems_read(0);
+        auto tag = tags[i];
+        int burst_start = tag.offset - nitems_read(0);
         int actual_start = burst_start - d_tag_backoff;
 
-        pmt::pmt_t info = tags[i].value;
+        pmt::pmt_t info = tag.value;
         const float scale_factor = get_scale_factor(info);
 
         if(avail_items - burst_start >= d_burst_len){
@@ -165,7 +166,7 @@ namespace gr {
           }
 
           add_item_tag(0, nitems_written(0) + produced_items, d_burst_start_tag,
-                       tags[i].value, pmt::string_to_symbol(name()));
+                       tag.value, pmt::string_to_symbol(name()));
 
           produced_items += d_burst_len;
           consumed_items = burst_start + d_burst_len;

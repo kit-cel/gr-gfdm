@@ -53,7 +53,7 @@ namespace gr {
       d_estimator_kernel = preamble_channel_estimator_cc::sptr(new preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, is_dc_free, which_estimator, preamble));
 
       // set block properties!
-      set_relative_rate(2.0 / timeslots);
+      set_relative_rate(timeslots / 2.0);
       set_fixed_rate(true);
       set_output_multiple(fft_len * timeslots);
     }

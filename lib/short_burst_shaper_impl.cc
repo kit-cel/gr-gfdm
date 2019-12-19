@@ -24,6 +24,7 @@
 
 #include <exception>
 #include <cstring>
+#include <chrono>
 #include <gnuradio/io_signature.h>
 #include "short_burst_shaper_impl.h"
 
@@ -79,15 +80,20 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
 
-      // std::cout << "noutput_items = " << noutput_items << std::endl;
-      // std::cout << "ninput_items = " << ninput_items[0] << std::endl;
-      // std::cout << "pre_padding = " << d_pre_padding << std::endl;
-      // std::cout << "post_padding = " << d_post_padding << std::endl;
-
       std::memset(out, 0, sizeof(gr_complex) * d_pre_padding);
       std::memcpy(out + d_pre_padding, in, sizeof(gr_complex) * ninput_items[0]);
       std::memset(out + d_pre_padding + ninput_items[0], 0,
                   sizeof(gr_complex) * d_post_padding);
+
+      // std::vector<tag_t> tags;
+      // get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items, pmt::string_to_symbol("time"));
+      // for(auto t: tags){
+      //   auto cn = std::chrono::high_resolution_clock::now().time_since_epoch();
+      //   auto s = std::chrono::nanoseconds(pmt::to_long(t.value));
+      //   auto d = std::chrono::duration_cast<std::chrono::nanoseconds>(cn - s);
+      //   std::cout << "Burst Shaper duration: " << d.count() << "ns" << std::endl;
+      // }
+
 
       // Tell runtime system how many output items we produced.
       return ninput_items[0] + d_pre_padding + d_post_padding;

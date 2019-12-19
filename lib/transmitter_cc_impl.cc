@@ -24,6 +24,7 @@
 
 #include <gnuradio/io_signature.h>
 #include "transmitter_cc_impl.h"
+#include <chrono>
 
 namespace gr {
   namespace gfdm {
@@ -67,7 +68,7 @@ namespace gr {
                                    cp_len, cs_len, ramp_len, subcarrier_map,
                                    per_timeslot, overlap, frequency_taps,
                                    window_taps, preamble));
-        set_relative_rate(1.0 * d_kernel->input_vector_size() / d_kernel->output_vector_size());
+        set_relative_rate(1.0 * d_kernel->output_vector_size() / d_kernel->input_vector_size());
         set_fixed_rate(true);
         set_output_multiple(d_kernel->output_vector_size());
     }
@@ -108,6 +109,15 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
 
+      // std::vector<tag_t> tags;
+      // get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items, pmt::string_to_symbol("time"));
+      // for(auto t: tags){
+      //   auto cn = std::chrono::high_resolution_clock::now().time_since_epoch();
+      //   auto s = std::chrono::nanoseconds(pmt::to_long(t.value));
+      //   auto d = std::chrono::duration_cast<std::chrono::nanoseconds>(cn - s);
+      //   std::cout << "Transmitter before duration: " << d.count() << "ns" << std::endl;
+      // }
+
       int n_frames = std::min(noutput_items / d_kernel->output_vector_size(),
                               ninput_items[0] / d_kernel->input_vector_size());
 
@@ -116,7 +126,6 @@ namespace gr {
         get_tags_in_range(tags, 0, nitems_read(0),
                           nitems_read(0) + n_frames * d_kernel->input_vector_size());
         for(auto tag : tags) {
-        // for(unsigned k = 0; k < tags.size(); ++k) {
           if(tag.key == d_length_tag_key) {
             assert(pmt::to_long(tag.value) == d_kernel->input_vector_size());
             remove_item_tag(0, tag);
@@ -140,7 +149,12 @@ namespace gr {
                        pmt::from_long(d_kernel->output_vector_size()));
         }
       }
-
+      // for(auto t: tags){
+      //   auto cn = std::chrono::high_resolution_clock::now().time_since_epoch();
+      //   auto s = std::chrono::nanoseconds(pmt::to_long(t.value));
+      //   auto d = std::chrono::duration_cast<std::chrono::nanoseconds>(cn - s);
+      //   std::cout << "Transmitter after duration: " << d.count() << "ns" << std::endl;
+      // }
 
       // Tell runtime system how many output items we produced.
       return n_frames * d_kernel->output_vector_size();

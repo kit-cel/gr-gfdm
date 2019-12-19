@@ -60,6 +60,7 @@ namespace gr
                                                         constellation,
                                                         do_phase_compensation));
       set_output_multiple(d_adv_kernel->block_size());
+      set_tag_propagation_policy(TPP_DONT);
     }
 
     /*
@@ -79,6 +80,7 @@ namespace gr
 
       const int n_blocks = noutput_items / d_adv_kernel->block_size();
 
+      std::vector<tag_t> tags;
       if(input_items.size() > 1){
         const gr_complex *in_eq = (const gr_complex *) input_items[1];
         for (int i = 0; i < n_blocks; ++i) {
@@ -88,6 +90,8 @@ namespace gr
           in_eq += d_adv_kernel->block_size();
           out += d_adv_kernel->block_size();
         }
+        
+        get_tags_in_window(tags, 1, 0, n_blocks * d_adv_kernel->block_size());
       }
       else{
         for (int i = 0; i < n_blocks; ++i) {
@@ -96,6 +100,12 @@ namespace gr
           in += d_adv_kernel->block_size();
           out += d_adv_kernel->block_size();
         }
+
+        get_tags_in_window(tags, 0, 0, n_blocks * d_adv_kernel->block_size());
+      }
+
+      for(auto t : tags){
+        add_item_tag(0, t);
       }
 
       return n_blocks * d_adv_kernel->block_size();

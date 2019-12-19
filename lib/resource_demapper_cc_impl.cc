@@ -44,7 +44,7 @@ namespace gr {
               gr::io_signature::make(1, 1, sizeof(gr_complex)))
     {
       d_kernel = resource_demapper_kernel_cc::sptr(new resource_demapper_kernel_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot));
-      set_relative_rate(1.0 * d_kernel->input_vector_size() / d_kernel->output_vector_size());
+      set_relative_rate(1.0 * d_kernel->output_vector_size() / d_kernel->input_vector_size());
       set_fixed_rate(true);
       set_output_multiple(d_kernel->output_vector_size());
     }
