@@ -82,7 +82,6 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
         # # check data
         res = np.array(snk.data())
         tags = snk.tags()
-        self.assertTrue(len(tags) == 0)  # propagation policy is TPP_DONT
         self.assertComplexTuplesAlmostEqual(res, ref, 5)
 
 

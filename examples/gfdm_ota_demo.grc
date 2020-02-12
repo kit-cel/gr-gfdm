@@ -1,6 +1,7 @@
 options:
   parameters:
     author: Johannes Demel
+    catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
     comment: ''
@@ -22,7 +23,6 @@ options:
     sizing_mode: fixed
     thread_safe_setters: ''
     title: GFDM over-the-air Demo
-    window_size: 1920,1080
   states:
     bus_sink: false
     bus_source: false
@@ -311,6 +311,18 @@ blocks:
     coordinate: [1288, 964]
     rotation: 0
     state: disabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 12.5e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [553, 117]
+    rotation: 0
+    state: enabled
 - name: scorr_threshold_high
   id: variable_qtgui_range
   parameters:
@@ -518,6 +530,23 @@ blocks:
     coordinate: [760, 452.0]
     rotation: 0
     state: enabled
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1114, 596]
+    rotation: 0
+    state: true
 - name: blocks_pdu_to_tagged_stream_0_1
   id: blocks_pdu_to_tagged_stream
   parameters:
@@ -963,42 +992,6 @@ blocks:
     coordinate: [536, 676.0]
     rotation: 0
     state: enabled
-- name: hier_qt_live_statistics_0
-  id: hier_qt_live_statistics
-  parameters:
-    alias: ''
-    comment: ''
-    gui_hint: 'live_stats@0: 0,0,3,7'
-    histogram_val_string: histogram_val
-    latency: latency
-    missed_frames: missed_frames
-    rx_frame: rx_frame
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1304, 284.0]
-    rotation: 0
-    state: disabled
-- name: hier_qt_statistics_0
-  id: hier_qt_statistics
-  parameters:
-    active_subcarriers: active_subcarriers
-    alias: ''
-    comment: ''
-    constel_order: constel_order
-    frame_len: conf.frame_len
-    gui_hint: 'demod_tab@1: 2,0,3,3'
-    samp_rate: samp_rate
-    subcarriers: subcarriers
-    timeslots: timeslots
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1144, 260.0]
-    rotation: 0
-    state: enabled
 - name: import_numpy
   id: import
   parameters:
@@ -1155,103 +1148,6 @@ blocks:
     coordinate: [808, 876.0]
     rotation: 0
     state: enabled
-- name: qtgui_time_sink_channel_estimate
-  id: qtgui_time_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'True'
-    axislabels: 'False'
-    color1: blue
-    color10: dark blue
-    color2: red
-    color3: green
-    color4: black
-    color5: cyan
-    color6: magenta
-    color7: yellow
-    color8: dark red
-    color9: dark green
-    comment: ''
-    ctrlpanel: 'False'
-    entags: 'True'
-    grid: 'False'
-    gui_hint: 'demod_tab@0: 0, 2, 1, 2'
-    label1: Re{estimate}
-    label10: ''
-    label2: Im{estimate}
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    legend: 'True'
-    marker1: '-1'
-    marker10: '-1'
-    marker2: '-1'
-    marker3: '-1'
-    marker4: '-1'
-    marker5: '-1'
-    marker6: '-1'
-    marker7: '-1'
-    marker8: '-1'
-    marker9: '-1'
-    name: '"Channel Estimate"'
-    nconnections: '1'
-    size: conf.block_len
-    srate: samp_rate * 0 + 1
-    stemplot: 'False'
-    style1: '1'
-    style10: '1'
-    style2: '1'
-    style3: '1'
-    style4: '1'
-    style5: '1'
-    style6: '1'
-    style7: '1'
-    style8: '1'
-    style9: '1'
-    tr_chan: '0'
-    tr_delay: '0'
-    tr_level: '0.05'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_slope: qtgui.TRIG_SLOPE_POS
-    tr_tag: '"frame_start"'
-    type: complex
-    update_time: '0.1'
-    width1: '4'
-    width10: '1'
-    width2: '4'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    ylabel: Amplitude
-    ymax: '1'
-    ymin: '-1'
-    yunit: '""'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [768, 620.0]
-    rotation: 0
-    state: disabled
 - name: qtgui_time_sink_channel_estimate_0
   id: qtgui_time_sink_x
   parameters:
@@ -1552,14 +1448,14 @@ blocks:
     label: Sample rate
     short_id: ''
     type: eng_float
-    value: 12.5e6
+    value: float(12.5e6)
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
     coordinate: [648, 12.0]
     rotation: 0
-    state: true
+    state: disabled
 - name: subcarriers
   id: parameter
   parameters:
@@ -1739,7 +1635,7 @@ blocks:
     clock_source6: ''
     clock_source7: ''
     comment: ''
-    dev_addr: '"addr=134.102.176.209"'
+    dev_addr: '"addr=134.102.176.212"'
     dev_args: '""'
     gain0: tgain
     gain1: '0'
@@ -2047,7 +1943,7 @@ blocks:
     dc_offs_enb7: '""'
     dc_offs_enb8: '""'
     dc_offs_enb9: '""'
-    dev_addr: '"addr=134.102.176.211"'
+    dev_addr: '"addr=134.102.176.215"'
     dev_args: '""'
     gain0: rgain
     gain1: '0'
@@ -2293,6 +2189,7 @@ connections:
 - [digital_constellation_decoder_cb_0, '0', blocks_repack_bits_bb_0_0, '0']
 - [digital_crc32_bb_0, '0', blocks_repack_bits_bb_0, '0']
 - [digital_crc32_bb_0_0, '0', blocks_tagged_stream_to_pdu_0, '0']
+- [gfdm_short_burst_shaper_0, '0', blocks_null_sink_0, '0']
 - [gfdm_short_burst_shaper_0, '0', uhd_usrp_sink_0, '0']
 - [gfdm_transmitter_cc_0, '0', blocks_multiply_const_vxx_0, '0']
 - [hier_gfdm_fastsync_0, '0', hier_gfdm_receiver_tagged_0, '0']
@@ -2300,7 +2197,6 @@ connections:
 - [hier_gfdm_fastsync_0, '1', qtgui_time_sink_synced_stream, '0']
 - [hier_gfdm_fastsync_0, '2', corr_mag_squared, '0']
 - [hier_gfdm_receiver_tagged_0, '0', blocks_complex_to_magphase_0, '0']
-- [hier_gfdm_receiver_tagged_0, '0', qtgui_time_sink_channel_estimate, '0']
 - [hier_gfdm_receiver_tagged_0, '1', digital_constellation_decoder_cb_0, '0']
 - [hier_gfdm_receiver_tagged_0, '1', qtgui_const_sink_rx_symbols, '0']
 - [uhd_usrp_source_0, '0', hier_gfdm_fastsync_0, '0']

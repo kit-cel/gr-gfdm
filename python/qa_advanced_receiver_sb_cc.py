@@ -166,6 +166,7 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         res = np.array(snk.data())
         print(data[0:10])
         print(res[0:10])
+        self.assertComplexTuplesAlmostEqual(data, res, 1)
         self.assertComplexTuplesAlmostEqual(data, res, 2)
 
 

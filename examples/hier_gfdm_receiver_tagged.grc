@@ -1,6 +1,7 @@
 options:
   parameters:
     author: Johannes Demel
+    catch_exceptions: 'True'
     category: '[GFDM]'
     cmake_opt: ''
     comment: ''
@@ -22,7 +23,6 @@ options:
     sizing_mode: fixed
     thread_safe_setters: ''
     title: GFDM Receiver tagged
-    window_size: 1920,1080
   states:
     bus_sink: false
     bus_source: false
@@ -253,7 +253,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 420.0]
+    coordinate: [184, 420]
     rotation: 0
     state: enabled
 - name: gfdm_remove_prefix_cc_preamble
