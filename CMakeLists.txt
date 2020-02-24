@@ -85,7 +85,17 @@ ENDIF()
 ########################################################################
 # Install directories
 ########################################################################
-find_package(Gnuradio "3.9" REQUIRED blocks analog fft filter digital)
+message(STATUS "Searching for GNU Radio installation ...")
+find_package(Gnuradio "3.8" QUIET)
+if(NOT GNURADIO_FOUND)
+    message(STATUS "Searching for GNU Radio 3.9 ...")
+    find_package(Gnuradio "3.9" REQUIRED blocks analog fft filter digital)
+else()
+    message(STATUS "Searching for GNU Radio 3.8 ...")
+    find_package(Gnuradio "3.8" REQUIRED blocks analog fft filter digital)
+endif()
+message(STATUS "Found GNU Radio ${Gnuradio_VERSION}")
+
 include(GrVersion)
 
 include(GrPlatform) #define LIB_SUFFIX
