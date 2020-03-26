@@ -102,8 +102,7 @@ namespace gr {
       unsigned int symbol_tmp = 0;
       std::vector<gr_complex> const_points = d_constellation->points();
       // perform symbol decision for active subcarriers. All others should be set to '0'!
-      for (int j = 0; j < d_subcarrier_map.size(); ++j) {
-        int k = d_subcarrier_map.at(j);
+      for(const auto k : d_subcarrier_map){
         for (int m = 0; m < d_kernel->timeslots(); ++m) {
           symbol_tmp = d_constellation->decision_maker(&p_in[k * d_kernel->timeslots() + m]);
           p_out[k * d_kernel->timeslots() + m] = const_points[symbol_tmp];
