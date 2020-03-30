@@ -50,7 +50,7 @@ class qa_short_burst_shaper(gr_unittest.TestCase):
                               data, np.zeros(post_padding, dtype=data.dtype)))
 
         src = blocks.vector_source_c(data, tags=(tag, ))
-        uut = gfdm.short_burst_shaper(pre_padding, post_padding, tkey)
+        uut = gfdm.short_burst_shaper(pre_padding, post_padding, 1.+0.j, tkey)
         snk = blocks.vector_sink_c()
         # set up fg
         self.tb.connect(src, uut, snk)
@@ -89,7 +89,7 @@ class qa_short_burst_shaper(gr_unittest.TestCase):
         #                       data, np.zeros(post_padding, dtype=data.dtype)))
 
         src = blocks.vector_source_c(data, tags=tags)
-        uut = gfdm.short_burst_shaper(pre_padding, post_padding, tkey)
+        uut = gfdm.short_burst_shaper(pre_padding, post_padding, 1.+0.j, tkey)
         snk = blocks.vector_sink_c()
         # set up fg
         self.tb.connect(src, uut, snk)

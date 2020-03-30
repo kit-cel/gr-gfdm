@@ -29,7 +29,7 @@ namespace gr {
   namespace gfdm {
 
     /*!
-     * \brief <+description of block+>
+     * \brief Add Padding and Scale Burst.
      * \ingroup gfdm
      *
      */
@@ -46,8 +46,18 @@ namespace gr {
        * class. gfdm::short_burst_shaper::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int pre_padding, int post_padding,
+      static sptr make(int pre_padding, int post_padding, gr_complex scale,
                        const std::string &length_tag_name="packet_len");
+
+      /*!
+      * \brief Return multiplicative constant
+      */
+      virtual gr_complex scale() const = 0;
+
+      /*!
+      * \brief Set multiplicative constant
+      */
+      virtual void set_scale(gr_complex scale) = 0;
     };
 
   } // namespace gfdm

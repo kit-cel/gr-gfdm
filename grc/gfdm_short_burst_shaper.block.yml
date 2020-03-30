@@ -13,6 +13,10 @@ parameters:
     label: Post-padding Length
     dtype: int
     default: '128'
+-   id: scale
+    label: Scale
+    dtype: complex
+    default: '1.0+0.0j'
 -   id: length_tag_name
     label: Length Tag Name
     dtype: string
@@ -28,6 +32,8 @@ outputs:
 
 templates:
     imports: import gfdm
-    make: gfdm.short_burst_shaper(${pre_padding}, ${post_padding}, ${length_tag_name})
+    make: gfdm.short_burst_shaper(${pre_padding}, ${post_padding}, ${scale}, ${length_tag_name})
+    callbacks:
+    - set_scale(${scale})
 
 file_format: 1
