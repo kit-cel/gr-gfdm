@@ -86,7 +86,7 @@ namespace gr {
       // The gr block uses a less flexible version of the kernel. Zero-padding is ignored.
       int n_frames = std::min(noutput_items / d_kernel->output_vector_size(), ninput_items[0] / d_kernel->input_vector_size());
       for (int i = 0; i < n_frames; ++i) {
-        d_kernel->generic_work(out, in, d_kernel->input_vector_size());
+        d_kernel->map_to_resources(out, in, d_kernel->input_vector_size());
         out += d_kernel->output_vector_size();
         in += d_kernel->input_vector_size();
       }

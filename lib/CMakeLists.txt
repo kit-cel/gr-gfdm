@@ -35,7 +35,6 @@ list(APPEND gfdm_sources
     advanced_receiver_sb_cc_impl.cc
     resource_mapper_kernel_cc.cc
     resource_mapper_cc_impl.cc
-    resource_demapper_kernel_cc.cc
     resource_demapper_cc_impl.cc
     advanced_receiver_kernel_cc.cc
     extract_burst_cc_impl.cc

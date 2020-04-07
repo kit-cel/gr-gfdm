@@ -29,14 +29,15 @@ from pygfdm.utils import get_random_qpsk
 
 class qa_resource_mapper_cc(gr_unittest.TestCase):
     def setUp(self):
+        self.n_frames = 3
         self.tb = gr.top_block()
 
     def tearDown(self):
         self.tb = None
 
-    def test_001_t(self):
+    def test_001_per_timeslot(self):
         # set up fg
-        n_frames = 3
+        n_frames = self.n_frames
         active_subcarriers = 110
         subcarriers = 128
         timeslots = 205
@@ -51,6 +52,30 @@ class qa_resource_mapper_cc(gr_unittest.TestCase):
 
         src = blocks.vector_source_c(data)
         mapper = gfdm.resource_mapper_cc(timeslots, subcarriers, active_subcarriers, smap, True)
+        snk = blocks.vector_sink_c()
+        self.tb.connect(src, mapper, snk)
+        self.tb.run()
+        # check data
+        res = snk.data()
+        self.assertComplexTuplesAlmostEqual(ref, res)
+
+    def test_002_per_subcarrier(self):
+        # set up fg
+        n_frames = self.n_frames
+        active_subcarriers = 110
+        subcarriers = 128
+        timeslots = 205
+        smap = np.arange(active_subcarriers) + (subcarriers - active_subcarriers) // 2
+
+        data = get_random_qpsk(active_subcarriers * timeslots)
+        ref = map_to_waveform_resources(data, active_subcarriers, subcarriers, smap, False)
+        for i in range(n_frames - 1):
+            d = get_random_qpsk(active_subcarriers * timeslots)
+            data = np.concatenate((data, d))
+            ref = np.concatenate((ref, map_to_waveform_resources(d, active_subcarriers, subcarriers, smap, False)))
+
+        src = blocks.vector_source_c(data)
+        mapper = gfdm.resource_mapper_cc(timeslots, subcarriers, active_subcarriers, smap, False)
         snk = blocks.vector_sink_c()
         self.tb.connect(src, mapper, snk)
         self.tb.run()

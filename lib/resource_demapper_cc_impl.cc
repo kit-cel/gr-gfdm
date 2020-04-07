@@ -42,7 +42,7 @@ namespace gr {
       : gr::block("resource_demapper_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
-        d_kernel(std::unique_ptr<resource_demapper_kernel_cc>(new resource_demapper_kernel_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot)))
+        d_kernel(std::unique_ptr<resource_mapper_kernel_cc>(new resource_mapper_kernel_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot, false)))
     {
       set_relative_rate(1.0 * d_kernel->output_vector_size() / d_kernel->input_vector_size());
       set_fixed_rate(true);
@@ -85,7 +85,7 @@ namespace gr {
 
       int n_frames = std::min(noutput_items / d_kernel->output_vector_size(), ninput_items[0] / d_kernel->input_vector_size());
       for (int i = 0; i < n_frames; ++i) {
-        d_kernel->generic_work(out, in, d_kernel->output_vector_size());
+        d_kernel->demap_from_resources(out, in, d_kernel->output_vector_size());
         out += d_kernel->output_vector_size();
         in += d_kernel->input_vector_size();
       }

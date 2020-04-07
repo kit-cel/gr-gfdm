@@ -35,7 +35,6 @@ install(FILES
     advanced_receiver_sb_cc.h
     resource_mapper_kernel_cc.h
     resource_mapper_cc.h
-    resource_demapper_kernel_cc.h
     resource_demapper_cc.h
     advanced_receiver_kernel_cc.h
     extract_burst_cc.h

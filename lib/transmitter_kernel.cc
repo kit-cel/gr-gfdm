@@ -62,7 +62,7 @@ namespace gr {
     transmitter_kernel::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in,
                                      const int ninput_size)
     {
-        d_mapper->generic_work(d_mapped, p_in, ninput_size);
+        d_mapper->map_to_resources(d_mapped, p_in, ninput_size);
         d_modulator->generic_work(d_frame, d_mapped);
         d_prefixer->generic_work(p_out + d_preamble.size(), d_frame);
         std::memcpy(p_out, d_preamble.data(), sizeof(gfdm_complex) * d_preamble.size());

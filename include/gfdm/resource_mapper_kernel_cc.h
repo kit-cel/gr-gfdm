@@ -45,18 +45,45 @@ namespace gr {
                                 bool per_timeslot = true,
                                 bool is_mapper = true);
       ~resource_mapper_kernel_cc();
-      int input_vector_size(){ return d_active_subcarriers * d_timeslots;};
-      int output_vector_size(){ return d_subcarriers * d_timeslots;};
-      void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
-    private:
-      int d_timeslots;
-      int d_subcarriers;
-      int d_active_subcarriers;
-      std::vector<int> d_subcarrier_map;
-      bool d_per_timeslot;
+      size_t input_vector_size(){
+        return d_is_mapper ? d_block_size : d_frame_size; };
+      size_t output_vector_size(){
+        return d_is_mapper ? d_frame_size : d_block_size; };
+      void map_to_resources(gfdm_complex* p_out,
+                            const gfdm_complex* p_in,
+                            const size_t ninput_size);
+      void demap_from_resources(gfdm_complex* p_out,
+                                const gfdm_complex* p_in,
+                                const size_t noutput_size);
 
-      void map_per_timeslot(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
-      void map_per_subcarrier(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
+      // void generic_work(gfdm_complex* p_out,
+      //                   const gfdm_complex* p_in,
+      //                   const int ninput_size);
+    private:
+      const size_t d_timeslots;
+      const size_t d_subcarriers;
+      const size_t d_active_subcarriers;
+      const size_t d_block_size;
+      const size_t d_frame_size;
+      std::vector<int> d_subcarrier_map;
+      const bool d_per_timeslot;
+      const bool d_is_mapper;
+
+      void map_per_timeslot(gfdm_complex* p_out,
+                            const gfdm_complex* p_in,
+                            const int ninput_size);
+      void map_per_subcarrier(gfdm_complex* p_out,
+                              const gfdm_complex* p_in,
+                              const int ninput_size);
+
+      void demap_per_timeslot(gfdm_complex* p_out,
+                              const gfdm_complex* p_in,
+                              const int noutput_size);
+      void demap_per_subcarrier(gfdm_complex* p_out,
+                                const gfdm_complex* p_in,
+                                const int noutput_size);
+
+
     };
 
   } // namespace gfdm
