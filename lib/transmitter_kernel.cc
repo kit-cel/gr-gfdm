@@ -38,16 +38,14 @@ namespace gr {
                                            std::vector<gfdm_complex> frequency_taps,
                                            std::vector<gfdm_complex> window_taps,
                                            std::vector<gfdm_complex> preamble)
-        : d_preamble(preamble)
+        : d_preamble(preamble),
+          d_mapper(std::unique_ptr<resource_mapper_kernel_cc>(new resource_mapper_kernel_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot))),
+          d_modulator(std::unique_ptr<modulator_kernel_cc>(new modulator_kernel_cc(timeslots, subcarriers, overlap, frequency_taps))),
+          d_prefixer(std::unique_ptr<add_cyclic_prefix_cc>(new add_cyclic_prefix_cc(timeslots * subcarriers, cp_len, cs_len, ramp_len, window_taps)))
     {
-        d_mapper = resource_mapper_kernel_cc::sptr(
-            new resource_mapper_kernel_cc(timeslots, subcarriers, active_subcarriers,
-                                          subcarrier_map, per_timeslot));
-        d_modulator = modulator_kernel_cc::sptr(
-            new modulator_kernel_cc(timeslots, subcarriers, overlap, frequency_taps));
-        d_prefixer = add_cyclic_prefix_cc::sptr(
-            new add_cyclic_prefix_cc(timeslots * subcarriers, cp_len, cs_len,
-                                     ramp_len, window_taps));
+        // d_mapper = resource_mapper_kernel_cc::sptr(
+        //     new resource_mapper_kernel_cc(timeslots, subcarriers, active_subcarriers,
+        //                                   subcarrier_map, per_timeslot));
 
         d_mapped = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * d_mapper->output_vector_size(),
                                                 volk_get_alignment());

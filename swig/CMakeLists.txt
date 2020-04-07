@@ -61,7 +61,6 @@ GR_SWIG_INSTALL(TARGETS gfdm_swig DESTINATION ${GR_PYTHON_DIR}/gfdm)
 install(
     FILES
     gfdm_swig.i
-    preamble_generator.i
     ${CMAKE_CURRENT_BINARY_DIR}/gfdm_swig_doc.i
     DESTINATION ${GR_INCLUDE_DIR}/gfdm/swig
 )

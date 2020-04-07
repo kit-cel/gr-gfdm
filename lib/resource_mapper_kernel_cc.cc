@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -20,13 +20,19 @@
 
 
 #include <gfdm/resource_mapper_kernel_cc.h>
-#include <string.h>
+#include <cstring>
 #include <stdexcept>
+#include <algorithm>
 
 namespace gr {
   namespace gfdm {
 
-    resource_mapper_kernel_cc::resource_mapper_kernel_cc(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot)
+    resource_mapper_kernel_cc::resource_mapper_kernel_cc(int timeslots,
+                                                         int subcarriers,
+                                                         int active_subcarriers,
+                                                         std::vector<int> subcarrier_map,
+                                                         bool per_timeslot,
+                                                         bool is_mapper)
         : d_timeslots(timeslots), d_subcarriers(subcarriers), d_active_subcarriers(active_subcarriers), d_per_timeslot(per_timeslot)
     {
       if (active_subcarriers > subcarriers){

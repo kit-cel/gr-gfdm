@@ -53,7 +53,7 @@ namespace gr
                              gr::io_signature::make(1, 1, sizeof(gr_complex)))
     {
       // int do_phase_compensation = 1;
-      d_adv_kernel = advanced_receiver_kernel_cc::sptr(
+      d_adv_kernel = std::unique_ptr<advanced_receiver_kernel_cc>(
                         new advanced_receiver_kernel_cc(n_timeslots, n_subcarriers,
                                                         overlap, frequency_taps,
                                                         subcarrier_map, ic_iter,
@@ -90,7 +90,7 @@ namespace gr
           in_eq += d_adv_kernel->block_size();
           out += d_adv_kernel->block_size();
         }
-        
+
         get_tags_in_window(tags, 1, 0, n_blocks * d_adv_kernel->block_size());
       }
       else{

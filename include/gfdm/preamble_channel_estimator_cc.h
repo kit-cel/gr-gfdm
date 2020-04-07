@@ -26,7 +26,6 @@
 
 #include <complex>
 #include <vector>
-#include <boost/shared_ptr.hpp>
 #include <fftw3.h>
 #include <stdexcept>
 
@@ -42,8 +41,6 @@ namespace gr {
     class preamble_channel_estimator_cc : public gfdm_kernel_utils
     {
     public:
-      typedef boost::shared_ptr<preamble_channel_estimator_cc> sptr;
-
       preamble_channel_estimator_cc(int timeslots, int fft_len, int active_subcarriers, bool is_dc_free, int which_estimator, std::vector<gfdm_complex> preamble);
       ~preamble_channel_estimator_cc();
 

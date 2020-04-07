@@ -28,6 +28,8 @@
 #include <gfdm/modulator_kernel_cc.h>
 #include <gfdm/add_cyclic_prefix_cc.h>
 
+#include <memory>
+
 namespace gr {
   namespace gfdm {
 
@@ -39,7 +41,6 @@ namespace gr {
     {
     public:
       typedef gr::gfdm::gfdm_kernel_utils::gfdm_complex gfdm_complex;
-      typedef boost::shared_ptr<transmitter_kernel> sptr;
 
       transmitter_kernel(int timeslots, int subcarriers, int active_subcarriers,
                          int cp_len, int cs_len, int ramp_len,
@@ -54,9 +55,9 @@ namespace gr {
       void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
 
     private:
-      resource_mapper_kernel_cc::sptr d_mapper;
-      modulator_kernel_cc::sptr d_modulator;
-      add_cyclic_prefix_cc::sptr d_prefixer;
+      std::unique_ptr<resource_mapper_kernel_cc> d_mapper;
+      std::unique_ptr<modulator_kernel_cc> d_modulator;
+      std::unique_ptr<add_cyclic_prefix_cc> d_prefixer;
 
       gfdm_complex* d_mapped;
       gfdm_complex* d_frame;

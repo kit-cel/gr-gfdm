@@ -1,4 +1,5 @@
 build/
+.vscode/
 *.cpp
 *.so
 *.html

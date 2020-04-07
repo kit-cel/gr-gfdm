@@ -36,7 +36,6 @@ namespace gr {
     class GFDM_API advanced_receiver_kernel_cc
     {
     public:
-      typedef boost::shared_ptr<advanced_receiver_kernel_cc> sptr;
       advanced_receiver_kernel_cc(int timeslots, int subcarriers, int overlap,
                                   std::vector<gr_complex> frequency_taps,
                                   std::vector<int> subcarrier_map, int ic_iter,
@@ -53,7 +52,7 @@ namespace gr {
       int get_phase_compensation(){return d_do_phase_compensation;}
 
     private:
-      receiver_kernel_cc::sptr d_kernel;
+      std::unique_ptr<receiver_kernel_cc> d_kernel;
       std::vector<int> d_subcarrier_map;
       int d_ic_iter;
       gr::digital::constellation_sptr d_constellation;

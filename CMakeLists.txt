@@ -23,6 +23,7 @@
 ########################################################################
 cmake_minimum_required(VERSION 3.8)
 project(gr-gfdm CXX C)
+include(CTest)
 enable_testing()
 
 # Install to PyBOMBS target prefix if defined
@@ -136,6 +137,7 @@ endif(APPLE)
 ########################################################################
 find_package(Doxygen)
 find_package(FFTW3f)
+find_package(Volk REQUIRED 2.1)
 
 ########################################################################
 # Setup doxygen option
@@ -145,6 +147,20 @@ if(DOXYGEN_FOUND)
 else(DOXYGEN_FOUND)
     option(ENABLE_DOXYGEN "Build docs using Doxygen" OFF)
 endif(DOXYGEN_FOUND)
+
+
+########################################################################
+# PyBind11
+########################################################################
+add_subdirectory(pybind11)
+# Probably the preferred way long term:
+# find_package(pybind11 REQUIRED)
+
+execute_process(
+    COMMAND "${PYTHON_EXECUTABLE}" -c
+    "from __future__ import print_function\ntry:\n import numpy\n import os\n inc_path = numpy.get_include()\n if os.path.exists(os.path.join(inc_path, 'numpy', 'arrayobject.h')):\n  print(inc_path, end='')\nexcept:\n pass"
+    OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_DIR)
+
 
 ########################################################################
 # Create uninstall target

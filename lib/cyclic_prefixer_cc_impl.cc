@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Andrej Rode.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -42,11 +42,11 @@ namespace gr {
                                                      std::vector<gr_complex> window_taps)
             : gr::block("cyclic_prefixer_cc",
                                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                                      gr::io_signature::make(1, 1, sizeof(gr_complex)))
+                                      gr::io_signature::make(1, 1, sizeof(gr_complex))),
+            d_kernel(std::unique_ptr<add_cyclic_prefix_cc>(new add_cyclic_prefix_cc(block_len, cp_len, cs_len, ramp_len, window_taps)))
+
     {
       // all the work is done in the kernel!
-      d_kernel = add_cyclic_prefix_cc::sptr(
-              new add_cyclic_prefix_cc(block_len, cp_len, cs_len, ramp_len, window_taps));
 
       // set block properties!
       set_relative_rate(1.0 * d_kernel->frame_size() / d_kernel->block_size());

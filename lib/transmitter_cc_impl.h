@@ -30,7 +30,7 @@ namespace gr {
     class transmitter_cc_impl : public transmitter_cc
     {
      private:
-      transmitter_kernel::sptr d_kernel;
+      std::unique_ptr<transmitter_kernel> d_kernel;
       std::string d_length_tag_key_str;
       pmt::pmt_t d_length_tag_key;
 

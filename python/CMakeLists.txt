@@ -35,6 +35,7 @@ GR_PYTHON_INSTALL(
 )
 
 add_subdirectory(pygfdm)
+add_subdirectory(bindings)
 
 ########################################################################
 # Handle the unit tests

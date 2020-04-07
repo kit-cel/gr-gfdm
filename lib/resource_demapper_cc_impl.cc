@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -41,9 +41,9 @@ namespace gr {
     resource_demapper_cc_impl::resource_demapper_cc_impl(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot)
       : gr::block("resource_demapper_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
-              gr::io_signature::make(1, 1, sizeof(gr_complex)))
+              gr::io_signature::make(1, 1, sizeof(gr_complex))),
+        d_kernel(std::unique_ptr<resource_demapper_kernel_cc>(new resource_demapper_kernel_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot)))
     {
-      d_kernel = resource_demapper_kernel_cc::sptr(new resource_demapper_kernel_cc(timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot));
       set_relative_rate(1.0 * d_kernel->output_vector_size() / d_kernel->input_vector_size());
       set_fixed_rate(true);
       set_output_multiple(d_kernel->output_vector_size());

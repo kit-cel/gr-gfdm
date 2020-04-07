@@ -18,6 +18,9 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 #
+import sys
+print(sys.path)
+
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks, digital
 import gfdm_swig as gfdm
@@ -50,7 +53,7 @@ class qa_advanced_receiver_sb_cc(gr_unittest.TestCase):
         taps = filters.get_frequency_domain_filter('rrc', alpha, M, K, L)
         data = np.array([], dtype=np.complex)
         ref = np.array([], dtype=np.complex)
-        for i in range(reps):
+        for _11 in range(reps):
             d = utils.get_random_qpsk(M * K)
             ref = np.append(ref, gfdm_demodulate_block(d, taps, K, M, L))
             data = np.append(data, d)

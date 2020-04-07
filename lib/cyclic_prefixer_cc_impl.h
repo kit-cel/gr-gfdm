@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Andrej Rode.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -32,7 +32,7 @@ namespace gr
     class cyclic_prefixer_cc_impl : public cyclic_prefixer_cc
     {
     private:
-      add_cyclic_prefix_cc::sptr d_kernel;
+      std::unique_ptr<add_cyclic_prefix_cc> d_kernel;
 
     public:
       cyclic_prefixer_cc_impl(int block_len, int cp_len, int cs_len, int ramp_len,

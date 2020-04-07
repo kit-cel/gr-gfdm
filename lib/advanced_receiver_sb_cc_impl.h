@@ -24,6 +24,8 @@
 #include <gfdm/advanced_receiver_sb_cc.h>
 #include <gfdm/advanced_receiver_kernel_cc.h>
 
+#include <memory>
+
 namespace gr
 {
   namespace gfdm
@@ -32,7 +34,7 @@ namespace gr
     class advanced_receiver_sb_cc_impl : public advanced_receiver_sb_cc
     {
     private:
-      advanced_receiver_kernel_cc::sptr d_adv_kernel;
+      std::unique_ptr<advanced_receiver_kernel_cc> d_adv_kernel;
 
     public:
       advanced_receiver_sb_cc_impl(int n_timeslots, int n_subcarriers, int overlap, int ic_iter,

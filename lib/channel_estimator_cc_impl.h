@@ -30,7 +30,7 @@ namespace gr {
     class channel_estimator_cc_impl : public channel_estimator_cc
     {
      private:
-        preamble_channel_estimator_cc::sptr d_estimator_kernel;
+        std::unique_ptr<preamble_channel_estimator_cc> d_estimator_kernel;
 
      public:
       channel_estimator_cc_impl(int timeslots, int fft_len, int active_subcarriers,

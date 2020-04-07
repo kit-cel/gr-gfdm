@@ -50,7 +50,7 @@ namespace gr {
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex)))
     {
-      d_estimator_kernel = preamble_channel_estimator_cc::sptr(new preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, is_dc_free, which_estimator, preamble));
+      d_estimator_kernel = std::unique_ptr<preamble_channel_estimator_cc>(new preamble_channel_estimator_cc(timeslots, fft_len, active_subcarriers, is_dc_free, which_estimator, preamble));
 
       // set block properties!
       set_relative_rate(timeslots / 2.0);

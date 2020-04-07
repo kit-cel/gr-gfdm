@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -24,14 +24,13 @@
 
 #include <complex>
 #include <vector>
-#include <boost/shared_ptr.hpp>
 #include <fftw3.h>
 #include <stdexcept>
 
 namespace gr {
   namespace gfdm {
 
-
+    void foobar();
     /*!
      * \brief modulate a GFDM block.
      *  This class initializes and performs all operations necessary to modulate a GFDM block.
@@ -41,9 +40,10 @@ namespace gr {
     {
     public:
       typedef std::complex<float> gfdm_complex;
-      typedef boost::shared_ptr<modulator_kernel_cc> sptr;
 
-      modulator_kernel_cc(int n_timeslots, int n_subcarriers, int overlap, std::vector<gfdm_complex> frequency_taps);
+      modulator_kernel_cc(int n_timeslots, int n_subcarriers,
+                          int overlap,
+                          std::vector<gfdm_complex> frequency_taps);
       ~modulator_kernel_cc();
       void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
       int block_size(){return d_n_subcarriers * d_n_timeslots;};

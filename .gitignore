@@ -1,4 +1,5 @@
 build/
+.vscode/
 .ycm_extra_conf.*
 *.swp
 *.pyc

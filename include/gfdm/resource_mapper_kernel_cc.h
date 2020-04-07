@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -24,7 +24,6 @@
 
 #include <complex>
 #include <vector>
-#include <boost/shared_ptr.hpp>
 
 namespace gr {
   namespace gfdm {
@@ -39,9 +38,12 @@ namespace gr {
     {
     public:
       typedef std::complex<float> gfdm_complex;
-      typedef boost::shared_ptr<resource_mapper_kernel_cc> sptr;
 
-      resource_mapper_kernel_cc(int timeslots, int subcarriers, int active_subcarriers, std::vector<int> subcarrier_map, bool per_timeslot = true);
+      resource_mapper_kernel_cc(int timeslots, int subcarriers,
+                                int active_subcarriers,
+                                std::vector<int> subcarrier_map,
+                                bool per_timeslot = true,
+                                bool is_mapper = true);
       ~resource_mapper_kernel_cc();
       int input_vector_size(){ return d_active_subcarriers * d_timeslots;};
       int output_vector_size(){ return d_subcarriers * d_timeslots;};

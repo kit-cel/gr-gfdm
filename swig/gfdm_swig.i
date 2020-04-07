@@ -12,7 +12,6 @@
 #include "gfdm/modulator_cc.h"
 #include "gnuradio/digital/constellation.h"
 #include "gfdm/cyclic_prefixer_cc.h"
-#include "gfdm/preamble_generator.h"
 #include "gfdm/remove_prefix_cc.h"
 #include "gfdm/simple_modulator_cc.h"
 #include "gfdm/modulator_kernel_cc.h"
@@ -39,8 +38,6 @@ GR_SWIG_BLOCK_MAGIC2(gfdm, modulator_cc);
 
 %include "gfdm/cyclic_prefixer_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, cyclic_prefixer_cc);
-%include "gfdm/preamble_generator.h"
-%include "preamble_generator.i"
 %include "gfdm/remove_prefix_cc.h"
 GR_SWIG_BLOCK_MAGIC2(gfdm, remove_prefix_cc);
 %include "gfdm/simple_modulator_cc.h"

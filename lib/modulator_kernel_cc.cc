@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Johannes Demel.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -29,6 +29,9 @@ namespace gr
 {
   namespace gfdm
   {
+    void foobar(){
+      std::cout << "FUCK\n";
+    }
 
     modulator_kernel_cc::modulator_kernel_cc(int n_timeslots, int n_subcarriers, int overlap,
                                              std::vector<gfdm_complex> frequency_taps) :
@@ -36,10 +39,15 @@ namespace gr
             d_overlap(overlap)
     {
       if (int(frequency_taps.size()) != n_timeslots * overlap) {
-        std::stringstream sstm;
-        sstm << "number of frequency taps(" << frequency_taps.size() << ") MUST be equal to n_timeslots(";
-        sstm << n_timeslots << ") * overlap(" << overlap << ") = " << n_timeslots * overlap << "!";
-        std::string err_str = sstm.str();
+        std::string err_str("number of frequency taps(");
+        err_str += std::to_string(frequency_taps.size()) +
+                      ") MUST be equal to n_timeslots(" +
+                      std::to_string(n_timeslots) +
+                      ") * overlap(" +
+                      std::to_string(overlap) +
+                      ") = " +
+                      std::to_string(n_timeslots * overlap) +
+                      "!";
         throw std::invalid_argument(err_str.c_str());
       }
 

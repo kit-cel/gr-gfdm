@@ -63,7 +63,7 @@ namespace gr {
         d_length_tag_key_str(tsb_tag_key),
         d_length_tag_key(pmt::string_to_symbol(tsb_tag_key))
     {
-        d_kernel = transmitter_kernel::sptr(
+        d_kernel = std::unique_ptr<transmitter_kernel>(
             new transmitter_kernel(timeslots, subcarriers, active_subcarriers,
                                    cp_len, cs_len, ramp_len, subcarrier_map,
                                    per_timeslot, overlap, frequency_taps,
