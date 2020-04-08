@@ -68,13 +68,12 @@ namespace gr {
       void serialize_output(gfdm_complex out[], std::vector< std::vector<gfdm_complex> > &sc_symbols);
       void vectorize_2d(std::vector< std::vector<gfdm_complex> > &out_vector, const gfdm_complex* p_in);
       void remove_sc_interference(std::vector< std::vector<gfdm_complex> > &sc_symbols, std::vector< std::vector<gfdm_complex> > &sc_fdomain);
-      int block_size()
-      {
-        return d_block_len;
-      };
-      std::vector<gfdm_complex> filter_taps();
-      std::vector<gfdm_complex> ic_filter_taps();
-      int timeslots() {return d_n_timeslots;};
+      int block_size() const { return d_block_len; }
+      std::vector<gfdm_complex> filter_taps() const;
+      std::vector<gfdm_complex> ic_filter_taps() const;
+      int timeslots() const {return d_n_timeslots;};
+      int subcarriers() const {return d_n_subcarriers;};
+      int overlap() const {return d_overlap;};
 
     private:
       int d_n_subcarriers;

@@ -25,12 +25,13 @@ description here (python/__init__.py).
 from __future__ import unicode_literals
 
 # import swig generated symbols into the gfdm namespace
-try:
+# try:
     # this might fail if the module is python-only
-    from .gfdm_swig import *
-except ImportError:
-    pass
+from .gfdm_swig import *
+# except ImportError:
+#     pass
 
+from .gfdm_python import *
 # import any pure python here
 
 #

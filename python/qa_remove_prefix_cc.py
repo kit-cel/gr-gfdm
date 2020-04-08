@@ -86,5 +86,4 @@ class qa_simple_preamble_sync_cc(gr_unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # gr_unittest.run(qa_simple_preamble_sync_cc, "qa_simple_preamble_sync_cc.xml")
     gr_unittest.run(qa_simple_preamble_sync_cc)

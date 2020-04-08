@@ -5,8 +5,13 @@
 pybind11_add_module(gfdm_python
     ${CMAKE_SOURCE_DIR}/lib/modulator_kernel_cc.cc
     ${CMAKE_SOURCE_DIR}/lib/add_cyclic_prefix_cc.cc
+    ${CMAKE_SOURCE_DIR}/lib/resource_mapper_kernel_cc.cc
+    ${CMAKE_SOURCE_DIR}/lib/receiver_kernel_cc.cc
+    ${CMAKE_SOURCE_DIR}/lib/gfdm_kernel_utils.cc
     modulator_python.cc
     cyclic_prefix_python.cc
+    resource_mapper_python.cc
+    demodulator_python.cc
     python_bindings.cc
 )
 

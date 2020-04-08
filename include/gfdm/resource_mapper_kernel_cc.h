@@ -45,6 +45,8 @@ namespace gr {
                                 bool per_timeslot = true,
                                 bool is_mapper = true);
       ~resource_mapper_kernel_cc();
+      size_t frame_size(){ return d_frame_size; }
+      size_t block_size(){ return d_block_size; }
       size_t input_vector_size(){
         return d_is_mapper ? d_block_size : d_frame_size; };
       size_t output_vector_size(){
@@ -56,9 +58,6 @@ namespace gr {
                                 const gfdm_complex* p_in,
                                 const size_t noutput_size);
 
-      // void generic_work(gfdm_complex* p_out,
-      //                   const gfdm_complex* p_in,
-      //                   const int ninput_size);
     private:
       const size_t d_timeslots;
       const size_t d_subcarriers;

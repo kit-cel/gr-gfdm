@@ -117,14 +117,14 @@ namespace gr
       //std::cout << "AFTER  energy of taps: " << std::abs(res) << std::endl;
     }
 
-    std::vector<receiver_kernel_cc::gfdm_complex> receiver_kernel_cc::filter_taps()
+    std::vector<receiver_kernel_cc::gfdm_complex> receiver_kernel_cc::filter_taps() const
     {
       std::vector<gfdm_complex> taps(d_n_timeslots * d_overlap);
       memcpy(&taps[0], d_filter_taps, sizeof(gfdm_complex) * d_n_timeslots * d_overlap);
       return taps;
     }
 
-    std::vector<receiver_kernel_cc::gfdm_complex> receiver_kernel_cc::ic_filter_taps()
+    std::vector<receiver_kernel_cc::gfdm_complex> receiver_kernel_cc::ic_filter_taps() const
     {
       std::vector<gfdm_complex> taps(d_n_timeslots);
       memcpy(&taps[0], d_ic_filter_taps, sizeof(gfdm_complex) * d_n_timeslots);

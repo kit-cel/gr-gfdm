@@ -42,17 +42,18 @@ namespace gr {
           d_is_mapper(is_mapper)
     {
       if (active_subcarriers > subcarriers){
-        std::stringstream sstm;
-        sstm << "active_subcarriers(" << active_subcarriers << ") MUST be smaller or equal to subcarriers(" << subcarriers << ")!";
-        std::string err_str = sstm.str();
-        throw std::invalid_argument(err_str.c_str());
+        throw std::invalid_argument("active_subcarriers(" +
+                                    std::to_string(active_subcarriers) +
+                                    ") MUST be smaller or equal to subcarriers(" +
+                                    std::to_string(subcarriers) +
+                                    ")!");
       }
       if (int(subcarrier_map.size()) != active_subcarriers){
-        std::stringstream sstm;
-        sstm << "number of subcarrier_map entries(" << subcarrier_map.size() << ") MUST be equal to active_subcarriers(";
-        sstm << active_subcarriers << ")!";
-        std::string err_str = sstm.str();
-        throw std::invalid_argument(err_str.c_str());
+        throw std::invalid_argument("number of subcarrier_map entries(" +
+                                    std::to_string(subcarrier_map.size()) +
+                                    ") MUST be equal to active_subcarriers(" +
+                                    std::to_string(active_subcarriers) +
+                                    ")!");
       }
       std::sort(subcarrier_map.begin(), subcarrier_map.end());
       if ( !(adjacent_find(subcarrier_map.begin(), subcarrier_map.end()) == subcarrier_map.end()) ){
@@ -71,35 +72,19 @@ namespace gr {
     {
     }
 
-    // void
-    // resource_mapper_kernel_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size)
-    // {
-    //   map_to_resources(p_out, p_in, ninput_size);
-    //   // if (ninput_size > input_vector_size()){
-    //   //   std::stringstream sstm;
-    //   //   sstm << "input vector size(" << ninput_size << ") MUST not exceed active_subcarriers * timeslots(" << d_active_subcarriers * d_timeslots << ")!";
-    //   //   throw std::invalid_argument(sstm.str().c_str());
-    //   // }
-    //   // memset(p_out, 0x0, sizeof(gfdm_complex) * output_vector_size());
-    //   // if(d_per_timeslot){
-    //   //   map_per_timeslot(p_out, p_in, ninput_size);
-    //   // }
-    //   // else{
-    //   //   map_per_subcarrier(p_out, p_in, ninput_size);
-    //   // }
-    // }
-
     void
     resource_mapper_kernel_cc::map_to_resources(gfdm_complex* p_out,
                             const gfdm_complex* p_in,
                             const size_t ninput_size)
     {
-      if (ninput_size > input_vector_size()){
-        std::stringstream sstm;
-        sstm << "input vector size(" << ninput_size << ") MUST not exceed active_subcarriers * timeslots(" << d_active_subcarriers * d_timeslots << ")!";
-        throw std::invalid_argument(sstm.str().c_str());
+      if (ninput_size > block_size()){
+        throw std::invalid_argument("input vector size(" +
+                                    std::to_string (ninput_size) +
+                                    ") MUST not exceed active_subcarriers * timeslots(" +
+                                    std::to_string(d_block_size) +
+                                    ")!");
       }
-      memset(p_out, 0x0, sizeof(gfdm_complex) * output_vector_size());
+      memset(p_out, 0x0, sizeof(gfdm_complex) * frame_size());
       if(d_per_timeslot){
         map_per_timeslot(p_out, p_in, ninput_size);
       }
@@ -113,10 +98,12 @@ namespace gr {
                                 const gfdm_complex* p_in,
                                 const size_t noutput_size)
     {
-      if (noutput_size > output_vector_size()){
-        std::stringstream sstm;
-        sstm << "output vector size(" << noutput_size << ") MUST not exceed active_subcarriers * timeslots(" << d_active_subcarriers * d_timeslots << ")!";
-        throw std::invalid_argument(sstm.str().c_str());
+      if (noutput_size > block_size()){
+        throw std::invalid_argument("output vector size(" +
+                                    std::to_string(noutput_size) +
+                                    ") MUST not exceed active_subcarriers * timeslots(" +
+                                    std::to_string(d_block_size) +
+                                    ")!");
       }
       memset(p_out, 0x0, sizeof(gfdm_complex) * noutput_size);
       if(d_per_timeslot){
@@ -132,8 +119,7 @@ namespace gr {
     {
       int sym_ctr = 0;
       for(int tidx = 0; tidx < d_timeslots; ++tidx){
-        for(int i = 0; i < d_active_subcarriers; ++i){
-          int sidx = d_subcarrier_map.at(i);
+        for(const auto sidx : d_subcarrier_map){
           int out_idx = d_timeslots * sidx + tidx;
           p_out[out_idx] = sym_ctr < ninput_size ? *p_in++ : gfdm_complex(0.0, 0.0);
           sym_ctr++;
@@ -145,8 +131,7 @@ namespace gr {
     resource_mapper_kernel_cc::map_per_subcarrier(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size)
     {
       int sym_ctr = 0;
-      for(int i = 0; i < d_active_subcarriers; ++i){
-        int sidx = d_subcarrier_map.at(i);
+      for(const auto sidx : d_subcarrier_map){
         for(int tidx = 0; tidx < d_timeslots; ++tidx){
           int out_idx = d_timeslots * sidx + tidx;
           p_out[out_idx] = sym_ctr < ninput_size ? *p_in++ : gfdm_complex(0.0, 0.0);
@@ -169,8 +154,7 @@ namespace gr {
     resource_mapper_kernel_cc::demap_per_subcarrier(gfdm_complex* p_out, const gfdm_complex* p_in, const int noutput_size)
     {
       int sym_ctr = 0;
-      for(int i = 0; i < d_active_subcarriers; ++i){
-        int sidx = d_subcarrier_map.at(i);
+      for(const auto sidx : d_subcarrier_map){
         for(int tidx = 0; tidx < d_timeslots; ++tidx){
           int idx = d_timeslots * sidx + tidx;
           *p_out++ = p_in[idx];
