@@ -286,7 +286,8 @@ namespace gr
     {
       memcpy(d_in_fft_in, p_in, sizeof(gfdm_complex) * d_block_len);
       fftwf_execute(d_in_fft_plan);
-      volk_32fc_x2_multiply_conjugate_32fc(d_equalized, d_in_fft_out, f_eq_in, d_block_len);
+      volk_32fc_x2_divide_32fc(d_equalized, d_in_fft_out, f_eq_in, d_block_len);
+      // volk_32fc_x2_multiply_conjugate_32fc(d_equalized, d_in_fft_out, f_eq_in, d_block_len);
       filter_subcarriers_and_downsample_fd(p_out, d_equalized);
     }
 

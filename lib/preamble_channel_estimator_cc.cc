@@ -39,6 +39,11 @@ namespace gr {
       d_preamble_fft_out = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * fft_len, volk_get_alignment());
       d_preamble_fft_plan = initialize_fft(d_preamble_fft_out, d_preamble_fft_in, fft_len, true);
 
+      d_snr_fft_in = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * 2 * fft_len, volk_get_alignment());
+      d_snr_fft_out = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * 2 * fft_len, volk_get_alignment());
+      d_snr_fft_plan = initialize_fft(d_snr_fft_out, d_snr_fft_in, 2 * fft_len, true);
+
+
       d_inv_freq_preamble0 = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * fft_len, volk_get_alignment());
       d_inv_freq_preamble1 = (gfdm_complex *) volk_malloc(sizeof(gfdm_complex) * fft_len, volk_get_alignment());
       initialize_inv_freq_preamble(d_inv_freq_preamble0, &preamble[0]);
@@ -65,8 +70,12 @@ namespace gr {
     preamble_channel_estimator_cc::~preamble_channel_estimator_cc()
     {
       fftwf_destroy_plan(d_preamble_fft_plan);
+
       volk_free(d_preamble_fft_in);
       volk_free(d_preamble_fft_out);
+      fftwf_destroy_plan(d_snr_fft_plan);
+      volk_free(d_snr_fft_in);
+      volk_free(d_snr_fft_out);
       volk_free(d_inv_freq_preamble0);
       volk_free(d_inv_freq_preamble1);
       volk_free(d_intermediate_channel_estimate);
@@ -130,9 +139,11 @@ namespace gr {
     void
     preamble_channel_estimator_cc::filter_preamble_estimate(gfdm_complex* filtered, const gfdm_complex* estimate)
     {
-      for(int i = 0; i < d_n_gaussian_taps / 2; ++i){
-        d_filter_intermediate[i] = estimate[d_fft_len - d_active_subcarriers / 2];
-      }
+      const auto left_fill_element = estimate[d_fft_len - d_active_subcarriers / 2];
+      std::fill(d_filter_intermediate, d_filter_intermediate + d_n_gaussian_taps / 2, left_fill_element);
+      // for(int i = 0; i < d_n_gaussian_taps / 2; ++i){
+      //   d_filter_intermediate[i] = estimate[d_fft_len - d_active_subcarriers / 2];
+      // }
 
       for(int i = 0; i < d_active_subcarriers / 2; ++i){
         d_filter_intermediate[i + d_n_gaussian_taps / 2] = estimate[i + d_fft_len - d_active_subcarriers / 2];
@@ -158,6 +169,48 @@ namespace gr {
       }
 
     }
+
+    float
+    preamble_channel_estimator_cc::estimate_snr(const gfdm_complex* rx_preamble)
+    {
+      memcpy(d_snr_fft_in, rx_preamble, sizeof(gfdm_complex) * 2 * d_fft_len);
+      fftwf_execute(d_snr_fft_plan);
+      float symbol_energy = 0.0f;
+      float noise_energy = 0.0f;
+
+      const unsigned active_half = d_active_subcarriers / 2;
+      const unsigned offset = d_is_dc_free ? 1 : 0;
+      for(unsigned i = 0; i < active_half; ++i){
+        const unsigned pos = 2 * (i + offset);
+        const auto se = std::norm(d_snr_fft_out[pos]);
+        const auto ne = std::norm(d_snr_fft_out[pos + 1]);
+        symbol_energy += se;
+        noise_energy += ne;
+      }
+
+      const unsigned unused_half = (d_fft_len - d_active_subcarriers) / 2;
+      const unsigned low_offset = unused_half + d_fft_len / 2;
+      for(unsigned i = 0; i < active_half; ++i){
+        const unsigned pos = 2 * (i + low_offset);
+        const auto se = std::norm(d_snr_fft_out[pos]);
+        const auto ne = std::norm(d_snr_fft_out[pos + 1]);
+        symbol_energy += se;
+        noise_energy += ne;
+      }
+
+      const float snr_lin = symbol_energy / noise_energy;
+      const float snr_db = 10.0f * std::log10(snr_lin);
+
+      // std::cout << "SNR " << snr_lin
+      //           << "lin,\t" << snr_db
+      //           << "dB\n";
+      // std::cout << "SNR: " << symbol_energy
+      //           << ", noise: " << noise_energy
+      //           << ", estimate: " << snr_lin <<
+      //           " dB: " << snr_db << std::endl;
+      return snr_lin;
+    }
+
 
     void
     preamble_channel_estimator_cc::interpolate_frame(gfdm_complex* frame_estimate, const gfdm_complex* estimate)
@@ -213,9 +266,9 @@ namespace gr {
       estimate_preamble_channel(d_preamble_estimate, rx_preamble);
       filter_preamble_estimate(d_filtered_estimate, d_preamble_estimate);
       interpolate_frame(frame_estimate, d_filtered_estimate);
-      switch(d_which_estimator){
-        case 1: prepare_for_zf(frame_estimate, frame_estimate); break;
-      }
+      // switch(d_which_estimator){
+      //   case 1: prepare_for_zf(frame_estimate, frame_estimate); break;
+      // }
 
     }
 

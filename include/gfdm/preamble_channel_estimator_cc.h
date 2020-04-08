@@ -60,6 +60,8 @@ namespace gr {
 
       void prepare_for_zf(gfdm_complex* transformed_frame, const gfdm_complex* frame_estimate);
 
+      float estimate_snr(const gfdm_complex* rx_preamble);
+
     private:
       int d_timeslots;
       int d_fft_len;
@@ -70,6 +72,10 @@ namespace gr {
       gfdm_complex* d_preamble_fft_in;
       gfdm_complex* d_preamble_fft_out;
       fftwf_plan d_preamble_fft_plan;
+
+      gfdm_complex* d_snr_fft_in;
+      gfdm_complex* d_snr_fft_out;
+      fftwf_plan d_snr_fft_plan;
 
       gfdm_complex* d_inv_freq_preamble0;
       gfdm_complex* d_inv_freq_preamble1;

@@ -94,11 +94,13 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
 
-      int frame_len = d_estimator_kernel->timeslots() * d_estimator_kernel->fft_len();
+      const int frame_len = d_estimator_kernel->frame_len();
       const int n_frames = noutput_items / frame_len;
 
       for (int i = 0; i < n_frames; ++i) {
         d_estimator_kernel->estimate_frame(out, in);
+        const float snr_lin = d_estimator_kernel->estimate_snr(in);
+        add_item_tag(0, nitems_written(0) + i * n_frames, pmt::intern("snr_lin"), pmt::from_float(snr_lin));
         in += 2 * d_estimator_kernel->fft_len();
         out += frame_len;
       }
