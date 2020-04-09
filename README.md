@@ -91,3 +91,8 @@ References
 
 5. J. Demel, C. Bockelmann, A. Dekorsy, Andrej Rode, Sebastian Koslowski, Friedrich K. Jondral "An optimized GFDM software implementation for future Cloud-RAN and field tests". In: GNU Radio Conference 2017, San Diego, USA, 11. - 15. September 2017
 
+Code formatting
+--------
+We follow the GNU Radio coding guidelines. This is the current way to format everything:
+
+`find . -regex '.*\.\(c\|cc\|cpp\|cxx\|h\|hh\)' -not -path "*build*" -exec clang-format -style=file -i {} \;`

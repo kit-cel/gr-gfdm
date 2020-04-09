@@ -22,46 +22,47 @@
 #ifndef INCLUDED_GFDM_SHORT_BURST_SHAPER_H
 #define INCLUDED_GFDM_SHORT_BURST_SHAPER_H
 
-#include <gfdm/api.h>
 #include <gnuradio/tagged_stream_block.h>
+#include <gfdm/api.h>
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
+
+/*!
+ * \brief Add Padding and Scale Burst.
+ * \ingroup gfdm
+ *
+ */
+class GFDM_API short_burst_shaper : virtual public gr::tagged_stream_block
+{
+public:
+    typedef boost::shared_ptr<short_burst_shaper> sptr;
 
     /*!
-     * \brief Add Padding and Scale Burst.
-     * \ingroup gfdm
+     * \brief Return a shared_ptr to a new instance of gfdm::short_burst_shaper.
      *
+     * To avoid accidental use of raw pointers, gfdm::short_burst_shaper's
+     * constructor is in a private implementation
+     * class. gfdm::short_burst_shaper::make is the public interface for
+     * creating new instances.
      */
-    class GFDM_API short_burst_shaper : virtual public gr::tagged_stream_block
-    {
-     public:
-      typedef boost::shared_ptr<short_burst_shaper> sptr;
+    static sptr make(int pre_padding,
+                     int post_padding,
+                     gr_complex scale,
+                     const std::string& length_tag_name = "packet_len");
 
-      /*!
-       * \brief Return a shared_ptr to a new instance of gfdm::short_burst_shaper.
-       *
-       * To avoid accidental use of raw pointers, gfdm::short_burst_shaper's
-       * constructor is in a private implementation
-       * class. gfdm::short_burst_shaper::make is the public interface for
-       * creating new instances.
-       */
-      static sptr make(int pre_padding, int post_padding, gr_complex scale,
-                       const std::string &length_tag_name="packet_len");
+    /*!
+     * \brief Return multiplicative constant
+     */
+    virtual gr_complex scale() const = 0;
 
-      /*!
-      * \brief Return multiplicative constant
-      */
-      virtual gr_complex scale() const = 0;
+    /*!
+     * \brief Set multiplicative constant
+     */
+    virtual void set_scale(gr_complex scale) = 0;
+};
 
-      /*!
-      * \brief Set multiplicative constant
-      */
-      virtual void set_scale(gr_complex scale) = 0;
-    };
-
-  } // namespace gfdm
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_SHORT_BURST_SHAPER_H */
-

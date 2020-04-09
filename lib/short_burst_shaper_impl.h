@@ -24,35 +24,36 @@
 #include <gfdm/short_burst_shaper.h>
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
 
-    class short_burst_shaper_impl : public short_burst_shaper
-    {
-     private:
-      const int d_pre_padding;
-      const int d_post_padding;
-      gr_complex d_scale;
+class short_burst_shaper_impl : public short_burst_shaper
+{
+private:
+    const int d_pre_padding;
+    const int d_post_padding;
+    gr_complex d_scale;
 
-     protected:
-      int calculate_output_stream_length(const gr_vector_int &ninput_items);
+protected:
+    int calculate_output_stream_length(const gr_vector_int& ninput_items);
 
-     public:
-      short_burst_shaper_impl(int pre_padding, int post_padding, gr_complex scale,
-                              const std::string &length_tag_name);
-      ~short_burst_shaper_impl();
+public:
+    short_burst_shaper_impl(int pre_padding,
+                            int post_padding,
+                            gr_complex scale,
+                            const std::string& length_tag_name);
+    ~short_burst_shaper_impl();
 
-      gr_complex scale() const { return d_scale; }
-      void set_scale(gr_complex scale) { d_scale = scale; }
+    gr_complex scale() const { return d_scale; }
+    void set_scale(gr_complex scale) { d_scale = scale; }
 
-      // Where all the action really happens
-      int work(int noutput_items,
-           gr_vector_int &ninput_items,
-           gr_vector_const_void_star &input_items,
-           gr_vector_void_star &output_items);
-    };
+    // Where all the action really happens
+    int work(int noutput_items,
+             gr_vector_int& ninput_items,
+             gr_vector_const_void_star& input_items,
+             gr_vector_void_star& output_items);
+};
 
-  } // namespace gfdm
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_SHORT_BURST_SHAPER_IMPL_H */
-

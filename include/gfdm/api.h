@@ -25,9 +25,9 @@
 #include <gnuradio/attributes.h>
 
 #ifdef gnuradio_gfdm_EXPORTS
-#  define GFDM_API __GR_ATTR_EXPORT
+#define GFDM_API __GR_ATTR_EXPORT
 #else
-#  define GFDM_API __GR_ATTR_IMPORT
+#define GFDM_API __GR_ATTR_IMPORT
 #endif
 
 #endif /* INCLUDED_GFDM_API_H */

@@ -27,10 +27,9 @@
 
 #include "qa_gfdm.h"
 
-CppUnit::TestSuite *
-qa_gfdm::suite()
+CppUnit::TestSuite* qa_gfdm::suite()
 {
-  CppUnit::TestSuite *s = new CppUnit::TestSuite("gfdm");
+    CppUnit::TestSuite* s = new CppUnit::TestSuite("gfdm");
 
-  return s;
+    return s;
 }

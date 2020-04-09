@@ -22,40 +22,44 @@
 #ifndef INCLUDED_GFDM_ADD_CYCLIC_PREFIX_CC_H
 #define INCLUDED_GFDM_ADD_CYCLIC_PREFIX_CC_H
 
-#include <stdexcept>
 #include <complex>
+#include <stdexcept>
 #include <vector>
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
 
-    /*!
-     * \brief Kernel adds cyclic prefix to GFDM frame and applies block pinching window.
-     *
-     */
+/*!
+ * \brief Kernel adds cyclic prefix to GFDM frame and applies block pinching window.
+ *
+ */
 //    class GFDM_API add_cyclic_prefix_cc
-    class add_cyclic_prefix_cc
-    {
-    public:
-      typedef std::complex<float> gfdm_complex;
+class add_cyclic_prefix_cc
+{
+public:
+    typedef std::complex<float> gfdm_complex;
 
-      add_cyclic_prefix_cc(int block_len, int cp_len, int cs_len, int ramp_len, std::vector<gfdm_complex> window_taps);
-      ~add_cyclic_prefix_cc();
-      void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
-      int block_size(){ return d_block_len;};
-      int frame_size(){ return block_size() + d_cp_len + d_cs_len;};
-    private:
-      int d_block_len;
-      int d_cp_len;
-      int d_cs_len;
-      int d_ramp_len;
+    add_cyclic_prefix_cc(int block_len,
+                         int cp_len,
+                         int cs_len,
+                         int ramp_len,
+                         std::vector<gfdm_complex> window_taps);
+    ~add_cyclic_prefix_cc();
+    void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
+    int block_size() { return d_block_len; };
+    int frame_size() { return block_size() + d_cp_len + d_cs_len; };
 
-      gfdm_complex* d_front_ramp;
-      gfdm_complex* d_back_ramp;
-    };
+private:
+    int d_block_len;
+    int d_cp_len;
+    int d_cs_len;
+    int d_ramp_len;
 
-  } // namespace gfdm
+    gfdm_complex* d_front_ramp;
+    gfdm_complex* d_back_ramp;
+};
+
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_ADD_CYCLIC_PREFIX_CC_H */
-

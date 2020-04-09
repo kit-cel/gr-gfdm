@@ -22,42 +22,46 @@
 #ifndef INCLUDED_GFDM_TRANSMITTER_CC_H
 #define INCLUDED_GFDM_TRANSMITTER_CC_H
 
-#include <gfdm/api.h>
 #include <gnuradio/block.h>
+#include <gfdm/api.h>
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
+
+/*!
+ * \brief <+description of block+>
+ * \ingroup gfdm
+ *
+ */
+class GFDM_API transmitter_cc : virtual public gr::block
+{
+public:
+    typedef boost::shared_ptr<transmitter_cc> sptr;
 
     /*!
-     * \brief <+description of block+>
-     * \ingroup gfdm
+     * \brief Return a shared_ptr to a new instance of gfdm::transmitter_cc.
      *
+     * To avoid accidental use of raw pointers, gfdm::transmitter_cc's
+     * constructor is in a private implementation
+     * class. gfdm::transmitter_cc::make is the public interface for
+     * creating new instances.
      */
-    class GFDM_API transmitter_cc : virtual public gr::block
-    {
-     public:
-      typedef boost::shared_ptr<transmitter_cc> sptr;
+    static sptr make(int timeslots,
+                     int subcarriers,
+                     int active_subcarriers,
+                     int cp_len,
+                     int cs_len,
+                     int ramp_len,
+                     std::vector<int> subcarrier_map,
+                     bool per_timeslot,
+                     int overlap,
+                     std::vector<gr_complex> frequency_taps,
+                     std::vector<gr_complex> window_taps,
+                     std::vector<gr_complex> preamble,
+                     const std::string& tsb_tag_key = "");
+};
 
-      /*!
-       * \brief Return a shared_ptr to a new instance of gfdm::transmitter_cc.
-       *
-       * To avoid accidental use of raw pointers, gfdm::transmitter_cc's
-       * constructor is in a private implementation
-       * class. gfdm::transmitter_cc::make is the public interface for
-       * creating new instances.
-       */
-      static sptr make(int timeslots, int subcarriers, int active_subcarriers,
-                       int cp_len, int cs_len, int ramp_len,
-                       std::vector<int> subcarrier_map,
-                       bool per_timeslot, int overlap,
-                       std::vector<gr_complex> frequency_taps,
-                       std::vector<gr_complex> window_taps,
-                       std::vector<gr_complex> preamble,
-                       const std::string &tsb_tag_key="");
-    };
-
-  } // namespace gfdm
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_TRANSMITTER_CC_H */
-

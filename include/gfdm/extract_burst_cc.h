@@ -22,38 +22,39 @@
 #ifndef INCLUDED_GFDM_EXTRACT_BURST_CC_H
 #define INCLUDED_GFDM_EXTRACT_BURST_CC_H
 
-#include <gfdm/api.h>
 #include <gnuradio/block.h>
+#include <gfdm/api.h>
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
+
+/*!
+ * \brief <+description of block+>
+ * \ingroup gfdm
+ *
+ */
+class GFDM_API extract_burst_cc : virtual public gr::block
+{
+public:
+    typedef boost::shared_ptr<extract_burst_cc> sptr;
 
     /*!
-     * \brief <+description of block+>
-     * \ingroup gfdm
+     * \brief Return a shared_ptr to a new instance of gfdm::extract_burst_cc.
      *
+     * To avoid accidental use of raw pointers, gfdm::extract_burst_cc's
+     * constructor is in a private implementation
+     * class. gfdm::extract_burst_cc::make is the public interface for
+     * creating new instances.
      */
-    class GFDM_API extract_burst_cc : virtual public gr::block
-    {
-     public:
-      typedef boost::shared_ptr<extract_burst_cc> sptr;
+    static sptr make(int burst_len,
+                     int tag_backoff,
+                     std::string burst_start_tag,
+                     bool activate_cfo_correction = false);
 
-      /*!
-       * \brief Return a shared_ptr to a new instance of gfdm::extract_burst_cc.
-       *
-       * To avoid accidental use of raw pointers, gfdm::extract_burst_cc's
-       * constructor is in a private implementation
-       * class. gfdm::extract_burst_cc::make is the public interface for
-       * creating new instances.
-       */
-      static sptr make(int burst_len, int tag_backoff, std::string burst_start_tag,
-                       bool activate_cfo_correction=false);
+    virtual void activate_cfo_compensation(bool activate_cfo_compensation) = 0;
+};
 
-      virtual void activate_cfo_compensation(bool activate_cfo_compensation) = 0;
-    };
-
-  } // namespace gfdm
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_EXTRACT_BURST_CC_H */
-

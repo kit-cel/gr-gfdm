@@ -21,54 +21,51 @@
 //#ifdef HAVE_CONFIG_H
 //#include "config.h"
 //#endif
-#include <volk/volk.h>
 #include <gnuradio/io_signature.h>
 #include <gfdm/gfdm_kernel_utils.h>
+#include <volk/volk.h>
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
 
-    gfdm_kernel_utils::gfdm_kernel_utils()
-    {
-    }
+gfdm_kernel_utils::gfdm_kernel_utils() {}
 
-    gfdm_kernel_utils::~gfdm_kernel_utils()
-    {
-    }
+gfdm_kernel_utils::~gfdm_kernel_utils() {}
 
-    fftwf_plan
-    gfdm_kernel_utils::initialize_fft(gfdm_complex *out_buf, gfdm_complex *in_buf, const int fft_size, bool forward)
-    {
-      std::string filename(getenv("HOME"));
-      filename += "/.gr_fftw_wisdom";
-      FILE *fpr = fopen(filename.c_str(), "r");
-      if (fpr != 0) {
+fftwf_plan gfdm_kernel_utils::initialize_fft(gfdm_complex* out_buf,
+                                             gfdm_complex* in_buf,
+                                             const int fft_size,
+                                             bool forward)
+{
+    std::string filename(getenv("HOME"));
+    filename += "/.gr_fftw_wisdom";
+    FILE* fpr = fopen(filename.c_str(), "r");
+    if (fpr != 0) {
         fftwf_import_wisdom_from_file(fpr);
         fclose(fpr);
-      }
+    }
 
-      fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
-                                          reinterpret_cast<fftwf_complex *>(in_buf),
-                                          reinterpret_cast<fftwf_complex *>(out_buf),
-                                          forward ? FFTW_FORWARD : FFTW_BACKWARD,
-                                          FFTW_MEASURE);
+    fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
+                                        reinterpret_cast<fftwf_complex*>(in_buf),
+                                        reinterpret_cast<fftwf_complex*>(out_buf),
+                                        forward ? FFTW_FORWARD : FFTW_BACKWARD,
+                                        FFTW_MEASURE);
 
-      FILE *fpw = fopen(filename.c_str(), "w");
-      if (fpw != 0) {
+    FILE* fpw = fopen(filename.c_str(), "w");
+    if (fpw != 0) {
         fftwf_export_wisdom_to_file(fpw);
         fclose(fpw);
-      }
-      return plan;
     }
+    return plan;
+}
 
-    float
-    gfdm_kernel_utils::calculate_signal_energy(const gfdm_complex* p_in, const int ninput_size)
-    {
-      gfdm_complex energy = gfdm_complex(0.0, 0.0);
-      volk_32fc_x2_conjugate_dot_prod_32fc(&energy, p_in, p_in, ninput_size);
-      return energy.real();
-    }
+float gfdm_kernel_utils::calculate_signal_energy(const gfdm_complex* p_in,
+                                                 const int ninput_size)
+{
+    gfdm_complex energy = gfdm_complex(0.0, 0.0);
+    volk_32fc_x2_conjugate_dot_prod_32fc(&energy, p_in, p_in, ninput_size);
+    return energy.real();
+}
 
-  } /* namespace gfdm */
+} /* namespace gfdm */
 } /* namespace gr */
-

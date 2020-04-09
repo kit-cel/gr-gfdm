@@ -6,8 +6,8 @@
  *
  */
 
-#include <pybind11/pybind11.h>
 #include <pybind11/complex.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 
@@ -20,7 +20,8 @@ void bind_resource_mapper(py::module& m);
 void bind_demodulator(py::module& m);
 
 
-PYBIND11_MODULE(gfdm_python, m) {
+PYBIND11_MODULE(gfdm_python, m)
+{
     bind_modulator(m);
     bind_cyclic_prefixer(m);
     bind_resource_mapper(m);
@@ -31,5 +32,4 @@ PYBIND11_MODULE(gfdm_python, m) {
 #else
     m.attr("__version__") = "dev";
 #endif
-
 }

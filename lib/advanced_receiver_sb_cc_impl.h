@@ -21,47 +21,48 @@
 #ifndef INCLUDED_GFDM_ADVANCED_RECEIVER_SB_CC_IMPL_H
 #define INCLUDED_GFDM_ADVANCED_RECEIVER_SB_CC_IMPL_H
 
-#include <gfdm/advanced_receiver_sb_cc.h>
 #include <gfdm/advanced_receiver_kernel_cc.h>
+#include <gfdm/advanced_receiver_sb_cc.h>
 
 #include <memory>
 
-namespace gr
+namespace gr {
+namespace gfdm {
+
+class advanced_receiver_sb_cc_impl : public advanced_receiver_sb_cc
 {
-  namespace gfdm
-  {
+private:
+    std::unique_ptr<advanced_receiver_kernel_cc> d_adv_kernel;
 
-    class advanced_receiver_sb_cc_impl : public advanced_receiver_sb_cc
+public:
+    advanced_receiver_sb_cc_impl(int n_timeslots,
+                                 int n_subcarriers,
+                                 int overlap,
+                                 int ic_iter,
+                                 std::vector<gr_complex> frequency_taps,
+                                 gr::digital::constellation_sptr constellation,
+                                 std::vector<int> subcarrier_map,
+                                 int do_phase_compensation);
+
+    ~advanced_receiver_sb_cc_impl();
+
+    void set_phase_compensation(int do_phase_compensation)
     {
-    private:
-      std::unique_ptr<advanced_receiver_kernel_cc> d_adv_kernel;
+        d_adv_kernel->set_phase_compensation(do_phase_compensation);
+    }
+    int get_phase_compensation() { return d_adv_kernel->get_phase_compensation(); }
 
-    public:
-      advanced_receiver_sb_cc_impl(int n_timeslots, int n_subcarriers, int overlap, int ic_iter,
-                                   std::vector<gr_complex> frequency_taps,
-                                   gr::digital::constellation_sptr constellation,
-                                   std::vector<int> subcarrier_map, int do_phase_compensation);
+    void set_ic(int ic_iter) { d_adv_kernel->set_ic(ic_iter); }
 
-      ~advanced_receiver_sb_cc_impl();
+    int get_ic(void) { return d_adv_kernel->get_ic(); }
 
-      void set_phase_compensation(int do_phase_compensation){
-        d_adv_kernel->set_phase_compensation(do_phase_compensation);}
-      int get_phase_compensation(){return d_adv_kernel->get_phase_compensation();}
+    // Where all the action really happens
+    int work(int noutput_items,
+             gr_vector_const_void_star& input_items,
+             gr_vector_void_star& output_items);
+};
 
-      void set_ic(int ic_iter)
-      { d_adv_kernel->set_ic(ic_iter); }
-
-      int get_ic(void)
-      { return d_adv_kernel->get_ic(); }
-
-      // Where all the action really happens
-      int work(int noutput_items,
-               gr_vector_const_void_star &input_items,
-               gr_vector_void_star &output_items);
-    };
-
-  } // namespace gfdm
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_ADVANCED_RECEIVER_SB_CC_IMPL_H */
-

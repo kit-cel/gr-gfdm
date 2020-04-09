@@ -24,80 +24,86 @@
 
 //#include <gfdm/api.h>
 
-#include <complex>
-#include <vector>
 #include <fftw3.h>
+#include <complex>
 #include <stdexcept>
+#include <vector>
 
 #include "gfdm_kernel_utils.h"
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
 
-    /*!
-     * \brief <+description+>
-     *
-     */
-    class preamble_channel_estimator_cc : public gfdm_kernel_utils
-    {
-    public:
-      preamble_channel_estimator_cc(int timeslots, int fft_len, int active_subcarriers, bool is_dc_free, int which_estimator, std::vector<gfdm_complex> preamble);
-      ~preamble_channel_estimator_cc();
+/*!
+ * \brief <+description+>
+ *
+ */
+class preamble_channel_estimator_cc : public gfdm_kernel_utils
+{
+public:
+    preamble_channel_estimator_cc(int timeslots,
+                                  int fft_len,
+                                  int active_subcarriers,
+                                  bool is_dc_free,
+                                  int which_estimator,
+                                  std::vector<gfdm_complex> preamble);
+    ~preamble_channel_estimator_cc();
 
-      void estimate_preamble_channel(gfdm_complex* fd_preamble_channel, const gfdm_complex* rx_preamble);
-      int fft_len(){ return d_fft_len;};
-      int timeslots(){ return d_timeslots;};
-      int frame_len(){return d_timeslots * d_fft_len;};
-      int active_subcarriers(){ return d_active_subcarriers;};
-      bool is_dc_free(){ return d_is_dc_free;};
-      std::vector<float> preamble_filter_taps();
+    void estimate_preamble_channel(gfdm_complex* fd_preamble_channel,
+                                   const gfdm_complex* rx_preamble);
+    int fft_len() { return d_fft_len; };
+    int timeslots() { return d_timeslots; };
+    int frame_len() { return d_timeslots * d_fft_len; };
+    int active_subcarriers() { return d_active_subcarriers; };
+    bool is_dc_free() { return d_is_dc_free; };
+    std::vector<float> preamble_filter_taps();
 
-      void filter_preamble_estimate(gfdm_complex* filtered, const gfdm_complex* estimate);
+    void filter_preamble_estimate(gfdm_complex* filtered, const gfdm_complex* estimate);
 
-      void interpolate_frame(gfdm_complex* frame_estimate, const gfdm_complex* estimate);
+    void interpolate_frame(gfdm_complex* frame_estimate, const gfdm_complex* estimate);
 
-      void estimate_frame(gfdm_complex* frame_estimate, const gfdm_complex* rx_preamble);
+    void estimate_frame(gfdm_complex* frame_estimate, const gfdm_complex* rx_preamble);
 
-      void prepare_for_zf(gfdm_complex* transformed_frame, const gfdm_complex* frame_estimate);
+    void prepare_for_zf(gfdm_complex* transformed_frame,
+                        const gfdm_complex* frame_estimate);
 
-      float estimate_snr(const gfdm_complex* rx_preamble);
+    float estimate_snr(const gfdm_complex* rx_preamble);
 
-    private:
-      int d_timeslots;
-      int d_fft_len;
-      int d_active_subcarriers;
-      bool d_is_dc_free;
-      int d_which_estimator;
+private:
+    int d_timeslots;
+    int d_fft_len;
+    int d_active_subcarriers;
+    bool d_is_dc_free;
+    int d_which_estimator;
 
-      gfdm_complex* d_preamble_fft_in;
-      gfdm_complex* d_preamble_fft_out;
-      fftwf_plan d_preamble_fft_plan;
+    gfdm_complex* d_preamble_fft_in;
+    gfdm_complex* d_preamble_fft_out;
+    fftwf_plan d_preamble_fft_plan;
 
-      gfdm_complex* d_snr_fft_in;
-      gfdm_complex* d_snr_fft_out;
-      fftwf_plan d_snr_fft_plan;
+    gfdm_complex* d_snr_fft_in;
+    gfdm_complex* d_snr_fft_out;
+    fftwf_plan d_snr_fft_plan;
 
-      gfdm_complex* d_inv_freq_preamble0;
-      gfdm_complex* d_inv_freq_preamble1;
-      gfdm_complex* d_intermediate_channel_estimate;
-      void initialize_inv_freq_preamble(gfdm_complex* p_out, const gfdm_complex* p_preamble_part);
-      void estimate_fftlen_preamble_channel(gfdm_complex* p_out, const gfdm_complex* rx_samples, const gfdm_complex* fd_ref_samples);
+    gfdm_complex* d_inv_freq_preamble0;
+    gfdm_complex* d_inv_freq_preamble1;
+    gfdm_complex* d_intermediate_channel_estimate;
+    void initialize_inv_freq_preamble(gfdm_complex* p_out,
+                                      const gfdm_complex* p_preamble_part);
+    void estimate_fftlen_preamble_channel(gfdm_complex* p_out,
+                                          const gfdm_complex* rx_samples,
+                                          const gfdm_complex* fd_ref_samples);
 
-      int d_n_gaussian_taps;
-      float* d_gaussian_taps;
-      void initialize_gaussian_filter(float* taps, const float sigma_sq, const int n_taps);
+    int d_n_gaussian_taps;
+    float* d_gaussian_taps;
+    void initialize_gaussian_filter(float* taps, const float sigma_sq, const int n_taps);
 
-      gfdm_complex* d_filter_intermediate;
-      gfdm_complex* d_preamble_estimate;
-      gfdm_complex* d_filtered_estimate;
-      gfdm_complex* d_one_reference;
+    gfdm_complex* d_filter_intermediate;
+    gfdm_complex* d_preamble_estimate;
+    gfdm_complex* d_filtered_estimate;
+    gfdm_complex* d_one_reference;
+};
 
-
-
-    };
-
-  } // namespace gfdm
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_PREAMBLE_CHANNEL_ESTIMATOR_CC_H */
-

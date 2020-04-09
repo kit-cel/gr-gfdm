@@ -22,50 +22,56 @@
 #ifndef INCLUDED_GFDM_TRANSMITTER_KERNEL_H
 #define INCLUDED_GFDM_TRANSMITTER_KERNEL_H
 
-#include <gfdm/api.h>
 #include "gfdm_kernel_utils.h"
-#include <gfdm/resource_mapper_kernel_cc.h>
-#include <gfdm/modulator_kernel_cc.h>
 #include <gfdm/add_cyclic_prefix_cc.h>
+#include <gfdm/api.h>
+#include <gfdm/modulator_kernel_cc.h>
+#include <gfdm/resource_mapper_kernel_cc.h>
 
 #include <memory>
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
 
-    /*!
-     * \brief <+description+>
-     *
-     */
-    class GFDM_API transmitter_kernel
-    {
-    public:
-      typedef gr::gfdm::gfdm_kernel_utils::gfdm_complex gfdm_complex;
+/*!
+ * \brief <+description+>
+ *
+ */
+class GFDM_API transmitter_kernel
+{
+public:
+    typedef gr::gfdm::gfdm_kernel_utils::gfdm_complex gfdm_complex;
 
-      transmitter_kernel(int timeslots, int subcarriers, int active_subcarriers,
-                         int cp_len, int cs_len, int ramp_len,
-                         std::vector<int> subcarrier_map, bool per_timeslot,
-                         int overlap, std::vector<gfdm_complex> frequency_taps,
-                         std::vector<gfdm_complex> window_taps,
-                         std::vector<gfdm_complex> preamble);
-      ~transmitter_kernel();
+    transmitter_kernel(int timeslots,
+                       int subcarriers,
+                       int active_subcarriers,
+                       int cp_len,
+                       int cs_len,
+                       int ramp_len,
+                       std::vector<int> subcarrier_map,
+                       bool per_timeslot,
+                       int overlap,
+                       std::vector<gfdm_complex> frequency_taps,
+                       std::vector<gfdm_complex> window_taps,
+                       std::vector<gfdm_complex> preamble);
+    ~transmitter_kernel();
 
-      int input_vector_size() {return d_mapper->input_vector_size();}
-      int output_vector_size() {return d_prefixer->frame_size() + d_preamble.size();}
-      void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
+    int input_vector_size() { return d_mapper->input_vector_size(); }
+    int output_vector_size() { return d_prefixer->frame_size() + d_preamble.size(); }
+    void
+    generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
 
-    private:
-      std::unique_ptr<resource_mapper_kernel_cc> d_mapper;
-      std::unique_ptr<modulator_kernel_cc> d_modulator;
-      std::unique_ptr<add_cyclic_prefix_cc> d_prefixer;
+private:
+    std::unique_ptr<resource_mapper_kernel_cc> d_mapper;
+    std::unique_ptr<modulator_kernel_cc> d_modulator;
+    std::unique_ptr<add_cyclic_prefix_cc> d_prefixer;
 
-      gfdm_complex* d_mapped;
-      gfdm_complex* d_frame;
-      std::vector<gfdm_complex> d_preamble;
-    };
+    gfdm_complex* d_mapped;
+    gfdm_complex* d_frame;
+    std::vector<gfdm_complex> d_preamble;
+};
 
-  } // namespace gfdm
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_TRANSMITTER_KERNEL_H */
-

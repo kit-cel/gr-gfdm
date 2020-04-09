@@ -25,32 +25,34 @@
 #include <gfdm/preamble_channel_estimator_cc.h>
 
 namespace gr {
-  namespace gfdm {
+namespace gfdm {
 
-    class channel_estimator_cc_impl : public channel_estimator_cc
-    {
-     private:
-        std::unique_ptr<preamble_channel_estimator_cc> d_estimator_kernel;
+class channel_estimator_cc_impl : public channel_estimator_cc
+{
+private:
+    std::unique_ptr<preamble_channel_estimator_cc> d_estimator_kernel;
 
-     public:
-      channel_estimator_cc_impl(int timeslots, int fft_len, int active_subcarriers,
-                                bool is_dc_free, int which_estimator,
-                                std::vector<gr_complex> preamble);
-      ~channel_estimator_cc_impl();
+public:
+    channel_estimator_cc_impl(int timeslots,
+                              int fft_len,
+                              int active_subcarriers,
+                              bool is_dc_free,
+                              int which_estimator,
+                              std::vector<gr_complex> preamble);
+    ~channel_estimator_cc_impl();
 
-      // Where all the action really happens
-      void forecast (int noutput_items, gr_vector_int &ninput_items_required);
-      int fixed_rate_ninput_to_noutput(int ninput);
-      int fixed_rate_noutput_to_ninput(int noutput);
+    // Where all the action really happens
+    void forecast(int noutput_items, gr_vector_int& ninput_items_required);
+    int fixed_rate_ninput_to_noutput(int ninput);
+    int fixed_rate_noutput_to_ninput(int noutput);
 
-      int general_work(int noutput_items,
-           gr_vector_int &ninput_items,
-           gr_vector_const_void_star &input_items,
-           gr_vector_void_star &output_items);
-    };
+    int general_work(int noutput_items,
+                     gr_vector_int& ninput_items,
+                     gr_vector_const_void_star& input_items,
+                     gr_vector_void_star& output_items);
+};
 
-  } // namespace gfdm
+} // namespace gfdm
 } // namespace gr
 
 #endif /* INCLUDED_GFDM_CHANNEL_ESTIMATOR_CC_IMPL_H */
-
