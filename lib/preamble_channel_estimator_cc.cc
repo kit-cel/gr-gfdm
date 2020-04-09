@@ -177,9 +177,6 @@ void preamble_channel_estimator_cc::filter_preamble_estimate(gfdm_complex* filte
     std::fill(d_filter_intermediate,
               d_filter_intermediate + d_n_gaussian_taps / 2,
               left_fill_element);
-    // for(int i = 0; i < d_n_gaussian_taps / 2; ++i){
-    //   d_filter_intermediate[i] = estimate[d_fft_len - d_active_subcarriers / 2];
-    // }
 
     for (int i = 0; i < d_active_subcarriers / 2; ++i) {
         d_filter_intermediate[i + d_n_gaussian_taps / 2] =
@@ -226,6 +223,8 @@ float preamble_channel_estimator_cc::estimate_snr(const gfdm_complex* rx_preambl
         const unsigned pos = 2 * (i + offset);
         const auto se = std::norm(d_snr_fft_out[pos]);
         const auto ne = std::norm(d_snr_fft_out[pos + 1]);
+
+        // std::cout << pos << "\t" << se << ",\t" << ne << std::endl;
         symbol_energy += se;
         noise_energy += ne;
     }
@@ -236,6 +235,7 @@ float preamble_channel_estimator_cc::estimate_snr(const gfdm_complex* rx_preambl
         const unsigned pos = 2 * (i + low_offset);
         const auto se = std::norm(d_snr_fft_out[pos]);
         const auto ne = std::norm(d_snr_fft_out[pos + 1]);
+        // std::cout << pos << "\t" << se << ",\t" << ne << std::endl;
         symbol_energy += se;
         noise_energy += ne;
     }
