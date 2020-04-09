@@ -198,7 +198,7 @@ namespace gr {
         noise_energy += ne;
       }
 
-      const float snr_lin = symbol_energy / noise_energy;
+      const float snr_lin = (symbol_energy - noise_energy) / noise_energy;
       const float snr_db = 10.0f * std::log10(snr_lin);
 
       // std::cout << "SNR " << snr_lin
