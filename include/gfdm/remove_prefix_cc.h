@@ -36,7 +36,7 @@ namespace gfdm {
 class GFDM_API remove_prefix_cc : virtual public gr::block
 {
 public:
-    typedef boost::shared_ptr<remove_prefix_cc> sptr;
+    typedef std::shared_ptr<remove_prefix_cc> sptr;
 
     /*!
      * \brief Return a shared_ptr to a new instance of gfdm::remove_prefix_cc.

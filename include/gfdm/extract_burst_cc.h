@@ -36,7 +36,7 @@ namespace gfdm {
 class GFDM_API extract_burst_cc : virtual public gr::block
 {
 public:
-    typedef boost::shared_ptr<extract_burst_cc> sptr;
+    typedef std::shared_ptr<extract_burst_cc> sptr;
 
     /*!
      * \brief Return a shared_ptr to a new instance of gfdm::extract_burst_cc.

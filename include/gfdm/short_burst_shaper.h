@@ -36,7 +36,7 @@ namespace gfdm {
 class GFDM_API short_burst_shaper : virtual public gr::tagged_stream_block
 {
 public:
-    typedef boost::shared_ptr<short_burst_shaper> sptr;
+    typedef std::shared_ptr<short_burst_shaper> sptr;
 
     /*!
      * \brief Return a shared_ptr to a new instance of gfdm::short_burst_shaper.

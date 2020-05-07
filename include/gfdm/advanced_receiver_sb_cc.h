@@ -38,7 +38,7 @@ namespace gfdm {
 class GFDM_API advanced_receiver_sb_cc : virtual public gr::sync_block
 {
 public:
-    typedef boost::shared_ptr<advanced_receiver_sb_cc> sptr;
+    typedef std::shared_ptr<advanced_receiver_sb_cc> sptr;
 
     /*!
      * \brief Return a shared_ptr to a new instance of gfdm::advanced_receiver_sb_cc.

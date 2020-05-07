@@ -36,7 +36,7 @@ namespace gfdm {
 class GFDM_API resource_mapper_cc : virtual public gr::block
 {
 public:
-    typedef boost::shared_ptr<resource_mapper_cc> sptr;
+    typedef std::shared_ptr<resource_mapper_cc> sptr;
 
     /*!
      * \brief Return a shared_ptr to a new instance of gfdm::resource_mapper_cc.

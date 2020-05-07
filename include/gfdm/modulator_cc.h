@@ -39,7 +39,7 @@ namespace gfdm {
 class GFDM_API modulator_cc : virtual public gr::tagged_stream_block
 {
 public:
-    typedef boost::shared_ptr<modulator_cc> sptr;
+    typedef std::shared_ptr<modulator_cc> sptr;
 
     /*!
      * \brief Return a shared_ptr to a new instance of gfdm::modulator_cc.
