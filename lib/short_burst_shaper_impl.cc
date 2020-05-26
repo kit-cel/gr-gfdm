@@ -85,11 +85,12 @@ int short_burst_shaper_impl::work(int noutput_items,
 {
     const gr_complex* in = (const gr_complex*)input_items[0];
     gr_complex* out = (gr_complex*)output_items[0];
-
+    
     std::memset(out, 0, sizeof(gr_complex) * d_pre_padding);
+    
     volk_32fc_s32fc_multiply_32fc(
-        out + d_pre_padding, in, d_scale, sizeof(gr_complex) * ninput_items[0]);
-    // std::memcpy(out + d_pre_padding, in, sizeof(gr_complex) * ninput_items[0]);
+        out + d_pre_padding, in, d_scale, ninput_items[0]);
+    
     std::memset(
         out + d_pre_padding + ninput_items[0], 0, sizeof(gr_complex) * d_post_padding);
 
