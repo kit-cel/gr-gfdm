@@ -38,6 +38,7 @@ from .mapping import get_data_matrix
 from .cyclic_prefix import add_cyclic_prefix, get_raised_cosine_ramp, get_window_len, pinch_block, add_cyclic_starfix
 from .filters import get_frequency_domain_filter
 from .gfdm_modulation import gfdm_modulate_block
+from .zadoff_chu import generate_zadoff_chu_sequence
 
 
 def sync_symbol(filtertype, alpha, K, n_mod, N):
@@ -86,8 +87,11 @@ def sync_symbol2(filtertype, alpha, K, L, n_mod):
     return output
 
 
-def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len):
-    pn_vals = get_random_qpsk(active_subcarriers, seed)
+def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len, use_zadoff_chu=False):
+    if use_zadoff_chu:
+        pn_vals = generate_zadoff_chu_sequence(active_subcarriers, 19)
+    else:
+        pn_vals = get_random_qpsk(active_subcarriers, seed)
     pn_sym = map_to_waveform_resources(pn_vals, active_subcarriers, fft_len, subcarrier_map)
     return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len)
 
