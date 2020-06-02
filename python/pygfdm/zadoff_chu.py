@@ -46,7 +46,7 @@ if __name__ == "__main__":
     papr = np.max(np.abs(td_seq) ** 2) / np.mean(np.abs(td_seq) ** 2)
     print(f'PUNC: PAPRlin={papr:.4f}, {10. * np.log10(papr):.4f}dB')
     # plt.plot(np.abs(td_seq))
-    plt.plot(np.abs(np.correlate(td_seq, td_seq, 'full')))
+    plt.plot(np.abs(np.correlate(td_seq, td_seq, 'full')), label='PUNC')
 
     seq1 = generate_zadoff_chu_sequence(nasc, 19)
     # seq1 = np.delete(seq1, nasc // 2)
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     print(f'USED: PAPRlin={papr:.4f}, {10. * np.log10(papr):.4f}dB')
     # plt.plot(np.abs(td_seq1))
     # plt.show()
-    plt.plot(np.abs(np.correlate(td_seq1, td_seq1, 'full')))
+    plt.plot(np.abs(np.correlate(td_seq1, td_seq1, 'full')), label='USED')
 
     seq2 = generate_zadoff_chu_sequence(nsc, 19)
     fd_seq2 = np.fft.fft(seq2)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     td_seq2 = np.tile(td_seq2, 2)
     papr = np.max(np.abs(td_seq2) ** 2) / np.mean(np.abs(td_seq2) ** 2)
     print(f'TD:   PAPRlin={papr:.4f}, {10. * np.log10(papr):.4f}dB')
-    plt.plot(np.abs(np.correlate(td_seq2, td_seq2, 'full')))
+    plt.plot(np.abs(np.correlate(td_seq2, td_seq2, 'full')), label='TD')
 
     d = get_random_qpsk(nasc)
     s = np.zeros_like(seq2)
@@ -83,6 +83,7 @@ if __name__ == "__main__":
     td_seq3 = np.tile(td_seq3, 2)
     papr = np.max(np.abs(td_seq3) ** 2) / np.mean(np.abs(td_seq3) ** 2)
     print(f'QPSK: PAPRlin={papr:.4f}, {10. * np.log10(papr):.4f}dB')
-    plt.plot(np.abs(np.correlate(td_seq3, td_seq3, 'full')))
+    plt.plot(np.abs(np.correlate(td_seq3, td_seq3, 'full')), label='QPSK')
 
+    plt.legend()
     plt.show()
