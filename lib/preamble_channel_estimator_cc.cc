@@ -210,8 +210,10 @@ void preamble_channel_estimator_cc::filter_preamble_estimate(gfdm_complex* filte
     }
 }
 
-float preamble_channel_estimator_cc::estimate_snr(const gfdm_complex* rx_preamble)
+float preamble_channel_estimator_cc::estimate_snr(std::vector<float>& cnrs,
+                                                  const gfdm_complex* rx_preamble)
 {
+    cnrs.resize(d_active_subcarriers);
     memcpy(d_snr_fft_in, rx_preamble, sizeof(gfdm_complex) * 2 * d_fft_len);
     fftwf_execute(d_snr_fft_plan);
     float symbol_energy = 0.0f;
@@ -223,6 +225,8 @@ float preamble_channel_estimator_cc::estimate_snr(const gfdm_complex* rx_preambl
         const unsigned pos = 2 * (i + offset);
         const auto se = std::norm(d_snr_fft_out[pos]);
         const auto ne = std::norm(d_snr_fft_out[pos + 1]);
+
+        cnrs[i] = se;
 
         // std::cout << pos << "\t" << se << ",\t" << ne << std::endl;
         symbol_energy += se;
@@ -236,13 +240,16 @@ float preamble_channel_estimator_cc::estimate_snr(const gfdm_complex* rx_preambl
         const auto se = std::norm(d_snr_fft_out[pos]);
         const auto ne = std::norm(d_snr_fft_out[pos + 1]);
         // std::cout << pos << "\t" << se << ",\t" << ne << std::endl;
+
+        cnrs[active_half + i] = se;
         symbol_energy += se;
         noise_energy += ne;
     }
 
     const float snr_lin = (symbol_energy - noise_energy) / noise_energy;
     const float snr_db = 10.0f * std::log10(snr_lin);
-
+    const float scale = snr_lin / (symbol_energy / cnrs.size());
+    volk_32f_s32f_multiply_32f(cnrs.data(), cnrs.data(), scale, cnrs.size());
     // std::cout << "SNR " << snr_lin
     //           << "lin,\t" << snr_db
     //           << "dB\n";

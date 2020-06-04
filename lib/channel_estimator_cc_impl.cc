@@ -103,13 +103,17 @@ int channel_estimator_cc_impl::general_work(int noutput_items,
 
     for (int i = 0; i < n_frames; ++i) {
         d_estimator_kernel->estimate_frame(out, in);
-        /*
-        const float snr_lin = d_estimator_kernel->estimate_snr(in);
+
+        std::vector<float> cnrs(d_estimator_kernel->active_subcarriers());
+        const float snr_lin = d_estimator_kernel->estimate_snr(cnrs, in);
         add_item_tag(0,
                      nitems_written(0) + i * frame_len,
                      pmt::intern("snr_lin"),
                      pmt::from_float(snr_lin));
-        */
+        add_item_tag(0,
+                     nitems_written(0) + i * frame_len,
+                     pmt::intern("cnr"),
+                     pmt::init_f32vector(cnrs.size(), cnrs));
         in += invec_len;
         out += frame_len;
     }

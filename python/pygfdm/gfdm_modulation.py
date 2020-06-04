@@ -25,7 +25,6 @@ A few hints on used papers, consider them to be a good read.
 [1] Generalized Frequency Division Multiplexing for 5th Generation Cellular Networks
 [2] "Bit Error Rate Performance of Generalized Frequency Division Multiplexing"
 '''
-from __future__ import print_function, division, unicode_literals
 import numpy as np
 from .modulation import gfdm_modulation_matrix, gfdm_tx_fft2
 from .filters import gfdm_filter_taps, get_frequency_domain_filter

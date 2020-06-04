@@ -67,7 +67,7 @@ public:
     void prepare_for_zf(gfdm_complex* transformed_frame,
                         const gfdm_complex* frame_estimate);
 
-    float estimate_snr(const gfdm_complex* rx_preamble);
+    float estimate_snr(std::vector<float>& cnrs, const gfdm_complex* rx_preamble);
 
 private:
     int d_timeslots;
