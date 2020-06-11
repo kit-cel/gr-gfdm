@@ -21,19 +21,34 @@ parameters:
     label: Length Tag Name
     dtype: string
     default: '"packet_len"'
+-   id: use_timed_commands
+    label: Timed commands
+    dtype: bool
+    default: False
+-   id: timing_advance
+    label: Timing advance
+    dtype: float
+    default: 1.0e-3
 
 inputs:
 -   domain: stream
     dtype: complex
+-   domain: message
+    id: time_tag
+    optional: True
 
 outputs:
 -   domain: stream
     dtype: complex
+-   domain: message
+    id: command
+    optional: True
 
 templates:
     imports: import gfdm
-    make: gfdm.short_burst_shaper(${pre_padding}, ${post_padding}, ${scale}, ${length_tag_name})
+    make: gfdm.short_burst_shaper(${pre_padding}, ${post_padding}, ${scale}, ${length_tag_name}, ${use_timed_commands}, ${timing_advance})
     callbacks:
     - set_scale(${scale})
+    - set_timing_advance(${timing_advance})
 
 file_format: 1

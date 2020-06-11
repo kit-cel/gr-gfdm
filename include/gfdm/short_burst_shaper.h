@@ -49,7 +49,9 @@ public:
     static sptr make(int pre_padding,
                      int post_padding,
                      gr_complex scale,
-                     const std::string& length_tag_name = "packet_len");
+                     const std::string& length_tag_name = "packet_len",
+                     bool use_timed_commands = false,
+                     double timing_advance = 1.0e-3);
 
     /*!
      * \brief Return multiplicative constant
@@ -60,6 +62,16 @@ public:
      * \brief Set multiplicative constant
      */
     virtual void set_scale(gr_complex scale) = 0;
+
+    /*!
+     * \brief Return command timing advance
+     */
+    virtual double timing_advance() const = 0;
+
+    /*!
+     * \brief Set command timing advance
+     */
+    virtual void set_timing_advance(double timing_advance) = 0;
 };
 
 } // namespace gfdm
