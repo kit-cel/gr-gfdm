@@ -55,6 +55,8 @@ private:
 
     uint64_t d_last_tx_ns;
 
+    uint64_t d_rx_time;
+
 
     uint64_t double2ticks(const double interval) const
     {

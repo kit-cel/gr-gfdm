@@ -76,7 +76,8 @@ short_burst_shaper_impl::short_burst_shaper_impl(int pre_padding,
       d_slot_counter(0),
       d_last_full_secs(0),
       d_last_frac_secs(0.0),
-      d_last_tx_ns(0)
+      d_last_tx_ns(0),
+      d_rx_time(0)
 {
     if (d_pre_padding < 0) {
         throw std::invalid_argument("Pre-padding length MUST be >= 0!");
@@ -143,10 +144,16 @@ void short_burst_shaper_impl::send_rx_gain_commands(const int packet_len)
 
 void short_burst_shaper_impl::handle_msg(pmt::pmt_t time_msg)
 {
-    if (d_use_timed_commands) {
-        if (not pmt::is_tuple(time_msg)) {
-            return; // time messages are tuples!
-        }
+    if (pmt::is_dict(time_msg) &&
+        (pmt::equal(pmt::dict_ref(time_msg, pmt::mp("src"), pmt::from_long(-1)),
+                    pmt::from_long(0)))) {
+        d_rx_time =
+            pmt::to_long(pmt::dict_ref(time_msg, pmt::mp("rx_time"), pmt::from_long(0)));
+
+    } else if (d_use_timed_commands && pmt::is_tuple(time_msg)) {
+        // if (not pmt::is_tuple(time_msg)) {
+        //     return; // time messages are tuples!
+        // }
         d_full_secs = pmt::to_uint64(pmt::tuple_ref(time_msg, 0));
         d_frac_secs = pmt::to_double(pmt::tuple_ref(time_msg, 1));
         d_tag_offset = pmt::to_uint64(pmt::tuple_ref(time_msg, 2));
@@ -179,11 +186,14 @@ int short_burst_shaper_impl::work(int noutput_items,
     if (d_use_timed_commands) {
 
         uint64_t fts = pc_clock_ticks();
+        uint64_t ticks = fts;
+
         fts -= fts % d_cycle_interval_ticks;
         fts += d_cycle_interval_ticks;
         while (fts <= d_last_tx_ns) {
             fts += d_cycle_interval_ticks;
         }
+        fts += d_rx_time % d_cycle_interval_ticks;
         d_last_tx_ns = fts;
 
         fts += d_timing_advance_ticks;
@@ -191,15 +201,16 @@ int short_burst_shaper_impl::work(int noutput_items,
         uint64_t full_secs = ticks2fullsecs(fts);
         double frac_secs = ticks2fracsecs(fts);
 
-        uint64_t heartbeat_counter = timespec2ticks(d_full_secs, d_frac_secs);
-        uint64_t tx_counter = timespec2ticks(full_secs, frac_secs);
-        if (heartbeat_counter > tx_counter) {
-            GR_LOG_DEBUG(d_logger,
-                         "timestamp: " + std::to_string(d_full_secs) + " . " +
-                             std::to_string(1000.0 * d_frac_secs) +
-                             " / system: " + std::to_string(full_secs) + " . " +
-                             std::to_string(1000.0 * frac_secs));
-        }
+        // uint64_t heartbeat_counter = timespec2ticks(d_full_secs, d_frac_secs);
+        // uint64_t tx_counter = timespec2ticks(full_secs, frac_secs);
+        // if (heartbeat_counter > tx_counter) {
+        //     GR_LOG_DEBUG(d_logger,
+        //                  "timestamp: " + std::to_string(d_full_secs) + " . " +
+        //                      std::to_string(1000.0 * d_frac_secs) +
+        //                      " / system: " + std::to_string(full_secs) + " . " +
+        //                      std::to_string(1000.0 * frac_secs));
+        // }
+
 
         add_item_tag(
             0,
@@ -211,6 +222,19 @@ int short_burst_shaper_impl::work(int noutput_items,
         d_has_new_time_tag = false;
         d_last_full_secs = full_secs;
         d_last_frac_secs = frac_secs;
+
+        std::vector<tag_t> tags;
+        get_tags_in_range(
+            tags, 0, nitems_read(0), (nitems_read(0) + noutput_items), pmt::mp("time"));
+        uint64_t tx_timestamp = 0;
+        for (auto t : tags) {
+            tx_timestamp = pmt::to_long(t.value);
+        }
+
+        // GR_LOG_DEBUG(d_logger, "Timestamp: " + std::to_string(tx_timestamp) + " PC
+        // timestamp: " + std::to_string(ticks) + " TX timestamp: " +
+        // std::to_string(fts)); GR_LOG_DEBUG(d_logger, "TX timestamp: " +
+        // std::to_string(fts));
     }
 
     // Tell runtime system how many output items we produced.
