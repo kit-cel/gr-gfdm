@@ -51,10 +51,10 @@ extract_burst_cc_impl::extract_burst_cc_impl(int burst_len,
                 gr::io_signature::make(1, 1, sizeof(gr_complex))),
       d_burst_len(burst_len),
       d_tag_backoff(tag_backoff),
+      d_burst_start_tag(pmt::mp(burst_start_tag)),
       d_activate_cfo_correction(activate_cfo_correction)
 {
     set_output_multiple(burst_len);
-    d_burst_start_tag = pmt::string_to_symbol(burst_start_tag);
     set_tag_propagation_policy(TPP_DONT);
 }
 
@@ -66,32 +66,26 @@ extract_burst_cc_impl::~extract_burst_cc_impl() {}
 void extract_burst_cc_impl::forecast(int noutput_items,
                                      gr_vector_int& ninput_items_required)
 {
-    /* <+forecast+> e.g. ninput_items_required[0] = noutput_items */
     ninput_items_required[0] = noutput_items;
 }
 
-float extract_burst_cc_impl::get_scale_factor(pmt::pmt_t info)
+float extract_burst_cc_impl::get_scale_factor(const pmt::pmt_t& info) const
 {
     float scale_factor = 1.0f;
     if (pmt::is_dict(info)) {
-        pmt::pmt_t scl = pmt::dict_ref(info, pmt::mp("scale_factor"), pmt::PMT_NIL);
-        if (pmt::is_real(scl)) {
-            scale_factor = pmt::to_double(scl);
-        }
+        scale_factor = pmt::to_double(
+            pmt::dict_ref(info, d_scale_factor_key, pmt::from_double(1.0)));
     }
     return scale_factor;
 }
 
-gr_complex extract_burst_cc_impl::get_phase_rotation(pmt::pmt_t info)
+gr_complex extract_burst_cc_impl::get_phase_rotation(const pmt::pmt_t& info) const
 {
-    gr_complex fq_comp_rot = 1;
-    pmt::pmt_t sc_rot = pmt::dict_ref(info, pmt::mp("sc_rot"), pmt::PMT_NIL);
-
-    if (pmt::is_complex(sc_rot)) {
-        fq_comp_rot = std::conj(pmt::to_complex(sc_rot));
-        fq_comp_rot /= std::abs(fq_comp_rot);
-    }
-    return fq_comp_rot;
+    const auto phase_rotation = pmt::to_complex(pmt::dict_ref(
+        info, d_phase_rotation_key, pmt::from_complex(gr_complex(1.0f, 0.0f))));
+    const auto scale = 1.0 / std::abs(phase_rotation);
+    return gr_complex(scale * phase_rotation.real(),
+                      -1.0f * scale * phase_rotation.imag());
 }
 
 void extract_burst_cc_impl::normalize_power_level(gr_complex* p_out,
@@ -128,50 +122,62 @@ int extract_burst_cc_impl::general_work(int noutput_items,
     const gr_complex* in = (const gr_complex*)input_items[0];
     gr_complex* out = (gr_complex*)output_items[0];
 
-    int n_out_bursts = noutput_items / d_burst_len;
-    int avail_items = ninput_items[0];
+    const int n_out_bursts = noutput_items / d_burst_len;
+    const int avail_items = ninput_items[0];
     int consumed_items = avail_items;
     int produced_items = 0;
+
 
     std::vector<tag_t> tags;
     get_tags_in_window(tags, 0, 0, avail_items, d_burst_start_tag);
     const int n_max_bursts = std::min(int(tags.size()), n_out_bursts);
-    for (int i = 0; i < n_max_bursts; ++i) {
-        auto tag = tags[i];
-        int burst_start = tag.offset - nitems_read(0);
-        int actual_start = burst_start - d_tag_backoff;
 
-        pmt::pmt_t info = tag.value;
-        const float scale_factor = get_scale_factor(info);
+    for (int i = 0; i < n_max_bursts; ++i) {
+        const auto& tag = tags[i];
+        const int burst_start = tag.offset - nitems_read(0);
+        const int actual_start = burst_start - d_tag_backoff;
+
+        const pmt::pmt_t& info = tag.value;
+        const uint64_t xcorr_idx = pmt::to_uint64(
+            pmt::dict_ref(info, pmt::mp("xcorr_idx"), pmt::from_uint64(0)));
+        const uint64_t xcorr_offset = pmt::to_uint64(
+            pmt::dict_ref(info, pmt::mp("xcorr_offset"), pmt::from_uint64(0)));
 
         if (avail_items - burst_start >= d_burst_len) {
 
+            const float scale_factor = get_scale_factor(info);
             if (actual_start < 0) {
-                int num_prepend_zeros = std::abs(actual_start);
+                const int num_prepend_zeros = std::abs(actual_start);
                 memset(out, 0, sizeof(gr_complex) * num_prepend_zeros);
-                // memcpy(out + num_prepend_zeros, in, sizeof(gr_complex) * d_burst_len);
-                normalize_power_level(
-                    out + num_prepend_zeros, in, scale_factor, d_burst_len);
+                normalize_power_level(out + num_prepend_zeros,
+                                      in,
+                                      scale_factor,
+                                      d_burst_len - num_prepend_zeros);
             } else {
-                // memcpy(out, in + actual_start, sizeof(gr_complex) * d_burst_len);
                 normalize_power_level(out, in + actual_start, scale_factor, d_burst_len);
             }
 
             if (d_activate_cfo_correction) {
-                gr_complex fq_comp_rot = get_phase_rotation(info);
-                compensate_cfo(out, out, fq_comp_rot, d_burst_len);
+                compensate_cfo(out, out, get_phase_rotation(info), d_burst_len);
             }
 
             add_item_tag(0,
                          nitems_written(0) + produced_items,
                          d_burst_start_tag,
-                         tag.value,
+                         info,
                          pmt::string_to_symbol(name()));
 
+            d_last_xcorr_offset = xcorr_offset;
+            d_last_xcorr_idx = xcorr_idx;
+
+            d_frame_counter++;
             produced_items += d_burst_len;
             consumed_items = burst_start + d_burst_len;
             out += d_burst_len;
         } else {
+
+            d_expected_xcorr_idx = xcorr_idx;
+
             consumed_items = std::max(0, actual_start);
             break;
         }

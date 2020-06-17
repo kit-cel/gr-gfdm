@@ -36,7 +36,7 @@ private:
     const int d_post_padding;
     gr_complex d_scale;
     const bool d_use_timed_commands;
-    bool d_has_new_time_tag;
+    bool d_has_new_time_tag = false;
 
     double d_timing_advance;
     uint64_t d_timing_advance_ticks;
@@ -44,18 +44,18 @@ private:
     double d_cycle_interval;
     uint64_t d_cycle_interval_ticks;
 
-    uint64_t d_full_secs;
-    double d_frac_secs;
-    uint64_t d_tag_offset;
-    double d_samp_rate;
-    uint64_t d_slot_counter;
+    uint64_t d_full_secs = 0;
+    double d_frac_secs = 0.0;
+    uint64_t d_tag_offset = 0;
+    double d_samp_rate = 0.0;
+    uint64_t d_slot_counter = 0;
 
-    uint64_t d_last_full_secs;
-    double d_last_frac_secs;
+    uint64_t d_last_full_secs = 0;
+    double d_last_frac_secs = 0.0;
 
-    uint64_t d_last_tx_ns;
+    uint64_t d_last_tx_ns = 0;
 
-    uint64_t d_rx_time;
+    uint64_t d_rx_time = 0;
 
 
     uint64_t double2ticks(const double interval) const
@@ -100,7 +100,8 @@ public:
                             gr_complex scale,
                             const std::string& length_tag_name,
                             bool use_timed_commands,
-                            double timing_advance);
+                            double timing_advance,
+                            double cycle_interval);
     ~short_burst_shaper_impl();
 
     gr_complex scale() const { return d_scale; }

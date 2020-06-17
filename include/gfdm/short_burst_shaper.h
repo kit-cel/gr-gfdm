@@ -51,7 +51,8 @@ public:
                      gr_complex scale,
                      const std::string& length_tag_name = "packet_len",
                      bool use_timed_commands = false,
-                     double timing_advance = 1.0e-3);
+                     double timing_advance = 1.0e-3,
+                     double cycle_interval = 250e-6);
 
     /*!
      * \brief Return multiplicative constant
@@ -72,6 +73,16 @@ public:
      * \brief Set command timing advance
      */
     virtual void set_timing_advance(double timing_advance) = 0;
+
+        /*!
+     * \brief Return TX cycle interval
+     */
+    virtual double cycle_interval() const = 0;
+
+    /*!
+     * \brief Set TX cycle interval
+     */
+    virtual void set_cycle_interval(double cycle_interval) = 0;
 };
 
 } // namespace gfdm

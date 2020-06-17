@@ -64,10 +64,10 @@ class qa_extract_burst_cc(gr_unittest.TestCase):
         res = np.array(snk.data())
         rx_tags = snk.tags()
         for i, t in enumerate(rx_tags):
-            self.assertEquals(pmt.symbol_to_string(t.key), tag_key)
+            self.assertEqual(pmt.symbol_to_string(t.key), tag_key)
             self.assertTrue(pmt.is_true(t.value))
-            self.assertEquals(pmt.symbol_to_string(t.srcid), burster.name())
-            self.assertEquals(t.offset, i * burst_len)
+            self.assertEqual(pmt.symbol_to_string(t.srcid), burster.name())
+            self.assertEqual(t.offset, i * burst_len)
 
         # check data
         self.assertComplexTuplesAlmostEqual(ref, res)

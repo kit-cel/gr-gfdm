@@ -37,14 +37,16 @@ short_burst_shaper::sptr short_burst_shaper::make(int pre_padding,
                                                   gr_complex scale,
                                                   const std::string& length_tag_name,
                                                   bool use_timed_commands,
-                                                  double timing_advance)
+                                                  double timing_advance,
+                                                  double cycle_interval)
 {
     return gnuradio::get_initial_sptr(new short_burst_shaper_impl(pre_padding,
                                                                   post_padding,
                                                                   scale,
                                                                   length_tag_name,
                                                                   use_timed_commands,
-                                                                  timing_advance));
+                                                                  timing_advance,
+                                                                  cycle_interval));
 }
 
 /*
@@ -55,7 +57,8 @@ short_burst_shaper_impl::short_burst_shaper_impl(int pre_padding,
                                                  gr_complex scale,
                                                  const std::string& length_tag_name,
                                                  bool use_timed_commands,
-                                                 double timing_advance)
+                                                 double timing_advance,
+                                                 double cycle_interval)
     : gr::tagged_stream_block("short_burst_shaper",
                               gr::io_signature::make(1, 1, sizeof(gr_complex)),
                               gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -64,20 +67,10 @@ short_burst_shaper_impl::short_burst_shaper_impl(int pre_padding,
       d_post_padding(post_padding),
       d_scale(scale),
       d_use_timed_commands(use_timed_commands),
-      d_has_new_time_tag(false),
       d_timing_advance(timing_advance),
       d_timing_advance_ticks(double2ticks(timing_advance)),
-      d_cycle_interval(250.0e-6),
-      d_cycle_interval_ticks(double2ticks(250.0e-6)),
-      d_full_secs(0),
-      d_frac_secs(0.0),
-      d_tag_offset(0),
-      d_samp_rate(0.0),
-      d_slot_counter(0),
-      d_last_full_secs(0),
-      d_last_frac_secs(0.0),
-      d_last_tx_ns(0),
-      d_rx_time(0)
+      d_cycle_interval(cycle_interval),
+      d_cycle_interval_ticks(double2ticks(cycle_interval))
 {
     if (d_pre_padding < 0) {
         throw std::invalid_argument("Pre-padding length MUST be >= 0!");

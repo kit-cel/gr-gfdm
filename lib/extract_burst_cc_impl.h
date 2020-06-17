@@ -29,13 +29,23 @@ namespace gfdm {
 class extract_burst_cc_impl : public extract_burst_cc
 {
 private:
-    int d_burst_len;
-    int d_tag_backoff;
-    pmt::pmt_t d_burst_start_tag;
+    const pmt::pmt_t d_scale_factor_key = pmt::mp("scale_factor");
+    const pmt::pmt_t d_phase_rotation_key = pmt::mp("sc_rot");
+
+    const int d_burst_len;
+    const int d_tag_backoff;
+    const pmt::pmt_t d_burst_start_tag;
     bool d_activate_cfo_correction;
 
-    float get_scale_factor(pmt::pmt_t info);
-    gr_complex get_phase_rotation(pmt::pmt_t info);
+    uint64_t d_last_tag_offset = 0;
+    uint64_t d_last_xcorr_offset = 0;
+    uint64_t d_last_xcorr_idx = 0;
+    uint64_t d_expected_xcorr_idx = 0;
+    uint64_t d_frame_counter = 0;
+
+    float get_scale_factor(const pmt::pmt_t& info) const;
+    gr_complex get_phase_rotation(const pmt::pmt_t& info) const;
+
     void normalize_power_level(gr_complex* p_out,
                                const gr_complex* p_in,
                                const float norm_factor,
@@ -52,11 +62,10 @@ public:
                           bool activate_cfo_correction);
     ~extract_burst_cc_impl();
 
-    // Where all the action really happens
     void forecast(int noutput_items, gr_vector_int& ninput_items_required);
 
     void activate_cfo_compensation(bool activate_cfo_compensation);
-
+    // Where all the action really happens
     int general_work(int noutput_items,
                      gr_vector_int& ninput_items,
                      gr_vector_const_void_star& input_items,

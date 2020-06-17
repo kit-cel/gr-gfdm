@@ -29,6 +29,10 @@ parameters:
     label: Timing advance
     dtype: float
     default: 1.0e-3
+-   id: cycle_interval
+    label: Cycle interval
+    dtype: float
+    default: 250.0e-6
 
 inputs:
 -   domain: stream
@@ -46,9 +50,10 @@ outputs:
 
 templates:
     imports: import gfdm
-    make: gfdm.short_burst_shaper(${pre_padding}, ${post_padding}, ${scale}, ${length_tag_name}, ${use_timed_commands}, ${timing_advance})
+    make: gfdm.short_burst_shaper(${pre_padding}, ${post_padding}, ${scale}, ${length_tag_name}, ${use_timed_commands}, ${timing_advance}, ${cycle_interval})
     callbacks:
     - set_scale(${scale})
     - set_timing_advance(${timing_advance})
+    - set_timing_advance(${cycle_interval})
 
 file_format: 1
