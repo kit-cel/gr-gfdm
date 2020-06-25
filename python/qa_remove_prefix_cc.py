@@ -22,7 +22,7 @@
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import pmt
-import gfdm_swig as gfdm
+import gfdm_python as gfdm
 import numpy as np
 from pygfdm.preamble import mapped_preamble
 from pygfdm.mapping import get_subcarrier_map

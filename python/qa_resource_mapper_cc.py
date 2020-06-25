@@ -21,7 +21,7 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-import gfdm_swig as gfdm
+import gfdm_python as gfdm
 import numpy as np
 from pygfdm.mapping import map_to_waveform_resources
 from pygfdm.utils import get_random_qpsk

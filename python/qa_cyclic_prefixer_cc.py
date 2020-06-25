@@ -21,7 +21,7 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-import gfdm_swig as gfdm
+import gfdm_python as gfdm
 import numpy as np
 from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, add_cyclic_starfix
 

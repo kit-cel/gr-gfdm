@@ -29,7 +29,7 @@ from pygfdm.gfdm_receiver import gfdm_demodulate_block
 from pygfdm.utils import get_random_qpsk
 from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, add_cyclic_starfix
 
-from gfdm import Resource_mapper, Modulator, Demodulator, Cyclic_prefixer
+from gfdm_python import Resource_mapper, Modulator, Demodulator, Cyclic_prefixer
 
 
 class BindingTests(gr_unittest.TestCase):

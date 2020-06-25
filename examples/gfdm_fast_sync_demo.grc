@@ -1,6 +1,7 @@
 options:
   parameters:
     author: Johannes Demel
+    catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
     comment: ''
@@ -22,7 +23,6 @@ options:
     sizing_mode: fixed
     thread_safe_setters: ''
     title: GFDM Fast Sync
-    window_size: 1920,1080
   states:
     bus_sink: false
     bus_source: false
@@ -45,6 +45,7 @@ blocks:
     label4: ''
     labels: '[]'
     num_opts: '2'
+    option0: '0'
     option1: '1'
     option2: '2'
     option3: '3'
@@ -74,6 +75,7 @@ blocks:
     label4: ''
     labels: '[]'
     num_opts: '2'
+    option0: '0'
     option1: '1'
     option2: '2'
     option3: '3'
@@ -165,7 +167,7 @@ blocks:
     gui_hint: 'ctrl_tab@0: 2, 0, 1,1'
     label: epsilon
     min_len: '200'
-    orient: Qt.Horizontal
+    orient: QtCore.Qt.Horizontal
     rangeType: float
     start: '0'
     step: 1./samp_rate
@@ -289,7 +291,7 @@ blocks:
     gui_hint: 'ctrl_tab@0: 1, 0, 1,1'
     label: F Offset
     min_len: '200'
-    orient: Qt.Horizontal
+    orient: QtCore.Qt.Horizontal
     rangeType: float
     start: -10.e4
     step: '1.'
@@ -368,7 +370,7 @@ blocks:
     gui_hint: ctrl_tab@0:3,0,1,1
     label: IC Iterations
     min_len: '50'
-    orient: Qt.Horizontal
+    orient: QtCore.Qt.Horizontal
     rangeType: int
     start: '0'
     step: '1'
@@ -402,7 +404,7 @@ blocks:
     gui_hint: 'ctrl_tab@0: 0,0,1,1'
     label: Noise
     min_len: '200'
-    orient: Qt.Horizontal
+    orient: QtCore.Qt.Horizontal
     rangeType: float
     start: '0'
     step: '0.001'

@@ -44,8 +44,8 @@ Synchronization algorithms are not part of this OOT. Instead we rely on `XFDMSyn
 Requirements
 ------------
 - GNU Radio OOT
-  - GNU Radio 3.8 (verified)
-  - GR 3.8 API
+  - GNU Radio 3.9 (verified)
+  - GR 3.9 API
   - GR-FFT
   - GR-FILTER
   - VOLK

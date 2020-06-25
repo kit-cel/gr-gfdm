@@ -21,7 +21,7 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-import gfdm_swig as gfdm
+import gfdm_python as gfdm
 from pygfdm.filters import get_frequency_domain_filter
 from pygfdm.gfdm_modulation import gfdm_modulate_block
 from pygfdm.mapping import get_data_matrix, map_to_waveform_resources, get_subcarrier_map

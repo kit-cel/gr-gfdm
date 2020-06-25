@@ -21,7 +21,7 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-import gfdm_swig as gfdm
+import gfdm_python as gfdm
 import numpy as np
 import pmt
 

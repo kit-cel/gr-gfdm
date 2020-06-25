@@ -1,12 +1,11 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
 #
 # Generated Thu Jun 11 18:43:54 2009 by generateDS.py.
 #
 
 import sys
-import getopt
-from string import lower as str_lower
+
 from xml.dom import minidom
 from xml.dom import Node
 
@@ -19,9 +18,9 @@ from xml.dom import Node
 
 try:
     from generatedssuper import GeneratedsSuper
-except ImportError, exp:
+except ImportError as exp:
 
-    class GeneratedsSuper:
+    class GeneratedsSuper(object):
         def format_string(self, input_data, input_name=''):
             return input_data
         def format_integer(self, input_data, input_name=''):
@@ -102,7 +101,7 @@ def quote_python(inStr):
             return '"""%s"""' % s1
 
 
-class MixedContainer:
+class MixedContainer(object):
     # Constants for category:
     CategoryNone = 0
     CategoryText = 1
@@ -462,7 +461,7 @@ Options:
 """
 
 def usage():
-    print USAGE_TEXT
+    print(USAGE_TEXT)
     sys.exit(1)
 
 

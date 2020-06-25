@@ -151,10 +151,11 @@ int transmitter_cc_impl::general_work(int noutput_items,
                           d_length_tag_key);
         for (auto tag : tags) {
             if (tag.key == d_length_tag_key) {
-                //GR_LOG_INFO(this->d_logger, "length: " + std::to_string(pmt::to_long(tag.value)) +
-                //        "\tkey: " + pmt::symbol_to_string(tag.key));	
-    //                             std::to_string(header_duration.count()) +
-    //                             "ns");
+                // GR_LOG_INFO(this->d_logger, "length: " +
+                // std::to_string(pmt::to_long(tag.value)) +
+                //        "\tkey: " + pmt::symbol_to_string(tag.key));
+                //                             std::to_string(header_duration.count()) +
+                //                             "ns");
                 assert(pmt::to_long(tag.value) == d_kernel->input_vector_size());
                 remove_item_tag(0, tag);
             }

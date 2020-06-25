@@ -21,7 +21,7 @@
 
 import numpy as np
 from gnuradio import gr, gr_unittest
-import gfdm_swig as gfdm
+import gfdm_python as gfdm
 from gfdm.pygfdm import gfdm_modulation, gfdm_receiver, utils, receiver
 
 class qa_pygfdm_module (gr_unittest.TestCase):

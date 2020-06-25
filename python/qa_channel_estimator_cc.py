@@ -22,10 +22,10 @@
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import pmt
-import gfdm_swig as gfdm
+import gfdm_python as gfdm
 import numpy as np
-from gfdm.pygfdm.mapping import get_subcarrier_map
-from gfdm.pygfdm.preamble import mapped_preamble
+from pygfdm.mapping import get_subcarrier_map
+from pygfdm.preamble import mapped_preamble
 
 
 def calculate_energy(vec):
@@ -168,7 +168,9 @@ class qa_channel_estimator_cc(gr_unittest.TestCase):
         self.assertEqual(res.size, nframes * timeslots * subcarriers)
 
         tags = snk.tags()
-        for i, t in enumerate(tags):
+        snr_tags = [t for t in tags if pmt.eq(t.key, pmt.mp("snr_lin"))]
+
+        for i, t in enumerate(snr_tags):
             self.assertEqual(t.offset, i * timeslots * subcarriers)
             res_lin = pmt.to_float(t.value)
             res_db = 10. * np.log10(res_lin)

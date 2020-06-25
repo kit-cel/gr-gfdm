@@ -18,12 +18,12 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 #
-import sys
-print(sys.path)
+# import sys
+# print(sys.path)
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks, digital
-import gfdm_swig as gfdm
+import gfdm_python as gfdm
 from pygfdm import filters, utils
 from pygfdm.gfdm_receiver import gfdm_demodulate_block
 from pygfdm.mapping import get_subcarrier_map

@@ -1,6 +1,7 @@
 options:
   parameters:
     author: ''
+    catch_exceptions: 'True'
     category: Custom
     cmake_opt: ''
     comment: ''
@@ -22,7 +23,6 @@ options:
     sizing_mode: fixed
     thread_safe_setters: ''
     title: ''
-    window_size: 1920,1080
   states:
     bus_sink: false
     bus_source: false
@@ -80,7 +80,7 @@ blocks:
     coordinate: [248, 124]
     rotation: 0
     state: enabled
-- name: f_taps
+- name: filter_taps
   id: variable
   parameters:
     comment: ''
@@ -267,7 +267,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [48, 340.0]
+    coordinate: [32, 300.0]
     rotation: 0
     state: enabled
 - name: blocks_complex_to_mag_squared_0
@@ -283,7 +283,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [768, 560.0]
+    coordinate: [952, 712.0]
     rotation: 0
     state: true
 - name: blocks_float_to_complex_0
@@ -299,7 +299,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [768, 688.0]
+    coordinate: [952, 840.0]
     rotation: 0
     state: true
 - name: blocks_moving_average_xx_0
@@ -319,7 +319,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [768, 596.0]
+    coordinate: [952, 748.0]
     rotation: 180
     state: true
 - name: blocks_multiply_const_vxx_0
@@ -337,7 +337,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [688, 476.0]
+    coordinate: [872, 628.0]
     rotation: 0
     state: enabled
 - name: blocks_throttle_0
@@ -356,7 +356,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [688, 428.0]
+    coordinate: [872, 436.0]
     rotation: 180
     state: enabled
 - name: digital_chunks_to_symbols_xx_0
@@ -376,33 +376,66 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [208, 368.0]
+    coordinate: [288, 328.0]
     rotation: 0
     state: enabled
-- name: hier_gfdm_transmitter_chain
-  id: hier_gfdm_transmitter
+- name: gfdm_cyclic_prefixer_cc_0
+  id: gfdm_cyclic_prefixer_cc
   parameters:
-    active_subcarriers: active_subcarriers
     affinity: ''
     alias: ''
+    block_len: block_len
     comment: ''
-    cp_len: cp_len
-    cs_len: cs_len
-    filter_taps: f_taps
+    cp_length: cp_len
+    cs_length: cs_len
     maxoutbuf: '0'
     minoutbuf: '0'
-    overlap: overlap
-    preamble: preamble
     ramp_len: ramp_len
-    subcarrier_map: subcarrier_map
-    subcarriers: subcarriers
-    timeslots: timeslots
     window_taps: window_taps
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [424, 284.0]
+    coordinate: [1040, 292.0]
+    rotation: 0
+    state: enabled
+- name: gfdm_resource_mapper_cc_0
+  id: gfdm_resource_mapper_cc
+  parameters:
+    active_subcarriers: active_subcarriers
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    per_timeslot: 'True'
+    subcarrier_map: subcarrier_map
+    subcarriers: subcarriers
+    timeslots: timeslots
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [592, 292.0]
+    rotation: 0
+    state: enabled
+- name: gfdm_simple_modulator_cc_0
+  id: gfdm_simple_modulator_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    frequency_taps: filter_taps
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    n_subcarriers: subcarriers
+    n_timeslots: timeslots
+    overlap: overlap
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 300.0]
     rotation: 0
     state: enabled
 - name: import_cp
@@ -483,6 +516,25 @@ blocks:
     coordinate: [128, 116]
     rotation: 0
     state: enabled
+- name: preamble_vector_insert
+  id: blocks_vector_insert_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    period: frame_len
+    type: complex
+    vector: preamble
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1264, 308.0]
+    rotation: 0
+    state: enabled
 - name: preamble_vector_insert_0
   id: blocks_vector_insert_x
   parameters:
@@ -499,8 +551,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [632, 348.0]
-    rotation: 0
+    coordinate: [1240, 420.0]
+    rotation: 180
     state: enabled
 - name: qtgui_freq_sink_x_0
   id: qtgui_freq_sink_x
@@ -579,7 +631,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1040, 480.0]
+    coordinate: [1224, 632.0]
     rotation: 0
     state: enabled
 - name: qtgui_time_sink_x_1
@@ -676,7 +728,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1040, 588.0]
+    coordinate: [1224, 740.0]
     rotation: 0
     state: enabled
 - name: qtgui_waterfall_sink_x_0
@@ -737,7 +789,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1040, 384.0]
+    coordinate: [1224, 536.0]
     rotation: 0
     state: enabled
 
@@ -751,8 +803,11 @@ connections:
 - [blocks_multiply_const_vxx_0, '0', qtgui_time_sink_x_1, '0']
 - [blocks_multiply_const_vxx_0, '0', qtgui_waterfall_sink_x_0, '0']
 - [blocks_throttle_0, '0', blocks_multiply_const_vxx_0, '0']
-- [digital_chunks_to_symbols_xx_0, '0', hier_gfdm_transmitter_chain, '0']
-- [hier_gfdm_transmitter_chain, '0', preamble_vector_insert_0, '0']
+- [digital_chunks_to_symbols_xx_0, '0', gfdm_resource_mapper_cc_0, '0']
+- [gfdm_cyclic_prefixer_cc_0, '0', preamble_vector_insert, '0']
+- [gfdm_resource_mapper_cc_0, '0', gfdm_simple_modulator_cc_0, '0']
+- [gfdm_simple_modulator_cc_0, '0', gfdm_cyclic_prefixer_cc_0, '0']
+- [preamble_vector_insert, '0', preamble_vector_insert_0, '0']
 - [preamble_vector_insert_0, '0', blocks_throttle_0, '0']
 
 metadata:

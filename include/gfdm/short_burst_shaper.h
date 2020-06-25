@@ -74,7 +74,7 @@ public:
      */
     virtual void set_timing_advance(double timing_advance) = 0;
 
-        /*!
+    /*!
      * \brief Return TX cycle interval
      */
     virtual double cycle_interval() const = 0;

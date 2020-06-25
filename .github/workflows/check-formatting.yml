@@ -1,0 +1,21 @@
+name: Check Formatting
+
+on:
+  push:
+    paths-ignore:
+      - 'swig/'
+  pull_request:
+    paths-ignore:
+      - 'swig/'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: gnuradio/clang-format-lint-action@v0.5-4
+      with:
+        source: '.'
+        exclude: './swig'
+        extensions: 'c,cc,cpp,cxx,h,hh'
