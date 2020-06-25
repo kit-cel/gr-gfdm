@@ -4,6 +4,7 @@ GNU Radio GFDM Modulator/Demodulator
 The *gr-gfdm* project is a Free Software Package which aims to provide an implementation of Generalized Frequency Division Multiplexing (GFDM) in the GNU Radio framework. GFDM is a proposed waveform for use in 5G.
 
 This project was initiated as a Bachelor thesis at the *Communication Engineering Lab (CEL)* at the *Karlsruhe Institute of Technology (KIT)*, Germany, <http://www.cel.kit.edu>.
+It has since evolved and is used in over-the-air demos at the [*Department of Communications Engineering (ANT)*](https://www.ant.uni-bremen.de) at [*University of Bremen*](https://uni-bremen.de).
 
 Concept
 -------------
@@ -37,9 +38,9 @@ Signal processing in the blocks is performed in *kernels* which have no dependen
 The modulator and demodulator are implemented using the low complexity approach with Sparse Frequency Domain processing and heavy use of *FFTW* and *VOLK* to accelerate signal processing on modern *GPP*s.
 
 Tests of optimized C++ code are performed with a reference implementation in Python.
-Additionally the C++ code is wrapped with [cython](python/cython/README.md).
+Additionally the C++ code is wrapped with [PyBind11](https://github.com/pybind/pybind11).
 
-Synchronization algorithms are not part of this OOT. Instead we rely on `XFDMSync`. It is a better optimized multicarrier synchronization OOT.
+Synchronization algorithms are not part of this OOT. Instead we rely on [`XFDMSync`](https://github.com/jdemel/XFDMSync). It is a better optimized multicarrier synchronization OOT.
 
 Requirements
 ------------
@@ -50,12 +51,12 @@ Requirements
   - GR-FILTER
   - VOLK
   - UHD (examples)
-  - XFDMSync (synchronization)
+  - [XFDMSync](https://github.com/jdemel/XFDMSync) (synchronization)
 
 - PyGFDM
   - Numpy
   - Scipy
-  - Commpy
+  - Commpy (`pip3 install scikit-commpy`)
   - Matplotlib
 
 
@@ -65,7 +66,7 @@ Build/Install instructions
 
 1. Install/Build GNU Radio with at least support for FFT,FILTER and VOLK
 
-2. Get *gr-gfdm* from github - `git clone https://github.com/kit-cel/gr-gfdm.git`
+2. Get *gr-gfdm* from github - `git clone https://github.com/jdemel/gr-gfdm.git`
 
 3. Configure *gr-gfdm* - `mkdir build && cd build && cmake ../`
 
@@ -76,8 +77,16 @@ Build/Install instructions
 Troubleshooting/Bugs
 ------------------------------------
 
-In case you encounter bugs not related to *GNU Radio* core functions in *gr-gfdm* open an issue at <https://github.com/kit-cel/gr-gfdm/issues>.
+In case you encounter bugs not related to *GNU Radio* core functions in *gr-gfdm* open an issue at <https://github.com/jdemel/gr-gfdm/issues>.
 Otherwise consider reporting the issue to the GNU Radio project <https://www.gnuradio.org>.
+
+Code formatting
+--------
+We follow the GNU Radio coding guidelines. This is the current way to format everything:
+
+`find . -regex '.*\.\(c\|cc\|cpp\|cxx\|h\|hh\)' -not -path "*build*" -exec clang-format -style=file -i {} \;`
+
+Further, we have a GitHub Action to check proper code formatting.
 
 References
 -------------
@@ -90,9 +99,3 @@ References
 4. J. Demel, C. Bockelmann, A. Dekorsy "Evaluation of a Software Defined GFDM Implementation for Industry 4.0 Applications". In: IEEE International Conference on Industrial Technology (ICIT 2017), Toronto, Canada, 22. - 25. March 2017
 
 5. J. Demel, C. Bockelmann, A. Dekorsy, Andrej Rode, Sebastian Koslowski, Friedrich K. Jondral "An optimized GFDM software implementation for future Cloud-RAN and field tests". In: GNU Radio Conference 2017, San Diego, USA, 11. - 15. September 2017
-
-Code formatting
---------
-We follow the GNU Radio coding guidelines. This is the current way to format everything:
-
-`find . -regex '.*\.\(c\|cc\|cpp\|cxx\|h\|hh\)' -not -path "*build*" -exec clang-format -style=file -i {} \;`
