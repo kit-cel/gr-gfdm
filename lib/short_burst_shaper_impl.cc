@@ -212,8 +212,9 @@ int short_burst_shaper_impl::work(int noutput_items,
             pmt::make_tuple(pmt::from_uint64(full_secs), pmt::from_double(frac_secs)));
 
         // send_rx_gain_command(full_secs, frac_secs, 0.0f);
-        // const uint64_t eob_ticks = fts + noutput_items + d_pre_padding + d_post_padding;
-        // send_rx_gain_command(ticks2fullsecs(eob_ticks), ticks2fracsecs(eob_ticks), 65.0f);
+        // const uint64_t eob_ticks = fts + noutput_items + d_pre_padding +
+        // d_post_padding; send_rx_gain_command(ticks2fullsecs(eob_ticks),
+        // ticks2fracsecs(eob_ticks), 65.0f);
 
         d_has_new_time_tag = false;
         d_last_full_secs = full_secs;
