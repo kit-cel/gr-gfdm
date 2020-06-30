@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2017 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2017 Johannes Demel.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,11 +160,12 @@ int extract_burst_cc_impl::general_work(int noutput_items,
             if (d_activate_cfo_correction) {
                 compensate_cfo(out, out, get_phase_rotation(info), d_burst_len);
             }
-
+            auto value = pmt::dict_add(
+                info, pmt::intern("burst_idx"), pmt::from_uint64(d_frame_counter));
             add_item_tag(0,
                          nitems_written(0) + produced_items,
                          d_burst_start_tag,
-                         info,
+                         value,
                          pmt::string_to_symbol(name()));
 
             d_last_xcorr_offset = xcorr_offset;

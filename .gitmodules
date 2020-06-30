@@ -1,6 +1,3 @@
 [submodule "python/gfdm-lib-python"]
 	path = python/gfdmlib
 	url = https://github.com/vodafone-chair/gfdm-lib-python.git
-[submodule "pybind11"]
-	path = pybind11
-	url = https://github.com/pybind/pybind11.git
