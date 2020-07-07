@@ -131,9 +131,22 @@ int extract_burst_cc_impl::general_work(int noutput_items,
     std::vector<tag_t> tags;
     get_tags_in_window(tags, 0, 0, avail_items, d_burst_start_tag);
     const int n_max_bursts = std::min(int(tags.size()), n_out_bursts);
+    // if (tags.size() > 0) {
+    //     std::string offset_str("");
+    //     for (const auto& t : tags) {
+    //         offset_str += std::to_string(t.offset) + "\t";
+    //     }
+    //     GR_LOG_DEBUG(d_logger,
+    //                  "Tags: " + std::to_string(tags.size()) + "/" +
+    //                      std::to_string(n_out_bursts) +
+    //                      " nitems_read=" + std::to_string(nitems_read(0)) +
+    //                      "\tavail=" + std::to_string(avail_items) + "\tnout_items=" +
+    //                      std::to_string(noutput_items) + " offsets: " + offset_str);
+    // }
 
-    for (int i = 0; i < n_max_bursts; ++i) {
-        const auto& tag = tags[i];
+    // for (int i = 0; i < n_max_bursts; ++i) {
+    for (const auto& tag : tags) {
+        // const auto& tag = tags[i];
         const int burst_start = tag.offset - nitems_read(0);
         const int actual_start = burst_start - d_tag_backoff;
 
@@ -142,8 +155,19 @@ int extract_burst_cc_impl::general_work(int noutput_items,
             pmt::dict_ref(info, pmt::mp("xcorr_idx"), pmt::from_uint64(0)));
         const uint64_t xcorr_offset = pmt::to_uint64(
             pmt::dict_ref(info, pmt::mp("xcorr_offset"), pmt::from_uint64(0)));
+        // const std::string src_str =
+        //     pmt::is_symbol(tag.srcid) ? pmt::symbol_to_string(tag.srcid) : "N/A";
 
-        if (avail_items - burst_start >= d_burst_len) {
+        if (avail_items - burst_start >= d_burst_len &&
+            produced_items + d_burst_len <= noutput_items) {
+            // GR_LOG_DEBUG(d_logger,
+            //              "Burst " + std::to_string(tags.size()) + "/" +
+            //                  std::to_string(n_out_bursts) +
+            //                  "\tburst_idx=" + std::to_string(d_frame_counter) + " @" +
+            //                  std::to_string(tag.offset) +
+            //                  " xcorr_offset=" + std::to_string(xcorr_offset) +
+            //                  " xcorr_idx: " + std::to_string(xcorr_idx) +
+            //                  " src: " + src_str);
 
             const float scale_factor = get_scale_factor(info);
             if (actual_start < 0) {
@@ -176,13 +200,30 @@ int extract_burst_cc_impl::general_work(int noutput_items,
             consumed_items = burst_start + d_burst_len;
             out += d_burst_len;
         } else {
+            // GR_LOG_DEBUG(d_logger,
+            //              "Again " + std::to_string(tags.size()) + "/" +
+            //                  std::to_string(n_out_bursts) +
+            //                  "\tburst_idx=" + std::to_string(d_frame_counter) + " @" +
+            //                  std::to_string(tag.offset) +
+            //                  " xcorr_offset=" + std::to_string(xcorr_offset) +
+            //                  " xcorr_idx: " + std::to_string(xcorr_idx) +
+            //                  " src: " + src_str);
 
             d_expected_xcorr_idx = xcorr_idx;
 
-            consumed_items = std::max(0, actual_start);
+            consumed_items = std::max(0, burst_start);
             break;
         }
     }
+
+    // if (tags.size() > 0) {
+    //     GR_LOG_DEBUG(d_logger,
+    //                  "Return: nitems_read=" + std::to_string(nitems_read(0)) +
+    //                      "\tavail=" + std::to_string(avail_items) +
+    //                      "\tnout_items=" + std::to_string(noutput_items) +
+    //                      "\tconsumed=" + std::to_string(consumed_items) +
+    //                      "\tproduced=" + std::to_string(produced_items));
+    // }
 
     consume_each(consumed_items);
     return produced_items;
