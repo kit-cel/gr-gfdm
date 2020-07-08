@@ -130,6 +130,7 @@ int extract_burst_cc_impl::general_work(int noutput_items,
 
     std::vector<tag_t> tags;
     get_tags_in_window(tags, 0, 0, avail_items, d_burst_start_tag);
+    std::sort(tags.begin(), tags.end(), tag_t::offset_compare);
     const int n_max_bursts = std::min(int(tags.size()), n_out_bursts);
     // if (tags.size() > 0) {
     //     std::string offset_str("");
