@@ -1,0 +1,21 @@
+name: Run CI tests
+
+on: [push, pull_request]
+
+jobs:
+  build-ubuntu:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Add GNU Radio PPA
+      run: sudo add-apt-repository ppa:gnuradio/gnuradio-master && sudo apt update
+    - name: dependencies
+      run: sudo apt install gnuradio python3-uhd python3-pybind11 liborc-0.4-dev && sudo pip3 install scikit-commpy
+    - name: configure
+      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
+    - name: build
+      run: cmake --build build
+    - name: test
+      run: cd build && ctest -V
