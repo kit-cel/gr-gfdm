@@ -156,11 +156,21 @@ int extract_burst_cc_impl::general_work(int noutput_items,
             pmt::dict_ref(info, pmt::mp("xcorr_idx"), pmt::from_uint64(0)));
         const uint64_t xcorr_offset = pmt::to_uint64(
             pmt::dict_ref(info, pmt::mp("xcorr_offset"), pmt::from_uint64(0)));
-        // const std::string src_str =
-        //     pmt::is_symbol(tag.srcid) ? pmt::symbol_to_string(tag.srcid) : "N/A";
+        const std::string src_str =
+            pmt::is_symbol(tag.srcid) ? pmt::symbol_to_string(tag.srcid) : "N/A";
 
         if (avail_items - burst_start >= d_burst_len &&
             produced_items + d_burst_len <= noutput_items) {
+            if (not tag.offset > d_last_tag_offset) {
+                GR_LOG_DEBUG(d_logger,
+                             "DANGER! Burst " + std::to_string(tags.size()) + "/" +
+                                 std::to_string(n_out_bursts) +
+                                 "\tburst_idx=" + std::to_string(d_frame_counter) + " @" +
+                                 std::to_string(tag.offset) +
+                                 " xcorr_offset=" + std::to_string(xcorr_offset) +
+                                 " xcorr_idx: " + std::to_string(xcorr_idx) +
+                                 " src: " + src_str);
+            }
             // GR_LOG_DEBUG(d_logger,
             //              "Burst " + std::to_string(tags.size()) + "/" +
             //                  std::to_string(n_out_bursts) +
@@ -193,6 +203,7 @@ int extract_burst_cc_impl::general_work(int noutput_items,
                          value,
                          pmt::string_to_symbol(name()));
 
+            d_last_tag_offset = tag.offset;
             d_last_xcorr_offset = xcorr_offset;
             d_last_xcorr_idx = xcorr_idx;
 
