@@ -215,14 +215,6 @@ int short_burst_shaper_impl::work(int noutput_items,
         d_last_full_secs = full_secs;
         d_last_frac_secs = frac_secs;
 
-        // std::vector<tag_t> tags;
-        // get_tags_in_range(
-        //     tags, 0, nitems_read(0), (nitems_read(0) + noutput_items), pmt::mp("time"));
-        // uint64_t tx_timestamp = 0;
-        // for (auto t : tags) {
-        //     tx_timestamp = pmt::to_long(t.value);
-        // }
-
         // GR_LOG_DEBUG(d_logger, "Timestamp: " + std::to_string(tx_timestamp) + " PC
         // timestamp: " + std::to_string(ticks) + " TX timestamp: " +
         // std::to_string(fts)); GR_LOG_DEBUG(d_logger, "TX timestamp: " +
