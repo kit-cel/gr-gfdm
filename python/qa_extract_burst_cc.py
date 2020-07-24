@@ -49,7 +49,7 @@ class qa_extract_burst_cc(gr_unittest.TestCase):
             tag.key = pmt.string_to_symbol(tag_key)
             tag.offset = burst_len + i * (burst_len + gap_len)
             tag.srcid = pmt.string_to_symbol('qa')
-            tag.value = pmt.PMT_T
+            tag.value = pmt.make_dict()
             tags.append(tag)
             data = np.concatenate((data, frame, np.zeros(gap_len)))
         # print(np.reshape(data, (-1, burst_len)))
