@@ -144,11 +144,9 @@ void short_burst_shaper_impl::handle_msg(pmt::pmt_t time_msg)
             pmt::to_long(pmt::dict_ref(time_msg, pmt::mp("rx_time"), pmt::from_long(0)));
 
     } else if (d_use_timed_commands && pmt::is_tuple(time_msg)) {
-        // if (not pmt::is_tuple(time_msg)) {
-        //     return; // time messages are tuples!
-        // }
         d_full_secs = pmt::to_uint64(pmt::tuple_ref(time_msg, 0));
         d_frac_secs = pmt::to_double(pmt::tuple_ref(time_msg, 1));
+        d_time_ticks = timespec2ticks(d_full_secs, d_frac_secs);
         d_tag_offset = pmt::to_uint64(pmt::tuple_ref(time_msg, 2));
         d_samp_rate = pmt::to_double(pmt::tuple_ref(time_msg, 3));
         d_slot_counter = pmt::to_uint64(pmt::tuple_ref(time_msg, 4));
@@ -165,10 +163,6 @@ int short_burst_shaper_impl::work(int noutput_items,
     const gr_complex* in = (const gr_complex*)input_items[0];
     gr_complex* out = (gr_complex*)output_items[0];
 
-    // if (d_use_timed_commands && !d_has_new_time_tag) {
-    //     return 0; // Do not emit packet without timing info!
-    // }
-
     std::memset(out, 0, sizeof(gr_complex) * d_pre_padding);
 
     volk_32fc_s32fc_multiply_32fc(out + d_pre_padding, in, d_scale, ninput_items[0]);
@@ -178,8 +172,9 @@ int short_burst_shaper_impl::work(int noutput_items,
 
     if (d_use_timed_commands) {
 
-        uint64_t fts = pc_clock_ticks();
-        uint64_t ticks = fts;
+        // uint64_t fts = pc_clock_ticks();
+        // uint64_t ticks = fts;
+        uint64_t fts = d_time_ticks;
 
         fts -= fts % d_cycle_interval_ticks;
         fts += d_cycle_interval_ticks;
@@ -220,13 +215,13 @@ int short_burst_shaper_impl::work(int noutput_items,
         d_last_full_secs = full_secs;
         d_last_frac_secs = frac_secs;
 
-        std::vector<tag_t> tags;
-        get_tags_in_range(
-            tags, 0, nitems_read(0), (nitems_read(0) + noutput_items), pmt::mp("time"));
-        uint64_t tx_timestamp = 0;
-        for (auto t : tags) {
-            tx_timestamp = pmt::to_long(t.value);
-        }
+        // std::vector<tag_t> tags;
+        // get_tags_in_range(
+        //     tags, 0, nitems_read(0), (nitems_read(0) + noutput_items), pmt::mp("time"));
+        // uint64_t tx_timestamp = 0;
+        // for (auto t : tags) {
+        //     tx_timestamp = pmt::to_long(t.value);
+        // }
 
         // GR_LOG_DEBUG(d_logger, "Timestamp: " + std::to_string(tx_timestamp) + " PC
         // timestamp: " + std::to_string(ticks) + " TX timestamp: " +

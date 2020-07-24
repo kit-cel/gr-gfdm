@@ -46,6 +46,7 @@ private:
 
     uint64_t d_full_secs = 0;
     double d_frac_secs = 0.0;
+    uint64_t d_time_ticks = 0;
     uint64_t d_tag_offset = 0;
     double d_samp_rate = 0.0;
     uint64_t d_slot_counter = 0;
