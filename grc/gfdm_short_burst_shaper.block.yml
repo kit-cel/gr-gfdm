@@ -21,10 +21,10 @@ parameters:
     label: Length Tag Name
     dtype: string
     default: '"packet_len"'
--   id: use_timed_commands
-    label: Timed commands
-    dtype: bool
-    default: False
+- id: use_timed_commands
+  label: Timed commands
+  dtype: bool
+  default: False
 -   id: timing_advance
     label: Timing advance
     dtype: float
