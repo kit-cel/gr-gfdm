@@ -27,6 +27,8 @@
 #include <gfdm/modulator_cc.h>
 #include <pmt/pmt.h>
 #include <volk/volk.h>
+#include <volk/volk_alloc.hh>
+#include <memory>
 
 namespace gr {
 namespace gfdm {
@@ -41,18 +43,19 @@ private:
     int d_fft_len;
     int d_sync_fft_len;
     std::string d_len_tag_key;
-    gr_complex* d_filter_taps;
-    fft::fft_complex* d_sc_fft;
+    volk::vector<gr_complex> d_filter_taps;
+    std::unique_ptr<fft::fft_complex_fwd> d_sc_fft;
     gr_complex* d_sc_fft_in;
     gr_complex* d_sc_fft_out;
-    fft::fft_complex* d_sync_ifft;
+    std::unique_ptr<fft::fft_complex_rev> d_sync_ifft;
     gr_complex* d_sync_ifft_in;
     gr_complex* d_sync_ifft_out;
-    fft::fft_complex* d_out_ifft;
+    std::unique_ptr<fft::fft_complex_rev> d_out_ifft;
     gr_complex* d_out_ifft_in;
     gr_complex* d_out_ifft_out;
 
-    gr_complex* d_sc_tmp;
+    volk::vector<gr_complex> d_sc_tmp;
+    // gr_complex* d_sc_tmp;
     // Nothing to declare in this block.
     void modulate_gfdm_frame(gr_complex* out, const gr_complex* in);
 

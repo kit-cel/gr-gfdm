@@ -68,44 +68,34 @@ modulator_cc_impl::modulator_cc_impl(int nsubcarrier,
     }
 
     std::vector<gr_complex> filter_taps;
-    rrc_filter_sparse* filter_gen =
-        new rrc_filter_sparse(d_N, filter_alpha, d_filter_width, nsubcarrier, ntimeslots);
+    auto filter_gen = std::make_unique<rrc_filter_sparse>(
+        d_N, filter_alpha, d_filter_width, nsubcarrier, ntimeslots);
     filter_gen->get_taps(filter_taps);
-    delete filter_gen;
-    d_filter_taps = (gr_complex*)volk_malloc(filter_taps.size() * sizeof(gr_complex),
-                                             volk_get_alignment());
-    std::memcpy(d_filter_taps, &filter_taps[0], sizeof(gr_complex) * filter_taps.size());
+    d_filter_taps = volk::vector<gr_complex>(filter_taps.begin(), filter_taps.end());
 
     // Initialize FFT per subcarrier
-    d_sc_fft = new fft::fft_complex(d_ntimeslots, true, 1);
+    d_sc_fft = std::make_unique<fft::fft_complex_fwd>(d_ntimeslots, 1);
     d_sc_fft_in = d_sc_fft->get_inbuf();
     d_sc_fft_out = d_sc_fft->get_outbuf();
 
     // Initiailize sync FFTs in case there are sync symbols
-    d_sync_ifft = new fft::fft_complex(d_sync_fft_len, false, 1);
+    d_sync_ifft = std::make_unique<fft::fft_complex_rev>(d_sync_fft_len, 1);
     d_sync_ifft_in = d_sync_ifft->get_inbuf();
     d_sync_ifft_out = d_sync_ifft->get_outbuf();
 
     // Initialize resulting FFT
-    d_out_ifft = new fft::fft_complex(d_fft_len, false, 1);
+    d_out_ifft = std::make_unique<fft::fft_complex_rev>(d_fft_len, 1);
     d_out_ifft_in = d_out_ifft->get_inbuf();
     d_out_ifft_out = d_out_ifft->get_outbuf();
 
     // holds intermediate data during frame modulation
-    d_sc_tmp = (gr_complex*)volk_malloc(
-        d_filter_width * d_ntimeslots * sizeof(gr_complex), volk_get_alignment());
+    d_sc_tmp.resize(d_filter_width * d_ntimeslots);
 }
 
 /*
  * Our virtual destructor.
  */
-modulator_cc_impl::~modulator_cc_impl()
-{
-    delete d_sc_fft;
-    delete d_sync_ifft;
-    delete d_out_ifft;
-    volk_free(d_sc_tmp);
-}
+modulator_cc_impl::~modulator_cc_impl() {}
 
 int modulator_cc_impl::calculate_output_stream_length(const gr_vector_int& ninput_items)
 {
@@ -124,7 +114,8 @@ void modulator_cc_impl::update_length_tags(int n_produced, int n_ports) { return
 
 void modulator_cc_impl::modulate_gfdm_frame(gr_complex* out, const gr_complex* in)
 {
-    std::memset(d_sc_tmp, 0x00, d_filter_width * d_ntimeslots * sizeof(gr_complex));
+    std::memset(
+        d_sc_tmp.data(), 0x00, d_filter_width * d_ntimeslots * sizeof(gr_complex));
     std::memset(d_out_ifft_in, 0x00, sizeof(gr_complex) * d_fft_len);
     for (int k = 0; k < d_nsubcarrier; k++) {
         // 1. FFT on subcarrier
@@ -133,9 +124,9 @@ void modulator_cc_impl::modulate_gfdm_frame(gr_complex* out, const gr_complex* i
         d_sc_fft->execute();
         // 2. Multiply  with filtertaps (times filter_width)
         for (int l = 0; l < d_filter_width; l++) {
-            ::volk_32fc_x2_multiply_32fc(d_sc_tmp + l * d_ntimeslots,
+            ::volk_32fc_x2_multiply_32fc(d_sc_tmp.data() + l * d_ntimeslots,
                                          d_sc_fft_out,
-                                         d_filter_taps + l * d_ntimeslots,
+                                         d_filter_taps.data() + l * d_ntimeslots,
                                          d_ntimeslots);
         }
 
