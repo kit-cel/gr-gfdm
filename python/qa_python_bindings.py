@@ -171,6 +171,30 @@ class PrefixerTests(gr_unittest.TestCase):
 
         self.assertComplexTuplesAlmostEqual(res, ref, 6)
 
+    def test_002_prefix_shifted(self):
+        print('shifted')
+        timeslots = 3
+        subcarriers = 32
+        cyclic_shift = 4
+
+        block_len = timeslots * subcarriers
+        cp_len = 16
+        cs_len = cp_len // 2
+        ramp_len = 4
+        window_len = get_window_len(cp_len, timeslots, subcarriers,
+                                    cs_len)
+        window_taps = get_raised_cosine_ramp(ramp_len, window_len)
+        data = np.arange(block_len, dtype=np.complex) + 1
+        ref = add_cyclic_starfix(data, cp_len, cs_len)
+        ref = np.concatenate((data[-(cp_len - cyclic_shift):], data, data[0:cs_len + cyclic_shift]))
+        ref = pinch_block(ref, window_taps)
+        ref = ref.astype(np.complex64)
+
+        prefixer = Cyclic_prefixer(block_len, cp_len, cs_len, ramp_len,
+                                   window_taps, cyclic_shift)
+        res = prefixer.add_cyclic_prefix(data)
+        self.assertEqual(res.size, cp_len + block_len + cs_len)
+        self.assertComplexTuplesAlmostEqual(res, ref, 5)
 
 
 class ModulatorTests(gr_unittest.TestCase):

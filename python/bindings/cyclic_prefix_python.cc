@@ -37,9 +37,17 @@ void bind_cyclic_prefixer(py::module& m)
                       int,
                       int,
                       int,
-                      std::vector<add_cyclic_prefix_cc::gfdm_complex>>())
+                      std::vector<add_cyclic_prefix_cc::gfdm_complex>,
+                      int>(),
+             py::arg("block_len"),
+             py::arg("cp_len"),
+             py::arg("cs_len"),
+             py::arg("ramp_len"),
+             py::arg("window_taps"),
+             py::arg("cyclic_shift") = 0)
         .def("block_size", &add_cyclic_prefix_cc::block_size)
         .def("frame_size", &add_cyclic_prefix_cc::frame_size)
+        .def("cyclic_shift", &add_cyclic_prefix_cc::cyclic_shift)
         .def("add_cyclic_prefix",
              [](add_cyclic_prefix_cc& self,
                 const py::array_t<add_cyclic_prefix_cc::gfdm_complex,

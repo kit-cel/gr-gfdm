@@ -22,6 +22,7 @@
 #ifndef INCLUDED_GFDM_ADD_CYCLIC_PREFIX_CC_H
 #define INCLUDED_GFDM_ADD_CYCLIC_PREFIX_CC_H
 
+#include <volk/volk_alloc.hh>
 #include <complex>
 #include <stdexcept>
 #include <vector>
@@ -33,7 +34,7 @@ namespace gfdm {
  * \brief Kernel adds cyclic prefix to GFDM frame and applies block pinching window.
  *
  */
-//    class GFDM_API add_cyclic_prefix_cc
+
 class add_cyclic_prefix_cc
 {
 public:
@@ -43,20 +44,23 @@ public:
                          int cp_len,
                          int cs_len,
                          int ramp_len,
-                         std::vector<gfdm_complex> window_taps);
+                         std::vector<gfdm_complex> window_taps,
+                         int cyclic_shift = 0);
     ~add_cyclic_prefix_cc();
     void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
     int block_size() { return d_block_len; };
     int frame_size() { return block_size() + d_cp_len + d_cs_len; };
+    int cyclic_shift() const { return d_cyclic_shift; };
 
 private:
-    int d_block_len;
-    int d_cp_len;
-    int d_cs_len;
-    int d_ramp_len;
+    const int d_block_len;
+    const int d_cp_len;
+    const int d_cs_len;
+    const int d_ramp_len;
+    const int d_cyclic_shift;
 
-    gfdm_complex* d_front_ramp;
-    gfdm_complex* d_back_ramp;
+    volk::vector<gfdm_complex> d_front_ramp;
+    volk::vector<gfdm_complex> d_back_ramp;
 };
 
 } // namespace gfdm

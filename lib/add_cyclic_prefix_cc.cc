@@ -30,8 +30,13 @@ add_cyclic_prefix_cc::add_cyclic_prefix_cc(int block_len,
                                            int cp_len,
                                            int cs_len,
                                            int ramp_len,
-                                           std::vector<gfdm_complex> window_taps)
-    : d_block_len(block_len), d_cp_len(cp_len), d_cs_len(cs_len), d_ramp_len(ramp_len)
+                                           std::vector<gfdm_complex> window_taps,
+                                           int cyclic_shift)
+    : d_block_len(block_len),
+      d_cp_len(cp_len),
+      d_cs_len(cs_len),
+      d_ramp_len(ramp_len),
+      d_cyclic_shift(cyclic_shift)
 {
     int window_len = block_len + cp_len + cs_len;
     if (window_taps.size() != (unsigned int)window_len &&
@@ -44,33 +49,31 @@ add_cyclic_prefix_cc::add_cyclic_prefix_cc(int block_len,
     }
 
     d_front_ramp =
-        (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * ramp_len, volk_get_alignment());
+        volk::vector<gfdm_complex>(window_taps.begin(), window_taps.begin() + ramp_len);
+    const unsigned offset = window_taps.size() - ramp_len;
     d_back_ramp =
-        (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * ramp_len, volk_get_alignment());
-    memcpy(d_front_ramp, &window_taps[0], sizeof(gfdm_complex) * ramp_len);
-    memcpy(d_back_ramp,
-           &window_taps[window_taps.size() - ramp_len],
-           sizeof(gfdm_complex) * ramp_len);
+        volk::vector<gfdm_complex>(window_taps.begin() + offset, window_taps.end());
 }
 
-add_cyclic_prefix_cc::~add_cyclic_prefix_cc()
-{
-    volk_free(d_front_ramp);
-    volk_free(d_back_ramp);
-}
+add_cyclic_prefix_cc::~add_cyclic_prefix_cc() {}
 
 void add_cyclic_prefix_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in)
 {
-    const int cp_start = block_size() - d_cp_len;
-    memcpy(p_out, p_in + cp_start, sizeof(gfdm_complex) * d_cp_len);
-    memcpy(p_out + d_cp_len, p_in, sizeof(gfdm_complex) * block_size());
-    memcpy(p_out + d_cp_len + block_size(), p_in, sizeof(gfdm_complex) * d_cs_len);
+    const unsigned cp_start = block_size() - d_cp_len + d_cyclic_shift;
+    const unsigned shifted_cp_len = d_cp_len - d_cyclic_shift;
+    memcpy(p_out, p_in + cp_start, sizeof(gfdm_complex) * shifted_cp_len);
+    const unsigned out_block_start = d_cp_len - d_cyclic_shift;
+    memcpy(p_out + shifted_cp_len, p_in, sizeof(gfdm_complex) * block_size());
+    const unsigned shifted_cs_len = d_cs_len + d_cyclic_shift;
+    memcpy(p_out + shifted_cp_len + block_size(),
+           p_in,
+           sizeof(gfdm_complex) * shifted_cs_len);
 
     if (d_ramp_len > 0) {
-        const int tail_start = block_size() + d_cp_len + d_cs_len - d_ramp_len;
-        volk_32fc_x2_multiply_32fc(p_out, p_out, d_front_ramp, d_ramp_len);
+        const unsigned tail_start = block_size() + d_cp_len + d_cs_len - d_ramp_len;
+        volk_32fc_x2_multiply_32fc(p_out, p_out, d_front_ramp.data(), d_ramp_len);
         volk_32fc_x2_multiply_32fc(
-            p_out + tail_start, p_out + tail_start, d_back_ramp, d_ramp_len);
+            p_out + tail_start, p_out + tail_start, d_back_ramp.data(), d_ramp_len);
     }
 }
 

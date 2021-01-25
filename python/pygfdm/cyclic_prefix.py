@@ -41,7 +41,10 @@ def fourth_order_polynomial(x):
 
 
 def window_ramp(ramp_len, window_len):
-    r = np.arange(0, 1, 1. / ramp_len)
+    if ramp_len < 1:
+        r = np.array([])
+    else:
+        r = np.arange(0, 1, 1. / ramp_len)
     return np.concatenate((1. - r, np.zeros(window_len - 2 * ramp_len), r))
 
 
