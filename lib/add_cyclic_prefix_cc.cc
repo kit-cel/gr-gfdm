@@ -59,12 +59,12 @@ add_cyclic_prefix_cc::~add_cyclic_prefix_cc() {}
 
 void add_cyclic_prefix_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in)
 {
-    const unsigned cp_start = block_size() - d_cp_len + d_cyclic_shift;
-    const unsigned shifted_cp_len = d_cp_len - d_cyclic_shift;
+    const unsigned cp_start = block_size() - d_cp_len - d_cyclic_shift;
+    const unsigned shifted_cp_len = d_cp_len + d_cyclic_shift;
     memcpy(p_out, p_in + cp_start, sizeof(gfdm_complex) * shifted_cp_len);
-    const unsigned out_block_start = d_cp_len - d_cyclic_shift;
+
     memcpy(p_out + shifted_cp_len, p_in, sizeof(gfdm_complex) * block_size());
-    const unsigned shifted_cs_len = d_cs_len + d_cyclic_shift;
+    const unsigned shifted_cs_len = d_cs_len - d_cyclic_shift;
     memcpy(p_out + shifted_cp_len + block_size(),
            p_in,
            sizeof(gfdm_complex) * shifted_cs_len);

@@ -186,7 +186,7 @@ class PrefixerTests(gr_unittest.TestCase):
         window_taps = get_raised_cosine_ramp(ramp_len, window_len)
         data = np.arange(block_len, dtype=np.complex) + 1
         ref = add_cyclic_starfix(data, cp_len, cs_len)
-        ref = np.concatenate((data[-(cp_len - cyclic_shift):], data, data[0:cs_len + cyclic_shift]))
+        ref = np.concatenate((data[-(cp_len + cyclic_shift):], data, data[0:cs_len - cyclic_shift]))
         ref = pinch_block(ref, window_taps)
         ref = ref.astype(np.complex64)
 
