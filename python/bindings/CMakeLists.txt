@@ -23,6 +23,7 @@ list(APPEND gfdm_python_files
     ../../lib/resource_mapper_kernel_cc.cc
     ../../lib/receiver_kernel_cc.cc
     ../../lib/gfdm_kernel_utils.cc
+    ../../lib/preamble_channel_estimator_cc.cc
     modulator_cc_python.cc
     modulator_python.cc
     cyclic_prefix_python.cc
@@ -31,6 +32,7 @@ list(APPEND gfdm_python_files
     demodulator_python.cc
     advanced_receiver_sb_cc_python.cc
     channel_estimator_cc_python.cc
+    preamble_channel_estimator_python.cc
     extract_burst_cc_python.cc
     remove_prefix_cc_python.cc
     resource_demapper_cc_python.cc

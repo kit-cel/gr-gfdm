@@ -21,6 +21,7 @@ namespace py = pybind11;
 // BINDING_FUNCTION_PROTOTYPES(
 void bind_advanced_receiver_sb_cc(py::module& m);
 void bind_channel_estimator_cc(py::module& m);
+void bind_preamble_channel_estimator(py::module& m);
 void bind_extract_burst_cc(py::module& m);
 void bind_modulator_cc(py::module& m);
 void bind_modulator(py::module& m);
@@ -65,6 +66,7 @@ PYBIND11_MODULE(gfdm_python, m)
     // BINDING_FUNCTION_CALLS(
     bind_advanced_receiver_sb_cc(m);
     bind_channel_estimator_cc(m);
+    bind_preamble_channel_estimator(m);
     bind_extract_burst_cc(m);
     bind_modulator_cc(m);
     bind_modulator(m);

@@ -87,13 +87,13 @@ def sync_symbol2(filtertype, alpha, K, L, n_mod):
     return output
 
 
-def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len, use_zadoff_chu=False):
+def mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len, use_zadoff_chu=False, cyclic_shift=0):
     if use_zadoff_chu:
         pn_vals = generate_zadoff_chu_sequence(active_subcarriers, 19)
     else:
         pn_vals = get_random_qpsk(active_subcarriers, seed)
     pn_sym = map_to_waveform_resources(pn_vals, active_subcarriers, fft_len, subcarrier_map)
-    return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len)
+    return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len, cyclic_shift)
 
 
 def symmetric_mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_len, subcarrier_map, overlap, cp_len, ramp_len):
@@ -103,18 +103,19 @@ def symmetric_mapped_preamble(seed, filtertype, alpha, active_subcarriers, fft_l
     return generate_sync_symbol(pn_sym, filtertype, alpha, fft_len, overlap, cp_len, ramp_len), pn_vals
 
 
-def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len):
+def get_sync_symbol(pn_symbols, H, K, L, cp_len, ramp_len, cyclic_shift=0):
     M = 2  # fixed for preamble
     pn_symbols = np.concatenate((pn_symbols, pn_symbols))
     D = get_data_matrix(pn_symbols, K, group_by_subcarrier=True)  # careful here! group by subcarrier is correct!
     symbol = x_symbol = gfdm_modulate_block(D, H, M, K, L, compat_mode=False)
     symbol = add_cyclic_starfix(symbol, cp_len, ramp_len)
+    symbol = np.roll(symbol, cyclic_shift)
     window_ramp = get_raised_cosine_ramp(ramp_len, get_window_len(cp_len, M, K, ramp_len))
     symbol = pinch_block(symbol, window_ramp)
     return symbol, x_symbol
 
 
-def generate_sync_symbol(pn_symbols, filtertype, alpha, K, L, cp_len, ramp_len):
+def generate_sync_symbol(pn_symbols, filtertype, alpha, K, L, cp_len, ramp_len, cyclic_shift=0):
     H = get_frequency_domain_filter(filtertype, alpha, 2, K, L)
     filter_energy = calculate_signal_energy(H)
     scaling_factor = 1. / np.sqrt(filter_energy / 2)

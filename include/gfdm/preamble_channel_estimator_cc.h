@@ -22,9 +22,9 @@
 #ifndef INCLUDED_GFDM_PREAMBLE_CHANNEL_ESTIMATOR_CC_H
 #define INCLUDED_GFDM_PREAMBLE_CHANNEL_ESTIMATOR_CC_H
 
-//#include <gfdm/api.h>
 
 #include <fftw3.h>
+#include <volk/volk_alloc.hh>
 #include <complex>
 #include <stdexcept>
 #include <vector>
@@ -35,7 +35,10 @@ namespace gr {
 namespace gfdm {
 
 /*!
- * \brief <+description+>
+ * \brief Estimate frequency domain channel based on preamble
+ *
+ * Block expects a received preamble to produce a channel estimate
+ * for a frame as specified.
  *
  */
 class preamble_channel_estimator_cc : public gfdm_kernel_utils
@@ -76,17 +79,17 @@ private:
     bool d_is_dc_free;
     int d_which_estimator;
 
-    gfdm_complex* d_preamble_fft_in;
-    gfdm_complex* d_preamble_fft_out;
+    volk::vector<gfdm_complex> d_preamble_fft_in;
+    volk::vector<gfdm_complex> d_preamble_fft_out;
     fftwf_plan d_preamble_fft_plan;
 
-    gfdm_complex* d_snr_fft_in;
-    gfdm_complex* d_snr_fft_out;
+    volk::vector<gfdm_complex> d_snr_fft_in;
+    volk::vector<gfdm_complex> d_snr_fft_out;
     fftwf_plan d_snr_fft_plan;
 
-    gfdm_complex* d_inv_freq_preamble0;
-    gfdm_complex* d_inv_freq_preamble1;
-    gfdm_complex* d_intermediate_channel_estimate;
+    volk::vector<gfdm_complex> d_inv_freq_preamble0;
+    volk::vector<gfdm_complex> d_inv_freq_preamble1;
+    volk::vector<gfdm_complex> d_intermediate_channel_estimate;
     void initialize_inv_freq_preamble(gfdm_complex* p_out,
                                       const gfdm_complex* p_preamble_part);
     void estimate_fftlen_preamble_channel(gfdm_complex* p_out,
@@ -94,13 +97,13 @@ private:
                                           const gfdm_complex* fd_ref_samples);
 
     int d_n_gaussian_taps;
-    float* d_gaussian_taps;
+    volk::vector<float> d_gaussian_taps;
     void initialize_gaussian_filter(float* taps, const float sigma_sq, const int n_taps);
 
-    gfdm_complex* d_filter_intermediate;
-    gfdm_complex* d_preamble_estimate;
-    gfdm_complex* d_filtered_estimate;
-    gfdm_complex* d_one_reference;
+    volk::vector<gfdm_complex> d_filter_intermediate;
+    volk::vector<gfdm_complex> d_preamble_estimate;
+    volk::vector<gfdm_complex> d_filtered_estimate;
+    volk::vector<gfdm_complex> d_one_reference;
 };
 
 } // namespace gfdm

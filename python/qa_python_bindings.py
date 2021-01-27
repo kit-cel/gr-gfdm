@@ -28,8 +28,31 @@ from pygfdm.gfdm_modulation import gfdm_modulate_block
 from pygfdm.gfdm_receiver import gfdm_demodulate_block
 from pygfdm.utils import get_random_qpsk
 from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, add_cyclic_starfix
+from pygfdm.preamble import mapped_preamble
 
-from gfdm_python import Resource_mapper, Modulator, Demodulator, Cyclic_prefixer
+from gfdm_python import Resource_mapper, Modulator, Demodulator, Cyclic_prefixer, Preamble_channel_estimator
+
+
+def calculate_energy(vec):
+    return np.sum(calculate_element_energy(vec))
+
+
+def calculate_element_energy(vec):
+    return vec.real ** 2 + vec.imag ** 2
+
+
+def get_noise_vector(size, scale):
+    noise = np.random.randn(size) + 1.j * np.random.randn(size)
+    noise /= np.abs(noise)
+    return noise * scale
+
+
+def calculate_noise_scale(snr_lin, signalenergy,
+                          activecarrier_ratio, noise_vector_length):
+    nscale = 1. / np.sqrt(snr_lin)
+    nscale *= np.sqrt(activecarrier_ratio * 2. *
+                      signalenergy / noise_vector_length)
+    return nscale
 
 
 class BindingTests(gr_unittest.TestCase):
@@ -389,6 +412,91 @@ class DemodulatorTests(gr_unittest.TestCase):
         self.assertComplexTuplesAlmostEqual(ref, res, 5)
 
 
+class EstimatorTests(gr_unittest.TestCase):
+    def setUp(self):
+        self.filtertype = 'rrc'
+        self.filteralpha = .5
+        self.seed = int(3660365253)
+
+    def tearDown(self):
+        pass
+
+    def test_001_selective(self):
+        timeslots = 5
+        subcarriers = 64
+        active_subcarriers = 52
+        overlap = 2
+        cp_len = subcarriers // 2
+        ramp_len = cp_len // 2
+        active_symbols = timeslots * active_subcarriers
+
+        subcarrier_map = get_subcarrier_map(subcarriers, active_subcarriers,
+                                            dc_free=True)
+        preambles = mapped_preamble(self.seed, self.filtertype, self.filteralpha,
+                                    active_subcarriers, subcarriers,
+                                    subcarrier_map, overlap, cp_len, ramp_len)
+        full_preamble = preambles[0]
+        core_preamble = preambles[1]
+        h = np.array([1., .5, .1j, .1+.05j], dtype=np.complex)
+        data = np.convolve(full_preamble, h, 'full')[0:full_preamble.size]
+        data = data[cp_len:-ramp_len]
+        self.assertEqual(data.size, core_preamble.size)
+
+        estimator = Preamble_channel_estimator(timeslots, subcarriers, active_subcarriers, True, 1, core_preamble)
+        self.assertEqual(estimator.timeslots(), timeslots)
+        self.assertEqual(estimator.subcarriers(), subcarriers)
+        self.assertEqual(estimator.active_subcarriers(), active_subcarriers)
+        self.assertEqual(estimator.frame_len(), timeslots * subcarriers)
+        self.assertEqual(estimator.is_dc_free(), True)
+
+        res = estimator.estimate_frame(data)
+        lowres = res[0:active_symbols // 2]
+        hires = res[-active_symbols // 2:]
+
+        fh = np.fft.fft(h, timeslots * subcarriers)
+        lowfh = fh[0:active_symbols // 2]
+        hifh = fh[-active_symbols // 2:]
+
+        self.assertComplexTuplesAlmostEqual(lowres, lowfh, 1)
+        self.assertComplexTuplesAlmostEqual(hires, hifh, 1)
+
+    def test_002_snr(self):
+        timeslots = 5
+        subcarriers = 1024
+        active_subcarriers = 936
+        overlap = 2
+        cp_len = subcarriers // 2
+        ramp_len = cp_len // 2
+        active_ratio = subcarriers / active_subcarriers
+
+        subcarrier_map = get_subcarrier_map(subcarriers, active_subcarriers,
+                                            dc_free=True)
+        preambles = mapped_preamble(self.seed, self.filtertype, self.filteralpha,
+                                    active_subcarriers, subcarriers,
+                                    subcarrier_map, overlap, cp_len, ramp_len)
+
+        core_preamble = preambles[1]
+
+        sigenergy = calculate_energy(core_preamble)
+
+        data = np.copy(core_preamble)
+        snr = 4.0
+        snr_lin = 10. ** (snr / 10.)
+
+        nscale = calculate_noise_scale(
+            snr_lin, sigenergy, active_ratio, core_preamble.size)
+        noise = get_noise_vector(core_preamble.size, nscale)
+
+        data = core_preamble + noise
+
+        estimator = Preamble_channel_estimator(timeslots, subcarriers, active_subcarriers, True, 1, core_preamble)
+
+        res = estimator.estimate_snr(data)
+        res_db = 10. * np.log10(res)
+
+        print(res, snr_lin)
+        print(res_db, snr)
+        self.assertTrue(np.abs(res_db - snr) < 1.)
 
 
 if __name__ == '__main__':
@@ -396,3 +504,4 @@ if __name__ == '__main__':
     gr_unittest.run(ModulatorTests)
     gr_unittest.run(PrefixerTests)
     gr_unittest.run(DemodulatorTests)
+    gr_unittest.run(EstimatorTests)
