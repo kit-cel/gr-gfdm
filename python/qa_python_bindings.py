@@ -29,6 +29,7 @@ from pygfdm.gfdm_receiver import gfdm_demodulate_block
 from pygfdm.utils import get_random_qpsk
 from pygfdm.cyclic_prefix import add_cyclic_prefix, pinch_block, get_raised_cosine_ramp, get_window_len, add_cyclic_starfix
 from pygfdm.preamble import mapped_preamble
+from pygfdm.symbolmapping import bits2symbols, symbols2bits, generate_constellation
 
 from gfdm_python import Resource_mapper, Modulator, Demodulator, Cyclic_prefixer, Preamble_channel_estimator
 
@@ -85,7 +86,6 @@ class BindingTests(gr_unittest.TestCase):
                                         subcarrier_map,
                                         True)
         self.assertComplexTuplesAlmostEqual(f, ref)
-
 
     def test_002_map_subcarriers(self):
         timeslots = 15
@@ -209,7 +209,8 @@ class PrefixerTests(gr_unittest.TestCase):
         window_taps = get_raised_cosine_ramp(ramp_len, window_len)
         data = np.arange(block_len, dtype=np.complex) + 1
         ref = add_cyclic_starfix(data, cp_len, cs_len)
-        ref = np.concatenate((data[-(cp_len + cyclic_shift):], data, data[0:cs_len - cyclic_shift]))
+        ref = np.concatenate(
+            (data[-(cp_len + cyclic_shift):], data, data[0:cs_len - cyclic_shift]))
         ref = pinch_block(ref, window_taps)
         ref = ref.astype(np.complex64)
 
@@ -243,7 +244,6 @@ class ModulatorTests(gr_unittest.TestCase):
         ref = gfdm_modulate_block(D, taps, timeslots, subcarriers,
                                   overlap, False)
 
-
         mod = Modulator(timeslots, subcarriers, overlap, taps)
         res = mod.modulate(data)
 
@@ -264,7 +264,6 @@ class ModulatorTests(gr_unittest.TestCase):
 
         ref = gfdm_modulate_block(D, taps, timeslots, subcarriers,
                                   overlap, False)
-
 
         mod = Modulator(timeslots, subcarriers, overlap, taps)
         res = mod.modulate(data)
@@ -310,7 +309,8 @@ class DemodulatorTests(gr_unittest.TestCase):
         D = get_data_matrix(data, subcarriers, group_by_subcarrier=False)
         frame = gfdm_modulate_block(D, taps, timeslots, subcarriers,
                                     overlap, False)
-        ref = gfdm_demodulate_block(frame, taps, subcarriers, timeslots, overlap)
+        ref = gfdm_demodulate_block(
+            frame, taps, subcarriers, timeslots, overlap)
 
         demod = Demodulator(timeslots, subcarriers, overlap, taps)
         res = demod.demodulate(frame)
@@ -331,7 +331,8 @@ class DemodulatorTests(gr_unittest.TestCase):
         D = get_data_matrix(data, subcarriers, group_by_subcarrier=False)
         frame = gfdm_modulate_block(D, taps, timeslots, subcarriers,
                                     overlap, False)
-        ref = gfdm_demodulate_block(frame, taps, subcarriers, timeslots, overlap)
+        ref = gfdm_demodulate_block(
+            frame, taps, subcarriers, timeslots, overlap)
 
         demod = Demodulator(timeslots, subcarriers, overlap, taps)
         res = demod.demodulate(frame)
@@ -352,7 +353,8 @@ class DemodulatorTests(gr_unittest.TestCase):
         D = get_data_matrix(data, subcarriers, group_by_subcarrier=False)
         frame = gfdm_modulate_block(D, taps, timeslots, subcarriers,
                                     overlap, False)
-        ref = gfdm_demodulate_block(frame, taps, subcarriers, timeslots, overlap)
+        ref = gfdm_demodulate_block(
+            frame, taps, subcarriers, timeslots, overlap)
         eq_vals = np.ones(ref.size, ref.dtype) * np.exp(1.j)
 
         demod = Demodulator(timeslots, subcarriers, overlap, taps)
@@ -374,7 +376,8 @@ class DemodulatorTests(gr_unittest.TestCase):
         D = get_data_matrix(data, subcarriers, group_by_subcarrier=False)
         frame = gfdm_modulate_block(D, taps, timeslots, subcarriers,
                                     overlap, False)
-        ref = gfdm_demodulate_block(frame, taps, subcarriers, timeslots, overlap)
+        ref = gfdm_demodulate_block(
+            frame, taps, subcarriers, timeslots, overlap)
 
         demod = Demodulator(timeslots, subcarriers, overlap, taps)
         fd_res = demod.fft_filter_downsample(frame)
@@ -402,11 +405,13 @@ class DemodulatorTests(gr_unittest.TestCase):
         D = get_data_matrix(data, subcarriers, group_by_subcarrier=False)
         frame = gfdm_modulate_block(D, taps, timeslots, subcarriers,
                                     overlap, False)
-        ref = gfdm_demodulate_block(frame, taps, subcarriers, timeslots, overlap)
+        ref = gfdm_demodulate_block(
+            frame, taps, subcarriers, timeslots, overlap)
         eq_vals = np.ones(ref.size, ref.dtype) * np.exp(1.j)
 
         demod = Demodulator(timeslots, subcarriers, overlap, taps)
-        fd_res = demod.fft_equalize_filter_downsample(frame * np.exp(1.j), eq_vals)
+        fd_res = demod.fft_equalize_filter_downsample(
+            frame * np.exp(1.j), eq_vals)
         res = demod.transform_subcarriers_to_td(fd_res)
 
         self.assertComplexTuplesAlmostEqual(ref, res, 5)
@@ -442,7 +447,8 @@ class EstimatorTests(gr_unittest.TestCase):
         data = data[cp_len:-ramp_len]
         self.assertEqual(data.size, core_preamble.size)
 
-        estimator = Preamble_channel_estimator(timeslots, subcarriers, active_subcarriers, True, 1, core_preamble)
+        estimator = Preamble_channel_estimator(
+            timeslots, subcarriers, active_subcarriers, True, 1, core_preamble)
         self.assertEqual(estimator.timeslots(), timeslots)
         self.assertEqual(estimator.subcarriers(), subcarriers)
         self.assertEqual(estimator.active_subcarriers(), active_subcarriers)
@@ -489,7 +495,8 @@ class EstimatorTests(gr_unittest.TestCase):
 
         data = core_preamble + noise
 
-        estimator = Preamble_channel_estimator(timeslots, subcarriers, active_subcarriers, True, 1, core_preamble)
+        estimator = Preamble_channel_estimator(
+            timeslots, subcarriers, active_subcarriers, True, 1, core_preamble)
 
         res = estimator.estimate_snr(data)
         res_db = 10. * np.log10(res)
@@ -499,9 +506,115 @@ class EstimatorTests(gr_unittest.TestCase):
         self.assertTrue(np.abs(res_db - snr) < 1.)
 
 
+class CyclicDelayDiversityTests(gr_unittest.TestCase):
+    def setUp(self):
+        self.filtertype = 'rrc'
+        self.filteralpha = .5
+        self.seed = int(3660365253)
+        self.overlap = 2
+        self.ic_iterations = 2
+        self.constellation_order = 2
+
+        self.channels = [
+            np.array([1., .3+.1j, .4j]),
+            np.array([1.j, .4+.1j, .2]),
+            np.array([.7j, .8+.1j, .1]),
+            np.array([.7+.7j, .1+.3j, .6+.2j]),
+        ]
+        for i, chan in enumerate(self.channels):
+            ec = np.mean(np.abs(chan) ** 2)
+            chan /= np.sqrt(ec)
+            self.channels[i] = chan
+
+    def tearDown(self):
+        pass
+
+    def simulate_channel(self, parallel_frames):
+        rx_frames = [np.convolve(frame, self.channels[i], 'full')[0:frame.size]
+                     for i, frame in enumerate(parallel_frames)]
+        return np.sum(rx_frames, axis=0)
+
+    def get_effective_channel_taps(self, cyclic_shift):
+        nparallel = len(cyclic_shift)
+        max_shift = np.max(cyclic_shift)
+        max_channel_delay = np.max(
+            [self.channels[i].size for i in range(nparallel)])
+        grid = np.zeros((nparallel, max_shift + max_channel_delay),
+                        dtype=self.channels[0].dtype)
+        for i, cs in enumerate(cyclic_shift):
+            chan = self.channels[i]
+            print(chan)
+            grid[i, cs:cs + chan.size] += chan
+        return np.sum(grid, axis=0)
+
+    def test_001_selective(self):
+        timeslots = 5
+        subcarriers = 64
+        active_subcarriers = 52
+        cp_len = subcarriers // 2
+        ramp_len = cp_len // 2
+        # cyclic_shift = [0, 2, 4, 6, ]
+        cyclic_shift = [0, 4, 8, 12, ]
+        active_symbols = timeslots * active_subcarriers
+        preambles = [self.generate_preamble(
+            subcarriers, active_subcarriers, cp_len, ramp_len, cs) for cs in cyclic_shift]
+
+        full_preambles = [p[0] for p in preambles]
+        core_preambles = [p[1] for p in preambles]
+        core_preamble = core_preambles[0]
+
+        rx_preamble = self.simulate_channel(full_preambles)
+        # print(rx_preamble)
+        print(rx_preamble.size, full_preambles[0].size)
+        rx_core_preamble = rx_preamble[cp_len:-ramp_len]
+
+        estimator = Preamble_channel_estimator(
+            timeslots, subcarriers, active_subcarriers, True, 1,
+            core_preamble)
+
+        res = estimator.estimate_frame(rx_core_preamble)
+        lowres = res[0:active_symbols // 2]
+        hires = res[-active_symbols // 2:]
+
+        effective_channel = self.get_effective_channel_taps(cyclic_shift)
+        print(effective_channel)
+        fh = np.fft.fft(effective_channel, timeslots * subcarriers)
+        lowfh = fh[0:active_symbols // 2]
+        hifh = fh[-active_symbols // 2:]
+        import matplotlib.pyplot as plt
+        plt.plot(res.real)
+        plt.plot(res.imag)
+        plt.plot(fh.real, ls='dashed')
+        plt.plot(fh.imag, ls='dashed')
+        # plt.plot(np.abs(lowres))
+        # plt.plot(np.angle(lowres))
+        # plt.plot(np.abs(lowfh), ls='dashed')
+        # plt.plot(np.angle(lowfh), ls='dashed')
+        plt.show()
+
+        self.assertFloatTuplesAlmostEqual(np.unwrap(np.angle(lowres)),
+                                          np.unwrap(np.angle(lowfh)), 0)
+        self.assertFloatTuplesAlmostEqual(np.unwrap(np.angle(hires)),
+                                          np.unwrap(np.angle(hifh)), 0)
+        # self.assertFloatTuplesAlmostEqual(np.abs(hires),
+        #                                   np.abs(hifh), 0)
+        # self.assertComplexTuplesAlmostEqual(lowres, lowfh, 1)
+        self.assertComplexTuplesAlmostEqual(hires, hifh, 0)
+
+    def generate_preamble(self, subcarriers, active_subcarriers, cp_len,
+                          ramp_len, cyclic_shift):
+        subcarrier_map = get_subcarrier_map(subcarriers, active_subcarriers,
+                                            dc_free=True)
+        return mapped_preamble(self.seed, self.filtertype, self.filteralpha,
+                               active_subcarriers, subcarriers,
+                               subcarrier_map, self.overlap, cp_len, ramp_len,
+                               use_zadoff_chu=True, cyclic_shift=cyclic_shift)
+
+
 if __name__ == '__main__':
     gr_unittest.run(BindingTests)
     gr_unittest.run(ModulatorTests)
     gr_unittest.run(PrefixerTests)
     gr_unittest.run(DemodulatorTests)
     gr_unittest.run(EstimatorTests)
+    gr_unittest.run(CyclicDelayDiversityTests)
