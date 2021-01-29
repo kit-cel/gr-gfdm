@@ -195,7 +195,6 @@ class PrefixerTests(gr_unittest.TestCase):
         self.assertComplexTuplesAlmostEqual(res, ref, 6)
 
     def test_002_prefix_shifted(self):
-        print('shifted')
         timeslots = 3
         subcarriers = 32
         cyclic_shift = 4
@@ -218,6 +217,30 @@ class PrefixerTests(gr_unittest.TestCase):
                                    window_taps, cyclic_shift)
         res = prefixer.add_cyclic_prefix(data)
         self.assertEqual(res.size, cp_len + block_len + cs_len)
+        self.assertComplexTuplesAlmostEqual(res, ref, 5)
+
+    def test_003_prefix_removed(self):
+        timeslots = 3
+        subcarriers = 32
+        cyclic_shift = 4
+
+        block_len = timeslots * subcarriers
+        cp_len = 16
+        cs_len = cp_len // 2
+        ramp_len = 4
+        frame_len = cp_len + block_len + cs_len
+        window_len = get_window_len(cp_len, timeslots, subcarriers,
+                                    cs_len)
+        window_taps = get_raised_cosine_ramp(ramp_len, window_len)
+
+        prefixer = Cyclic_prefixer(block_len, cp_len, cs_len, ramp_len,
+                                   window_taps, cyclic_shift)
+
+        data = np.arange(frame_len, dtype=np.complex64)
+        ref = data[cp_len:-cs_len]
+
+        res = prefixer.remove_cyclic_prefix(data)
+        self.assertEqual(res.size, block_len)
         self.assertComplexTuplesAlmostEqual(res, ref, 5)
 
 
@@ -507,6 +530,14 @@ class EstimatorTests(gr_unittest.TestCase):
 
 
 class CyclicDelayDiversityTests(gr_unittest.TestCase):
+    '''CyclicDelayDiversityTests
+    This test basically just confirms if CDD works as expected.
+    Can we estimate a channel? Are signs correct?
+    Do not expect numerical accuracy. This is not even intended.
+    The estimator employs a Gaussian filter on the channel estimate
+    before interpolation to smoothen over noise estimates.
+    '''
+
     def setUp(self):
         self.filtertype = 'rrc'
         self.filteralpha = .5
@@ -553,8 +584,8 @@ class CyclicDelayDiversityTests(gr_unittest.TestCase):
         active_subcarriers = 52
         cp_len = subcarriers // 2
         ramp_len = cp_len // 2
-        # cyclic_shift = [0, 2, 4, 6, ]
-        cyclic_shift = [0, 4, 8, 12, ]
+        cyclic_shift = [0, 2, 4, 6, ]
+        # cyclic_shift = [0, 4, 8, 12, ]
         active_symbols = timeslots * active_subcarriers
         preambles = [self.generate_preamble(
             subcarriers, active_subcarriers, cp_len, ramp_len, cs) for cs in cyclic_shift]
@@ -581,25 +612,21 @@ class CyclicDelayDiversityTests(gr_unittest.TestCase):
         fh = np.fft.fft(effective_channel, timeslots * subcarriers)
         lowfh = fh[0:active_symbols // 2]
         hifh = fh[-active_symbols // 2:]
-        import matplotlib.pyplot as plt
-        plt.plot(res.real)
-        plt.plot(res.imag)
-        plt.plot(fh.real, ls='dashed')
-        plt.plot(fh.imag, ls='dashed')
-        # plt.plot(np.abs(lowres))
-        # plt.plot(np.angle(lowres))
-        # plt.plot(np.abs(lowfh), ls='dashed')
-        # plt.plot(np.angle(lowfh), ls='dashed')
-        plt.show()
 
+        # Be careful here!
+        # These tests confirm that everything is kinda close.
+        # Though, some internal settings, e.g. a smoothening filter for noise estimates
+        # Does not allow for higher accuracy!
         self.assertFloatTuplesAlmostEqual(np.unwrap(np.angle(lowres)),
                                           np.unwrap(np.angle(lowfh)), 0)
         self.assertFloatTuplesAlmostEqual(np.unwrap(np.angle(hires)),
                                           np.unwrap(np.angle(hifh)), 0)
-        # self.assertFloatTuplesAlmostEqual(np.abs(hires),
-        #                                   np.abs(hifh), 0)
-        # self.assertComplexTuplesAlmostEqual(lowres, lowfh, 1)
-        self.assertComplexTuplesAlmostEqual(hires, hifh, 0)
+        self.assertFloatTuplesAlmostEqual(np.abs(hires),
+                                          np.abs(hifh), -1)
+        self.assertFloatTuplesAlmostEqual(np.abs(lowres),
+                                          np.abs(lowfh), -1)
+        self.assertComplexTuplesAlmostEqual(lowres, lowfh, -1)
+        self.assertComplexTuplesAlmostEqual(hires, hifh, -1)
 
     def generate_preamble(self, subcarriers, active_subcarriers, cp_len,
                           ramp_len, cyclic_shift):

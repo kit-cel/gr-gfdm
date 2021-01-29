@@ -48,6 +48,7 @@ public:
                          int cyclic_shift = 0);
     ~add_cyclic_prefix_cc();
     void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
+    void remove_cyclic_prefix(gfdm_complex* p_out, const gfdm_complex* p_in);
     int block_size() { return d_block_len; };
     int frame_size() { return block_size() + d_cp_len + d_cs_len; };
     int cyclic_shift() const { return d_cyclic_shift; };

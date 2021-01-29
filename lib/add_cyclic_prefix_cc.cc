@@ -21,6 +21,7 @@
 #include <gfdm/add_cyclic_prefix_cc.h>
 #include <string.h>
 #include <volk/volk.h>
+#include <algorithm>
 #include <iostream>
 
 namespace gr {
@@ -76,6 +77,13 @@ void add_cyclic_prefix_cc::generic_work(gfdm_complex* p_out, const gfdm_complex*
             p_out + tail_start, p_out + tail_start, d_back_ramp.data(), d_ramp_len);
     }
 }
+
+void add_cyclic_prefix_cc::remove_cyclic_prefix(gfdm_complex* p_out,
+                                                const gfdm_complex* p_in)
+{
+    std::copy(p_in + d_cp_len, p_in + d_cp_len + block_size(), p_out);
+}
+
 
 } /* namespace gfdm */
 } /* namespace gr */

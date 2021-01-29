@@ -57,10 +57,10 @@ void bind_cyclic_prefixer(py::module& m)
                      throw std::runtime_error("Only ONE-dimensional vectors allowed!");
                  }
                  if (inb.size != self.block_size()) {
-                     throw std::runtime_error("Input vector size(" +
-                                              std::to_string(inb.size) +
-                                              ") MUST be equal to Modulator.block_size(" +
-                                              std::to_string(self.block_size()) + ")!");
+                     throw std::runtime_error(
+                         "Input vector size(" + std::to_string(inb.size) +
+                         ") MUST be equal to Cyclic_prefix.block_size(" +
+                         std::to_string(self.block_size()) + ")!");
                  }
                  auto result =
                      py::array_t<add_cyclic_prefix_cc::gfdm_complex>(self.frame_size());
@@ -68,6 +68,28 @@ void bind_cyclic_prefixer(py::module& m)
 
                  self.generic_work((add_cyclic_prefix_cc::gfdm_complex*)resb.ptr,
                                    (add_cyclic_prefix_cc::gfdm_complex*)inb.ptr);
+                 return result;
+             })
+        .def("remove_cyclic_prefix",
+             [](add_cyclic_prefix_cc& self,
+                const py::array_t<add_cyclic_prefix_cc::gfdm_complex,
+                                  py::array::c_style | py::array::forcecast> array) {
+                 py::buffer_info inb = array.request();
+                 if (inb.ndim != 1) {
+                     throw std::runtime_error("Only ONE-dimensional vectors allowed!");
+                 }
+                 if (inb.size != self.frame_size()) {
+                     throw std::runtime_error(
+                         "Input vector size(" + std::to_string(inb.size) +
+                         ") MUST be equal to Cyclic_prefix.frame_size(" +
+                         std::to_string(self.block_size()) + ")!");
+                 }
+                 auto result =
+                     py::array_t<add_cyclic_prefix_cc::gfdm_complex>(self.block_size());
+                 py::buffer_info resb = result.request();
+
+                 self.remove_cyclic_prefix((add_cyclic_prefix_cc::gfdm_complex*)resb.ptr,
+                                           (add_cyclic_prefix_cc::gfdm_complex*)inb.ptr);
                  return result;
              });
 }
