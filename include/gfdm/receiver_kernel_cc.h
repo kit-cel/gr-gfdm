@@ -24,10 +24,10 @@
 
 #include "gfdm_kernel_utils.h"
 #include <fftw3.h>
+#include <volk/volk_alloc.hh>
 #include <complex>
 #include <stdexcept>
 #include <vector>
-#include <volk/volk_alloc.hh>
 
 namespace gr {
 namespace gfdm {
