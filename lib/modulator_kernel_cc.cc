@@ -22,12 +22,10 @@
 #include <string.h>
 #include <volk/volk.h>
 #include <iostream>
-//#include <sstream>
 
 
 namespace gr {
 namespace gfdm {
-void foobar() { std::cout << "FUCK\n"; }
 
 modulator_kernel_cc::modulator_kernel_cc(int n_timeslots,
                                          int n_subcarriers,
@@ -47,53 +45,27 @@ modulator_kernel_cc::modulator_kernel_cc(int n_timeslots,
         throw std::invalid_argument(err_str.c_str());
     }
 
-    //      gfdm_complex res = gfdm_complex(0.0, 0.0);
-    //      volk_32fc_x2_conjugate_dot_prod_32fc(&res, &frequency_taps[0],
-    //      &frequency_taps[0], frequency_taps.size()); std::cout << "BEFORE energy of
-    //      taps: " << std::abs(res) << std::endl; gfdm_complex scaling_factor =
-    //      gfdm_complex(std::sqrt(std::abs(res) / n_timeslots), 0.0f);
-    d_filter_taps = (gfdm_complex*)volk_malloc(
-        sizeof(gfdm_complex) * n_timeslots * overlap, volk_get_alignment());
-    //      volk_32fc_s32fc_multiply_32fc(d_filter_taps, &frequency_taps[0],
-    //      scaling_factor, n_timeslots * overlap);
-    ////      memcpy(d_filter_taps, &frequency_taps[0], sizeof(gfdm_complex) * n_timeslots
-    ///* overlap);
-    //
-    //      volk_32fc_x2_conjugate_dot_prod_32fc(&res, d_filter_taps, d_filter_taps,
-    //      n_timeslots * overlap); std::cout << "AFTER  energy of taps: " <<
-    //      std::abs(res) << std::endl;
-    initialize_taps_vector(d_filter_taps, frequency_taps, n_timeslots);
+    d_filter_taps.resize(n_timeslots * overlap);
+    initialize_taps_vector(d_filter_taps.data(), frequency_taps, n_timeslots);
 
     // first create input and output buffers for a new FFTW plan.
-    d_sub_fft_in = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * n_timeslots,
-                                              volk_get_alignment());
-    d_sub_fft_out = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * n_timeslots,
-                                               volk_get_alignment());
-    d_sub_fft_plan = initialize_fft(d_sub_fft_out, d_sub_fft_in, n_timeslots, true);
+    d_sub_fft_in.resize(n_timeslots);
+    d_sub_fft_out.resize(n_timeslots);
+    d_sub_fft_plan =
+        initialize_fft(d_sub_fft_out.data(), d_sub_fft_in.data(), n_timeslots, true);
 
-    d_filtered = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * n_timeslots,
-                                            volk_get_alignment());
+    d_filtered.resize(n_timeslots);
 
-    d_ifft_in = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_ifft_len,
-                                           volk_get_alignment());
-    d_ifft_out = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_ifft_len,
-                                            volk_get_alignment());
-    d_ifft_plan =
-        initialize_fft(d_ifft_out, d_ifft_in, n_timeslots * n_subcarriers, false);
+    d_ifft_in.resize(d_ifft_len);
+    d_ifft_out.resize(d_ifft_len);
+    d_ifft_plan = initialize_fft(
+        d_ifft_out.data(), d_ifft_in.data(), n_timeslots * n_subcarriers, false);
 }
 
 modulator_kernel_cc::~modulator_kernel_cc()
 {
-    volk_free(d_filter_taps);
     fftwf_destroy_plan(d_sub_fft_plan);
-    volk_free(d_sub_fft_in);
-    volk_free(d_sub_fft_out);
-
-    volk_free(d_filtered);
-
     fftwf_destroy_plan(d_ifft_plan);
-    volk_free(d_ifft_in);
-    volk_free(d_ifft_out);
 }
 
 void modulator_kernel_cc::initialize_taps_vector(gfdm_complex* filter_taps,
@@ -107,49 +79,19 @@ void modulator_kernel_cc::initialize_taps_vector(gfdm_complex* filter_taps,
 
     const gfdm_complex scaling_factor =
         gfdm_complex(1. / std::sqrt(std::abs(res) / n_timeslots), 0.0f);
-    volk_32fc_s32fc_multiply_32fc(
-        d_filter_taps, &frequency_taps[0], scaling_factor, frequency_taps.size());
+    volk_32fc_s32fc_multiply_32fc(d_filter_taps.data(),
+                                  frequency_taps.data(),
+                                  scaling_factor,
+                                  frequency_taps.size());
 
     volk_32fc_x2_conjugate_dot_prod_32fc(
-        &res, d_filter_taps, d_filter_taps, frequency_taps.size());
+        &res, d_filter_taps.data(), d_filter_taps.data(), frequency_taps.size());
     // std::cout << "AFTER  energy of taps: " << std::abs(res) << std::endl;
 }
 
 std::vector<modulator_kernel_cc::gfdm_complex> modulator_kernel_cc::filter_taps()
 {
-    std::vector<gfdm_complex> taps(d_n_timeslots * d_overlap);
-    memcpy(&taps[0], d_filter_taps, sizeof(gfdm_complex) * d_n_timeslots * d_overlap);
-    return taps;
-}
-
-
-fftwf_plan modulator_kernel_cc::initialize_fft(gfdm_complex* out_buf,
-                                               gfdm_complex* in_buf,
-                                               const int fft_size,
-                                               bool forward)
-{
-    std::string filename(getenv("HOME"));
-    filename += "/.gr_fftw_wisdom";
-    FILE* fpr = fopen(filename.c_str(), "r");
-    if (fpr != 0) {
-        //        int r = fftwf_import_wisdom_from_file (fpr); // return value is unused.
-        //        avoid compiler warning.
-        fftwf_import_wisdom_from_file(fpr);
-        fclose(fpr);
-    }
-
-    fftwf_plan plan = fftwf_plan_dft_1d(fft_size,
-                                        reinterpret_cast<fftwf_complex*>(in_buf),
-                                        reinterpret_cast<fftwf_complex*>(out_buf),
-                                        forward ? FFTW_FORWARD : FFTW_BACKWARD,
-                                        FFTW_MEASURE);
-
-    FILE* fpw = fopen(filename.c_str(), "w");
-    if (fpw != 0) {
-        fftwf_export_wisdom_to_file(fpw);
-        fclose(fpw);
-    }
-    return plan;
+    return std::vector<gfdm_complex>(d_filter_taps.begin(), d_filter_taps.end());
 }
 
 
@@ -159,12 +101,12 @@ void modulator_kernel_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* 
     const int part_len = std::min(d_n_timeslots * d_overlap / 2, d_n_timeslots);
 
     // make sure we don't sum up old results.
-    memset(d_ifft_in, 0x00, sizeof(gfdm_complex) * d_ifft_len);
+    memset(d_ifft_in.data(), 0x00, sizeof(gfdm_complex) * d_ifft_len);
 
     // perform modulation for each subcarrier separately
     for (int k = 0; k < d_n_subcarriers; ++k) {
         // get items into subcarrier FFT
-        memcpy(d_sub_fft_in, p_in, sizeof(gfdm_complex) * d_n_timeslots);
+        memcpy(d_sub_fft_in.data(), p_in, sizeof(gfdm_complex) * d_n_timeslots);
         fftwf_execute(d_sub_fft_plan);
 
         // handle each part separately. The length of a part should always be
@@ -178,12 +120,14 @@ void modulator_kernel_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* 
                 ((k + i + d_n_subcarriers - (d_overlap / 2)) % d_n_subcarriers) *
                 d_n_timeslots;
             // perform filtering operation!
-            volk_32fc_x2_multiply_32fc(
-                d_filtered, d_sub_fft_out, d_filter_taps + src_part_pos, d_n_timeslots);
+            volk_32fc_x2_multiply_32fc(d_filtered.data(),
+                                       d_sub_fft_out.data(),
+                                       d_filter_taps.data() + src_part_pos,
+                                       d_n_timeslots);
             // add generated part at correct position.
-            volk_32f_x2_add_32f((float*)(d_ifft_in + target_part_pos),
-                                (float*)(d_ifft_in + target_part_pos),
-                                (float*)d_filtered,
+            volk_32f_x2_add_32f((float*)(d_ifft_in.data() + target_part_pos),
+                                (float*)(d_ifft_in.data() + target_part_pos),
+                                (float*)d_filtered.data(),
                                 2 * part_len);
         }
         p_in += d_n_timeslots;
@@ -193,7 +137,7 @@ void modulator_kernel_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* 
     fftwf_execute(d_ifft_plan);
     //      memcpy(p_out, d_ifft_out, sizeof(gfdm_complex) * d_ifft_len);
     volk_32fc_s32fc_multiply_32fc(
-        p_out, d_ifft_out, gfdm_complex(1.0 / d_ifft_len, 0), d_ifft_len);
+        p_out, d_ifft_out.data(), gfdm_complex(1.0 / d_ifft_len, 0), d_ifft_len);
 }
 
 const void modulator_kernel_cc::print_vector(const gfdm_complex* v, const int size)

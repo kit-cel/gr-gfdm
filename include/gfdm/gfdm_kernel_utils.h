@@ -22,7 +22,6 @@
 #ifndef INCLUDED_GFDM_GFDM_KERNEL_UTILS_H
 #define INCLUDED_GFDM_GFDM_KERNEL_UTILS_H
 
-//#include <gfdm/api.h>
 #include <fftw3.h>
 #include <complex>
 #include <stdexcept>

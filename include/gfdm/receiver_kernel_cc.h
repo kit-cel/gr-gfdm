@@ -1,8 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2016 Andrej Rode
- *
- * This file is part of GNU Radio
+ * Copyright 2020, 2021 Johannes Demel
  *
  * GNU Radio is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,12 +22,12 @@
 #ifndef INCLUDED_GFDM_RECEIVER_KERNEL_CC_H
 #define INCLUDED_GFDM_RECEIVER_KERNEL_CC_H
 
+#include "gfdm_kernel_utils.h"
 #include <fftw3.h>
 #include <complex>
 #include <stdexcept>
 #include <vector>
-
-#include "gfdm_kernel_utils.h"
+#include <volk/volk_alloc.hh>
 
 namespace gr {
 namespace gfdm {
@@ -53,8 +52,6 @@ namespace gfdm {
 class receiver_kernel_cc : public gfdm_kernel_utils
 {
 public:
-    typedef std::complex<float> gfdm_complex;
-
     receiver_kernel_cc(int n_timeslots,
                        int n_subcarriers,
                        int overlap,
@@ -96,29 +93,29 @@ private:
     int d_n_timeslots;
     int d_block_len;
     int d_overlap;
-    gfdm_complex* d_filter_taps;
-    gfdm_complex* d_ic_filter_taps;
+    volk::vector<gfdm_complex> d_filter_taps;
+    volk::vector<gfdm_complex> d_ic_filter_taps;
 
     void initialize_taps_vector(gfdm_complex* filter_taps,
                                 std::vector<gfdm_complex> frequency_taps,
                                 const int n_timeslots);
 
     fftwf_plan d_in_fft_plan;
-    gfdm_complex* d_in_fft_in;
-    gfdm_complex* d_in_fft_out;
+    volk::vector<gfdm_complex> d_in_fft_in;
+    volk::vector<gfdm_complex> d_in_fft_out;
 
-    gfdm_complex* d_equalized;
+    volk::vector<gfdm_complex> d_equalized;
 
     fftwf_plan d_sc_ifft_plan;
-    gfdm_complex* d_sc_ifft_in;
-    gfdm_complex* d_sc_ifft_out;
+    volk::vector<gfdm_complex> d_sc_ifft_in;
+    volk::vector<gfdm_complex> d_sc_ifft_out;
 
     fftwf_plan d_sc_fft_plan;
-    gfdm_complex* d_sc_fft_in;
-    gfdm_complex* d_sc_fft_out;
+    volk::vector<gfdm_complex> d_sc_fft_in;
+    volk::vector<gfdm_complex> d_sc_fft_out;
 
-    gfdm_complex* d_sc_postfilter;
-    gfdm_complex* d_sc_filtered;
+    volk::vector<gfdm_complex> d_sc_postfilter;
+    volk::vector<gfdm_complex> d_sc_filtered;
 
     void filter_subcarriers_and_downsample_fd(gfdm_complex* p_out,
                                               const gfdm_complex* p_in);

@@ -50,71 +50,50 @@ receiver_kernel_cc::receiver_kernel_cc(int n_timeslots,
         sstm << "overlap MUST be greater or equal 2";
         throw std::invalid_argument(sstm.str().c_str());
     }
-    d_filter_taps = (gfdm_complex*)volk_malloc(
-        sizeof(gfdm_complex) * n_timeslots * overlap, volk_get_alignment());
-    initialize_taps_vector(d_filter_taps, frequency_taps, n_timeslots);
+    d_filter_taps.resize(n_timeslots * overlap);
+    initialize_taps_vector(d_filter_taps.data(), frequency_taps, n_timeslots);
 
-    d_ic_filter_taps = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * n_timeslots,
-                                                  volk_get_alignment());
-    memset(d_ic_filter_taps, 0x00, sizeof(gfdm_complex) * n_timeslots);
+    d_ic_filter_taps.resize(n_timeslots);
+    std::fill(d_ic_filter_taps.begin(), d_ic_filter_taps.end(), gfdm_complex(0.0f, 0.0f));
     // Calculate IC_Filter_taps d_overlap MUST be greater or equal to 2,only consider
     // interference of neigboring subcarriers
-    ::volk_32fc_x2_multiply_32fc(d_ic_filter_taps,
-                                 d_filter_taps,
-                                 &d_filter_taps[n_timeslots * (overlap - 1)],
+    ::volk_32fc_x2_multiply_32fc(d_ic_filter_taps.data(),
+                                 d_filter_taps.data(),
+                                 d_filter_taps.data() + n_timeslots * (overlap - 1),
                                  n_timeslots);
 
     // Initialize input FFT
-    d_in_fft_in = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_block_len,
-                                             volk_get_alignment());
-    d_in_fft_out = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_block_len,
-                                              volk_get_alignment());
-    d_in_fft_plan = initialize_fft(d_in_fft_out, d_in_fft_in, d_block_len, true);
+    d_in_fft_in.resize(d_block_len);
+    d_in_fft_out.resize(d_block_len);
+    d_in_fft_plan =
+        initialize_fft(d_in_fft_out.data(), d_in_fft_in.data(), d_block_len, true);
 
     // OPTIONAL: Equalize!
-    d_equalized = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_block_len,
-                                             volk_get_alignment());
+    d_equalized.resize(d_block_len);
 
     // Initialize IFFT per subcarrier
-    d_sc_ifft_in = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_n_timeslots,
-                                              volk_get_alignment());
-    d_sc_ifft_out = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_n_timeslots,
-                                               volk_get_alignment());
-    d_sc_ifft_plan = initialize_fft(d_sc_ifft_out, d_sc_ifft_in, d_n_timeslots, false);
+    d_sc_ifft_in.resize(d_n_timeslots);
+    d_sc_ifft_out.resize(d_n_timeslots);
+    d_sc_ifft_plan =
+        initialize_fft(d_sc_ifft_out.data(), d_sc_ifft_in.data(), d_n_timeslots, false);
 
     // Initialize FFT per subcarrier (IC)
-    d_sc_fft_in = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_n_timeslots,
-                                             volk_get_alignment());
-    d_sc_fft_out = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_n_timeslots,
-                                              volk_get_alignment());
-    d_sc_fft_plan = initialize_fft(d_sc_fft_out, d_sc_fft_in, d_n_timeslots, true);
+    d_sc_fft_in.resize(d_n_timeslots);
+    d_sc_fft_out.resize(d_n_timeslots);
+    d_sc_fft_plan =
+        initialize_fft(d_sc_fft_out.data(), d_sc_fft_in.data(), d_n_timeslots, true);
 
-    d_sc_postfilter = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_n_timeslots,
-                                                 volk_get_alignment());
-
-    d_sc_filtered = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_block_len,
-                                               volk_get_alignment());
+    d_sc_postfilter.resize(d_n_timeslots);
+    d_sc_filtered.resize(d_block_len);
 }
 
 receiver_kernel_cc::~receiver_kernel_cc()
 {
-    volk_free(d_filter_taps);
-    volk_free(d_ic_filter_taps);
-
     fftwf_destroy_plan(d_in_fft_plan);
-    volk_free(d_in_fft_in);
-    volk_free(d_in_fft_out);
 
     fftwf_destroy_plan(d_sc_ifft_plan);
-    volk_free(d_sc_ifft_in);
-    volk_free(d_sc_ifft_out);
 
     fftwf_destroy_plan(d_sc_fft_plan);
-    volk_free(d_sc_fft_in);
-    volk_free(d_sc_fft_out);
-
-    volk_free(d_sc_postfilter);
-    volk_free(d_sc_filtered);
 }
 
 void receiver_kernel_cc::initialize_taps_vector(gfdm_complex* filter_taps,
@@ -123,45 +102,41 @@ void receiver_kernel_cc::initialize_taps_vector(gfdm_complex* filter_taps,
 {
     gfdm_complex res = gfdm_complex(0.0, 0.0);
     volk_32fc_x2_conjugate_dot_prod_32fc(
-        &res, &frequency_taps[0], &frequency_taps[0], frequency_taps.size());
+        &res, frequency_taps.data(), frequency_taps.data(), frequency_taps.size());
     // std::cout << "BEFORE energy of taps: " << std::abs(res) << std::endl;
 
     const gfdm_complex scaling_factor =
         gfdm_complex(1. / std::sqrt(std::abs(res) / n_timeslots), 0.0f);
-    volk_32fc_s32fc_multiply_32fc(
-        d_filter_taps, &frequency_taps[0], scaling_factor, frequency_taps.size());
+    volk_32fc_s32fc_multiply_32fc(d_filter_taps.data(),
+                                  frequency_taps.data(),
+                                  scaling_factor,
+                                  frequency_taps.size());
 
     volk_32fc_x2_conjugate_dot_prod_32fc(
-        &res, d_filter_taps, d_filter_taps, frequency_taps.size());
+        &res, d_filter_taps.data(), d_filter_taps.data(), frequency_taps.size());
     // std::cout << "AFTER  energy of taps: " << std::abs(res) << std::endl;
 }
 
 std::vector<receiver_kernel_cc::gfdm_complex> receiver_kernel_cc::filter_taps() const
 {
-    std::vector<gfdm_complex> taps(d_n_timeslots * d_overlap);
-    memcpy(&taps[0], d_filter_taps, sizeof(gfdm_complex) * d_n_timeslots * d_overlap);
-    return taps;
+    return std::vector<gfdm_complex>(d_filter_taps.begin(), d_filter_taps.end());
 }
 
 std::vector<receiver_kernel_cc::gfdm_complex> receiver_kernel_cc::ic_filter_taps() const
 {
-    std::vector<gfdm_complex> taps(d_n_timeslots);
-    memcpy(&taps[0], d_ic_filter_taps, sizeof(gfdm_complex) * d_n_timeslots);
-    return taps;
+    return std::vector<gfdm_complex>(d_ic_filter_taps.begin(), d_ic_filter_taps.end());
 }
 
 void receiver_kernel_cc::filter_superposition(std::vector<std::vector<gfdm_complex>>& out,
                                               const gfdm_complex* in)
 {
     // No scaling needed -> AGC
-    //::volk_32fc_s32fc_multiply_32fc(&d_in_fft_in[0],&in[0],static_cast<gfdm_complex>(float(d_block_len)/float(d_block_len)),d_block_len);
-    //      memset(&d_in_fft_in[0], 0x00, sizeof(gfdm_complex) * d_block_len);
-    memcpy(&d_in_fft_in[0], &in[0], sizeof(gfdm_complex) * d_block_len);
+    memcpy(d_in_fft_in.data(), in, sizeof(gfdm_complex) * d_block_len);
     // To Frequency Domain!
     fftwf_execute(d_in_fft_plan);
     // Append additional d_n_timeslots*d_overlap symbols from beginning to fft_out vector
     // To have 'whole' subcarriers in memory
-    filter_subcarriers_and_downsample_fd(d_sc_filtered, d_in_fft_out);
+    filter_subcarriers_and_downsample_fd(d_sc_filtered.data(), d_in_fft_out.data());
     for (int k = 0; k < d_n_subcarriers; ++k) {
         // FFT output is not centered:
         // Subcarrier-Offset = d_block_len/2 + (d_block_len-d_block_len)/2 -
@@ -174,14 +149,14 @@ void receiver_kernel_cc::filter_superposition(std::vector<std::vector<gfdm_compl
                 d_n_timeslots;
             int target_part_pos = ((i + d_overlap / 2) % d_overlap) * d_n_timeslots;
             // Filter every part length d_n_timeslots with appropriate filter_taps
-            ::volk_32fc_x2_multiply_32fc(d_sc_postfilter,
-                                         d_filter_taps + target_part_pos,
-                                         d_in_fft_out + src_part_pos,
+            ::volk_32fc_x2_multiply_32fc(d_sc_postfilter.data(),
+                                         d_filter_taps.data() + target_part_pos,
+                                         d_in_fft_out.data() + src_part_pos,
                                          d_n_timeslots);
             // Superposition parts in out[k]
             ::volk_32f_x2_add_32f((float*)&out[k][0],
                                   (float*)(&out[k][0]),
-                                  (float*)d_sc_postfilter,
+                                  (float*)d_sc_postfilter.data(),
                                   2 * d_n_timeslots);
         }
     }
@@ -202,13 +177,15 @@ void receiver_kernel_cc::filter_subcarriers_and_downsample_fd(gfdm_complex* p_ou
                 d_n_timeslots;
             int target_part_pos = ((i + d_overlap / 2) % d_overlap) * d_n_timeslots;
             // Filter every part length d_n_timeslots with appropriate filter_taps
-            ::volk_32fc_x2_multiply_32fc(d_sc_postfilter,
-                                         d_filter_taps + target_part_pos,
+            ::volk_32fc_x2_multiply_32fc(d_sc_postfilter.data(),
+                                         d_filter_taps.data() + target_part_pos,
                                          p_in + src_part_pos,
                                          d_n_timeslots);
 
-            ::volk_32f_x2_add_32f(
-                (float*)p_out, (float*)p_out, (float*)d_sc_postfilter, 2 * d_n_timeslots);
+            ::volk_32f_x2_add_32f((float*)p_out,
+                                  (float*)p_out,
+                                  (float*)d_sc_postfilter.data(),
+                                  2 * d_n_timeslots);
         }
         p_out += d_n_timeslots;
     }
@@ -237,11 +214,11 @@ void receiver_kernel_cc::transform_subcarriers_to_td(gfdm_complex* p_out,
     // 4. apply ifft on every filtered and superpositioned subcarrier
     const gfdm_complex scaling_factor = static_cast<gfdm_complex>(1.0 / d_n_timeslots);
     for (int k = 0; k < d_n_subcarriers; ++k) {
-        memcpy(d_sc_ifft_in, p_in, sizeof(gfdm_complex) * d_n_timeslots);
+        memcpy(d_sc_ifft_in.data(), p_in, sizeof(gfdm_complex) * d_n_timeslots);
         fftwf_execute(d_sc_ifft_plan);
         // Scale afterwards if required
         ::volk_32fc_s32fc_multiply_32fc(
-            p_out, d_sc_ifft_out, scaling_factor, d_n_timeslots);
+            p_out, d_sc_ifft_out.data(), scaling_factor, d_n_timeslots);
         p_in += d_n_timeslots;
         p_out += d_n_timeslots;
     }
@@ -303,18 +280,20 @@ void receiver_kernel_cc::cancel_sc_interference(gfdm_complex* p_out,
         // Sum up neighboring subcarriers and then filter with ic_filter_taps
         int prev_sc = (k - 1 + d_n_subcarriers) % d_n_subcarriers;
         int next_sc = (k + 1 + d_n_subcarriers) % d_n_subcarriers;
-        ::volk_32f_x2_add_32f((float*)d_sc_fft_in,
+        ::volk_32f_x2_add_32f((float*)d_sc_fft_in.data(),
                               (float*)(p_td_in + prev_sc * d_n_timeslots),
                               (float*)(p_td_in + next_sc * d_n_timeslots),
                               2 * d_n_timeslots);
         fftwf_execute(d_sc_fft_plan);
         // Multiply resulting symbols stream with ic_filter_taps in fd
-        ::volk_32fc_x2_multiply_32fc(
-            d_sc_postfilter, d_ic_filter_taps, d_sc_fft_out, d_n_timeslots);
+        ::volk_32fc_x2_multiply_32fc(d_sc_postfilter.data(),
+                                     d_ic_filter_taps.data(),
+                                     d_sc_fft_out.data(),
+                                     d_n_timeslots);
         // Subtract calculated interference from subcarrier k
         ::volk_32f_x2_subtract_32f((float*)(p_out + k * d_n_timeslots),
                                    (float*)(p_fd_in + k * d_n_timeslots),
-                                   (float*)d_sc_postfilter,
+                                   (float*)d_sc_postfilter.data(),
                                    2 * d_n_timeslots);
     }
 }
@@ -322,35 +301,36 @@ void receiver_kernel_cc::cancel_sc_interference(gfdm_complex* p_out,
 void receiver_kernel_cc::fft_filter_downsample(gfdm_complex* p_out,
                                                const gfdm_complex* p_in)
 {
-    memcpy(d_in_fft_in, p_in, sizeof(gfdm_complex) * d_block_len);
+    memcpy(d_in_fft_in.data(), p_in, sizeof(gfdm_complex) * d_block_len);
     fftwf_execute(d_in_fft_plan);
-    filter_subcarriers_and_downsample_fd(p_out, d_in_fft_out);
+    filter_subcarriers_and_downsample_fd(p_out, d_in_fft_out.data());
 }
 
 void receiver_kernel_cc::fft_equalize_filter_downsample(gfdm_complex* p_out,
                                                         const gfdm_complex* p_in,
                                                         const gfdm_complex* f_eq_in)
 {
-    memcpy(d_in_fft_in, p_in, sizeof(gfdm_complex) * d_block_len);
+    memcpy(d_in_fft_in.data(), p_in, sizeof(gfdm_complex) * d_block_len);
     fftwf_execute(d_in_fft_plan);
-    volk_32fc_x2_divide_32fc(d_equalized, d_in_fft_out, f_eq_in, d_block_len);
+    volk_32fc_x2_divide_32fc(
+        d_equalized.data(), d_in_fft_out.data(), f_eq_in, d_block_len);
     // volk_32fc_x2_multiply_conjugate_32fc(d_equalized, d_in_fft_out, f_eq_in,
     // d_block_len);
-    filter_subcarriers_and_downsample_fd(p_out, d_equalized);
+    filter_subcarriers_and_downsample_fd(p_out, d_equalized.data());
 }
 
 void receiver_kernel_cc::generic_work(gfdm_complex* out, const gfdm_complex* in)
 {
-    fft_filter_downsample(d_sc_filtered, in);
-    transform_subcarriers_to_td(out, d_sc_filtered);
+    fft_filter_downsample(d_sc_filtered.data(), in);
+    transform_subcarriers_to_td(out, d_sc_filtered.data());
 }
 
 void receiver_kernel_cc::generic_work_equalize(gfdm_complex* out,
                                                const gfdm_complex* in,
                                                const gfdm_complex* f_eq_in)
 {
-    fft_equalize_filter_downsample(d_sc_filtered, in, f_eq_in);
-    transform_subcarriers_to_td(out, d_sc_filtered);
+    fft_equalize_filter_downsample(d_sc_filtered.data(), in, f_eq_in);
+    transform_subcarriers_to_td(out, d_sc_filtered.data());
 }
 
 } // namespace gfdm

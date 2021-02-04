@@ -22,7 +22,9 @@
 #ifndef INCLUDED_GFDM_MODULATOR_KERNEL_CC_H
 #define INCLUDED_GFDM_MODULATOR_KERNEL_CC_H
 
+#include "gfdm_kernel_utils.h"
 #include <fftw3.h>
+#include <volk/volk_alloc.hh>
 #include <complex>
 #include <stdexcept>
 #include <vector>
@@ -36,11 +38,9 @@ void foobar();
  *  This class initializes and performs all operations necessary to modulate a GFDM block.
  *
  */
-class modulator_kernel_cc
+class modulator_kernel_cc : public gfdm_kernel_utils
 {
 public:
-    typedef std::complex<float> gfdm_complex;
-
     modulator_kernel_cc(int n_timeslots,
                         int n_subcarriers,
                         int overlap,
@@ -55,22 +55,18 @@ private:
     int d_n_subcarriers;
     int d_ifft_len;
     int d_overlap;
-    gfdm_complex* d_filter_taps;
+    volk::vector<gfdm_complex> d_filter_taps;
 
-    fftwf_plan initialize_fft(gfdm_complex* out_buf,
-                              gfdm_complex* in_buf,
-                              const int fft_size,
-                              bool forward);
     void initialize_taps_vector(gfdm_complex* filter_taps,
                                 std::vector<gfdm_complex> frequency_taps,
                                 const int n_timeslots);
 
-    gfdm_complex* d_sub_fft_in;
-    gfdm_complex* d_sub_fft_out;
+    volk::vector<gfdm_complex> d_sub_fft_in;
+    volk::vector<gfdm_complex> d_sub_fft_out;
     fftwf_plan d_sub_fft_plan;
-    gfdm_complex* d_filtered;
-    gfdm_complex* d_ifft_in;
-    gfdm_complex* d_ifft_out;
+    volk::vector<gfdm_complex> d_filtered;
+    volk::vector<gfdm_complex> d_ifft_in;
+    volk::vector<gfdm_complex> d_ifft_out;
     fftwf_plan d_ifft_plan;
 
     // DEBUG function

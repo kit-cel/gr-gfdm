@@ -40,13 +40,13 @@ short_burst_shaper::sptr short_burst_shaper::make(int pre_padding,
                                                   double timing_advance,
                                                   double cycle_interval)
 {
-    return gnuradio::get_initial_sptr(new short_burst_shaper_impl(pre_padding,
-                                                                  post_padding,
-                                                                  scale,
-                                                                  length_tag_name,
-                                                                  use_timed_commands,
-                                                                  timing_advance,
-                                                                  cycle_interval));
+    return gnuradio::make_block_sptr<short_burst_shaper_impl>(pre_padding,
+                                                              post_padding,
+                                                              scale,
+                                                              length_tag_name,
+                                                              use_timed_commands,
+                                                              timing_advance,
+                                                              cycle_interval);
 }
 
 /*

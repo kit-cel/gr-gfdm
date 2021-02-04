@@ -39,15 +39,14 @@ advanced_receiver_sb_cc::make(int n_timeslots,
                               std::vector<int> subcarrier_map,
                               int do_phase_compensation)
 {
-    return gnuradio::get_initial_sptr(
-        new advanced_receiver_sb_cc_impl(n_timeslots,
-                                         n_subcarriers,
-                                         overlap,
-                                         ic_iter,
-                                         frequency_taps,
-                                         constellation,
-                                         subcarrier_map,
-                                         do_phase_compensation));
+    return gnuradio::make_block_sptr<advanced_receiver_sb_cc_impl>(n_timeslots,
+                                                                   n_subcarriers,
+                                                                   overlap,
+                                                                   ic_iter,
+                                                                   frequency_taps,
+                                                                   constellation,
+                                                                   subcarrier_map,
+                                                                   do_phase_compensation);
 }
 
 /*
@@ -67,15 +66,14 @@ advanced_receiver_sb_cc_impl::advanced_receiver_sb_cc_impl(
                      gr::io_signature::make(1, 1, sizeof(gr_complex)))
 {
     // int do_phase_compensation = 1;
-    d_adv_kernel = std::unique_ptr<advanced_receiver_kernel_cc>(
-        new advanced_receiver_kernel_cc(n_timeslots,
-                                        n_subcarriers,
-                                        overlap,
-                                        frequency_taps,
-                                        subcarrier_map,
-                                        ic_iter,
-                                        constellation,
-                                        do_phase_compensation));
+    d_adv_kernel = std::make_unique<advanced_receiver_kernel_cc>(n_timeslots,
+                                                                 n_subcarriers,
+                                                                 overlap,
+                                                                 frequency_taps,
+                                                                 subcarrier_map,
+                                                                 ic_iter,
+                                                                 constellation,
+                                                                 do_phase_compensation);
     set_output_multiple(d_adv_kernel->block_size());
     set_tag_propagation_policy(TPP_DONT);
 }

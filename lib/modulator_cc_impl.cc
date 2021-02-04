@@ -35,8 +35,8 @@ modulator_cc::sptr modulator_cc::make(int nsubcarrier,
                                       int sync_fft_len,
                                       const std::string& len_tag_key)
 {
-    return gnuradio::get_initial_sptr(new modulator_cc_impl(
-        nsubcarrier, ntimeslots, filter_alpha, fft_len, sync_fft_len, len_tag_key));
+    return gnuradio::make_block_sptr<modulator_cc_impl>(
+        nsubcarrier, ntimeslots, filter_alpha, fft_len, sync_fft_len, len_tag_key);
 }
 
 /*

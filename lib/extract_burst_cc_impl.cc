@@ -35,8 +35,8 @@ extract_burst_cc::sptr extract_burst_cc::make(int burst_len,
                                               std::string burst_start_tag,
                                               bool activate_cfo_correction)
 {
-    return gnuradio::get_initial_sptr(new extract_burst_cc_impl(
-        burst_len, tag_backoff, burst_start_tag, activate_cfo_correction));
+    return gnuradio::make_block_sptr<extract_burst_cc_impl>(
+        burst_len, tag_backoff, burst_start_tag, activate_cfo_correction);
 }
 
 /*

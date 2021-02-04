@@ -34,8 +34,8 @@ remove_prefix_cc::sptr remove_prefix_cc::make(int frame_len,
                                               int offset,
                                               const std::string& gfdm_sync_tag_key)
 {
-    return gnuradio::get_initial_sptr(
-        new remove_prefix_cc_impl(frame_len, block_len, offset, gfdm_sync_tag_key));
+    return gnuradio::make_block_sptr<remove_prefix_cc_impl>(
+        frame_len, block_len, offset, gfdm_sync_tag_key);
 }
 
 /*

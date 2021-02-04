@@ -34,8 +34,8 @@ cyclic_prefixer_cc::sptr cyclic_prefixer_cc::make(int block_len,
                                                   int ramp_len,
                                                   std::vector<gr_complex> window_taps)
 {
-    return gnuradio::get_initial_sptr(
-        new cyclic_prefixer_cc_impl(block_len, cp_len, cs_len, ramp_len, window_taps));
+    return gnuradio::make_block_sptr<cyclic_prefixer_cc_impl>(
+        block_len, cp_len, cs_len, ramp_len, window_taps);
 }
 
 /*
@@ -49,12 +49,10 @@ cyclic_prefixer_cc_impl::cyclic_prefixer_cc_impl(int block_len,
     : gr::block("cyclic_prefixer_cc",
                 gr::io_signature::make(1, 1, sizeof(gr_complex)),
                 gr::io_signature::make(1, 1, sizeof(gr_complex))),
-      d_kernel(std::unique_ptr<add_cyclic_prefix_cc>(
-          new add_cyclic_prefix_cc(block_len, cp_len, cs_len, ramp_len, window_taps)))
+      d_kernel(std::make_unique<add_cyclic_prefix_cc>(
+          block_len, cp_len, cs_len, ramp_len, window_taps))
 
 {
-    // all the work is done in the kernel!
-
     // set block properties!
     set_relative_rate(1.0 * d_kernel->frame_size() / d_kernel->block_size());
     set_fixed_rate(true);

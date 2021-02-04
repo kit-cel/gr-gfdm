@@ -34,8 +34,8 @@ resource_demapper_cc::sptr resource_demapper_cc::make(int timeslots,
                                                       std::vector<int> subcarrier_map,
                                                       bool per_timeslot)
 {
-    return gnuradio::get_initial_sptr(new resource_demapper_cc_impl(
-        timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot));
+    return gnuradio::make_block_sptr<resource_demapper_cc_impl>(
+        timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot);
 }
 
 /*
@@ -49,13 +49,12 @@ resource_demapper_cc_impl::resource_demapper_cc_impl(int timeslots,
     : gr::block("resource_demapper_cc",
                 gr::io_signature::make(1, 1, sizeof(gr_complex)),
                 gr::io_signature::make(1, 1, sizeof(gr_complex))),
-      d_kernel(std::unique_ptr<resource_mapper_kernel_cc>(
-          new resource_mapper_kernel_cc(timeslots,
-                                        subcarriers,
-                                        active_subcarriers,
-                                        subcarrier_map,
-                                        per_timeslot,
-                                        false)))
+      d_kernel(std::make_unique<resource_mapper_kernel_cc>(timeslots,
+                                                           subcarriers,
+                                                           active_subcarriers,
+                                                           subcarrier_map,
+                                                           per_timeslot,
+                                                           false))
 {
     set_relative_rate(1.0 * d_kernel->output_vector_size() /
                       d_kernel->input_vector_size());

@@ -27,14 +27,16 @@
 #include <gfdm/api.h>
 #include <gfdm/modulator_kernel_cc.h>
 #include <gfdm/resource_mapper_kernel_cc.h>
-
+#include <volk/volk_alloc.hh>
 #include <memory>
 
 namespace gr {
 namespace gfdm {
 
 /*!
- * \brief <+description+>
+ * \brief GFDM Transmitter kernel
+ *
+ * Perform all necessary operations to obtain a transmittable frame.
  *
  */
 class GFDM_API transmitter_kernel
@@ -66,9 +68,9 @@ private:
     std::unique_ptr<modulator_kernel_cc> d_modulator;
     std::unique_ptr<add_cyclic_prefix_cc> d_prefixer;
 
-    gfdm_complex* d_mapped;
-    gfdm_complex* d_frame;
-    std::vector<gfdm_complex> d_preamble;
+    volk::vector<gfdm_complex> d_mapped;
+    volk::vector<gfdm_complex> d_frame;
+    volk::vector<gfdm_complex> d_preamble;
 };
 
 } // namespace gfdm

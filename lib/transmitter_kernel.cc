@@ -42,22 +42,17 @@ transmitter_kernel::transmitter_kernel(int timeslots,
                                        std::vector<gfdm_complex> frequency_taps,
                                        std::vector<gfdm_complex> window_taps,
                                        std::vector<gfdm_complex> preamble)
-    : d_preamble(preamble),
-      d_mapper(std::unique_ptr<resource_mapper_kernel_cc>(new resource_mapper_kernel_cc(
-          timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot))),
-      d_modulator(std::unique_ptr<modulator_kernel_cc>(
-          new modulator_kernel_cc(timeslots, subcarriers, overlap, frequency_taps))),
-      d_prefixer(std::unique_ptr<add_cyclic_prefix_cc>(new add_cyclic_prefix_cc(
-          timeslots * subcarriers, cp_len, cs_len, ramp_len, window_taps)))
+    : d_preamble(preamble.begin(), preamble.end()),
+      d_mapper(std::make_unique<resource_mapper_kernel_cc>(
+          timeslots, subcarriers, active_subcarriers, subcarrier_map, per_timeslot)),
+      d_modulator(std::make_unique<modulator_kernel_cc>(
+          timeslots, subcarriers, overlap, frequency_taps)),
+      d_prefixer(std::make_unique<add_cyclic_prefix_cc>(
+          timeslots * subcarriers, cp_len, cs_len, ramp_len, window_taps))
 {
-    // d_mapper = resource_mapper_kernel_cc::sptr(
-    //     new resource_mapper_kernel_cc(timeslots, subcarriers, active_subcarriers,
-    //                                   subcarrier_map, per_timeslot));
 
-    d_mapped = (gfdm_complex*)volk_malloc(
-        sizeof(gfdm_complex) * d_mapper->output_vector_size(), volk_get_alignment());
-    d_frame = (gfdm_complex*)volk_malloc(sizeof(gfdm_complex) * d_modulator->block_size(),
-                                         volk_get_alignment());
+    d_mapped.resize(d_mapper->output_vector_size());
+    d_frame.resize(d_modulator->block_size());
 }
 
 transmitter_kernel::~transmitter_kernel() {}
@@ -66,9 +61,9 @@ void transmitter_kernel::generic_work(gfdm_complex* p_out,
                                       const gfdm_complex* p_in,
                                       const int ninput_size)
 {
-    d_mapper->map_to_resources(d_mapped, p_in, ninput_size);
-    d_modulator->generic_work(d_frame, d_mapped);
-    d_prefixer->generic_work(p_out + d_preamble.size(), d_frame);
+    d_mapper->map_to_resources(d_mapped.data(), p_in, ninput_size);
+    d_modulator->generic_work(d_frame.data(), d_mapped.data());
+    d_prefixer->generic_work(p_out + d_preamble.size(), d_frame.data());
     std::memcpy(p_out, d_preamble.data(), sizeof(gfdm_complex) * d_preamble.size());
 }
 

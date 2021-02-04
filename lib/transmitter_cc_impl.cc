@@ -43,19 +43,19 @@ transmitter_cc::sptr transmitter_cc::make(int timeslots,
                                           std::vector<gr_complex> preamble,
                                           const std::string& tsb_tag_key)
 {
-    return gnuradio::get_initial_sptr(new transmitter_cc_impl(timeslots,
-                                                              subcarriers,
-                                                              active_subcarriers,
-                                                              cp_len,
-                                                              cs_len,
-                                                              ramp_len,
-                                                              subcarrier_map,
-                                                              per_timeslot,
-                                                              overlap,
-                                                              frequency_taps,
-                                                              window_taps,
-                                                              preamble,
-                                                              tsb_tag_key));
+    return gnuradio::make_block_sptr<transmitter_cc_impl>(timeslots,
+                                                          subcarriers,
+                                                          active_subcarriers,
+                                                          cp_len,
+                                                          cs_len,
+                                                          ramp_len,
+                                                          subcarrier_map,
+                                                          per_timeslot,
+                                                          overlap,
+                                                          frequency_taps,
+                                                          window_taps,
+                                                          preamble,
+                                                          tsb_tag_key);
 }
 
 /*
@@ -80,19 +80,18 @@ transmitter_cc_impl::transmitter_cc_impl(int timeslots,
       d_length_tag_key_str(tsb_tag_key),
       d_length_tag_key(pmt::string_to_symbol(tsb_tag_key))
 {
-    d_kernel =
-        std::unique_ptr<transmitter_kernel>(new transmitter_kernel(timeslots,
-                                                                   subcarriers,
-                                                                   active_subcarriers,
-                                                                   cp_len,
-                                                                   cs_len,
-                                                                   ramp_len,
-                                                                   subcarrier_map,
-                                                                   per_timeslot,
-                                                                   overlap,
-                                                                   frequency_taps,
-                                                                   window_taps,
-                                                                   preamble));
+    d_kernel = std::make_unique<transmitter_kernel>(timeslots,
+                                                    subcarriers,
+                                                    active_subcarriers,
+                                                    cp_len,
+                                                    cs_len,
+                                                    ramp_len,
+                                                    subcarrier_map,
+                                                    per_timeslot,
+                                                    overlap,
+                                                    frequency_taps,
+                                                    window_taps,
+                                                    preamble);
     set_relative_rate(1.0 * d_kernel->output_vector_size() /
                       d_kernel->input_vector_size());
     set_fixed_rate(true);

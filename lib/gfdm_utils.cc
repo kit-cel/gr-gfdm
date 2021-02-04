@@ -40,20 +40,19 @@ rrc_filter_sparse::rrc_filter_sparse(
         filtertaps[i] = filtertaps_center[(i + ntaps / 2) % ntaps];
     }
     // Initialize FFT
-    fft::fft_real_fwd* filter_fft = new fft::fft_real_fwd(ntaps, 1);
+    auto filter_fft = std::make_unique<fft::fft_real_fwd>(ntaps, 1);
     float* in = filter_fft->get_inbuf();
     gr_complex* out = filter_fft->get_outbuf();
     std::memset((void*)in, 0x00, sizeof(float) * ntaps);
     // Copy Filtertaps in FFT Input
-    std::memcpy(&in[0], &filtertaps[0], sizeof(float) * ntaps);
+    std::memcpy(in, filtertaps.data(), sizeof(float) * ntaps);
     filter_fft->execute();
     d_filter_taps.resize(ntimeslots * filter_width, gr_complex(0.0f, 0.0f));
     // Only works for d_filter_width = 2 needs some rework for d_filter_width other than 2
-    std::memcpy(&d_filter_taps[0], out, sizeof(gr_complex) * ntimeslots);
+    std::memcpy(d_filter_taps.data(), out, sizeof(gr_complex) * ntimeslots);
     for (int i = 0; i < ntimeslots - 1; i++) {
         d_filter_taps[i + ntimeslots + 1] = std::conj(d_filter_taps[ntimeslots - 1 - i]);
     }
-    delete filter_fft;
 };
 rrc_filter_sparse::~rrc_filter_sparse(){
 

@@ -25,6 +25,7 @@
 #include <gnuradio/digital/constellation.h>
 #include <gfdm/api.h>
 #include <gfdm/receiver_kernel_cc.h>
+#include <volk/volk_alloc.hh>
 
 namespace gr {
 namespace gfdm {
@@ -71,9 +72,9 @@ private:
     float calculate_phase_offset(const gr_complex* detected_symbols_buffer,
                                  const gr_complex* demod_symbols_buffer);
 
-    gr_complex* d_freq_block;
-    gr_complex* d_ic_time_buffer;
-    gr_complex* d_ic_freq_buffer;
+    volk::vector<gr_complex> d_freq_block;
+    volk::vector<gr_complex> d_ic_time_buffer;
+    volk::vector<gr_complex> d_ic_freq_buffer;
 };
 
 } // namespace gfdm
