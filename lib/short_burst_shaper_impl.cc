@@ -35,6 +35,7 @@ namespace gfdm {
 short_burst_shaper::sptr short_burst_shaper::make(int pre_padding,
                                                   int post_padding,
                                                   gr_complex scale,
+                                                  const unsigned nports,
                                                   const std::string& length_tag_name,
                                                   bool use_timed_commands,
                                                   double timing_advance,
@@ -43,6 +44,7 @@ short_burst_shaper::sptr short_burst_shaper::make(int pre_padding,
     return gnuradio::make_block_sptr<short_burst_shaper_impl>(pre_padding,
                                                               post_padding,
                                                               scale,
+                                                              nports,
                                                               length_tag_name,
                                                               use_timed_commands,
                                                               timing_advance,
@@ -55,13 +57,14 @@ short_burst_shaper::sptr short_burst_shaper::make(int pre_padding,
 short_burst_shaper_impl::short_burst_shaper_impl(int pre_padding,
                                                  int post_padding,
                                                  gr_complex scale,
+                                                 const unsigned nports,
                                                  const std::string& length_tag_name,
                                                  bool use_timed_commands,
                                                  double timing_advance,
                                                  double cycle_interval)
     : gr::tagged_stream_block("short_burst_shaper",
-                              gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                              gr::io_signature::make(1, 1, sizeof(gr_complex)),
+                              gr::io_signature::make(nports, nports, sizeof(gr_complex)),
+                              gr::io_signature::make(nports, nports, sizeof(gr_complex)),
                               length_tag_name),
       d_pre_padding(pre_padding),
       d_post_padding(post_padding),
@@ -163,12 +166,20 @@ int short_burst_shaper_impl::work(int noutput_items,
     const gr_complex* in = (const gr_complex*)input_items[0];
     gr_complex* out = (gr_complex*)output_items[0];
 
-    std::memset(out, 0, sizeof(gr_complex) * d_pre_padding);
+    // const auto nexpected_input_items = ninput_items[0];
+    for (unsigned port = 0; port < input_items.size(); ++port) {
+        const gr_complex* in = (const gr_complex*)input_items[port];
+        gr_complex* out = (gr_complex*)output_items[port];
 
-    volk_32fc_s32fc_multiply_32fc(out + d_pre_padding, in, d_scale, ninput_items[0]);
+        std::memset(out, 0, sizeof(gr_complex) * d_pre_padding);
 
-    std::memset(
-        out + d_pre_padding + ninput_items[0], 0, sizeof(gr_complex) * d_post_padding);
+        volk_32fc_s32fc_multiply_32fc(
+            out + d_pre_padding, in, d_scale, ninput_items[port]);
+
+        std::memset(out + d_pre_padding + ninput_items[port],
+                    0,
+                    sizeof(gr_complex) * d_post_padding);
+    }
 
     if (d_use_timed_commands) {
 
@@ -199,13 +210,13 @@ int short_burst_shaper_impl::work(int noutput_items,
         //                      std::to_string(1000.0 * frac_secs));
         // }
 
-
-        add_item_tag(
-            0,
-            nitems_written(0),
-            d_tx_time_key,
-            pmt::make_tuple(pmt::from_uint64(full_secs), pmt::from_double(frac_secs)));
-
+        for (unsigned port = 0; port < input_items.size(); ++port) {
+            add_item_tag(port,
+                         nitems_written(port),
+                         d_tx_time_key,
+                         pmt::make_tuple(pmt::from_uint64(full_secs),
+                                         pmt::from_double(frac_secs)));
+        }
         // send_rx_gain_command(full_secs, frac_secs, 0.0f);
         // const uint64_t eob_ticks = fts + noutput_items + d_pre_padding +
         // d_post_padding; send_rx_gain_command(ticks2fullsecs(eob_ticks),

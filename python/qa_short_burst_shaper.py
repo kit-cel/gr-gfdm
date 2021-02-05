@@ -50,7 +50,8 @@ class qa_short_burst_shaper(gr_unittest.TestCase):
                               data, np.zeros(post_padding, dtype=data.dtype)))
 
         src = blocks.vector_source_c(data, tags=(tag, ))
-        uut = gfdm.short_burst_shaper(pre_padding, post_padding, 1.+0.j, tkey)
+        uut = gfdm.short_burst_shaper(
+            pre_padding, post_padding, 1.+0.j, 1, tkey)
         snk = blocks.vector_sink_c()
         # set up fg
         self.tb.connect(src, uut, snk)
@@ -75,7 +76,7 @@ class qa_short_burst_shaper(gr_unittest.TestCase):
         ref = np.array((), dtype=np.complex)
         for i in range(n_bursts):
             tag = gr.tag_utils.python_to_tag((offset, ptkey,
-                                  pmt.from_long(burst_len * (i + 1)), ptsrc))
+                                              pmt.from_long(burst_len * (i + 1)), ptsrc))
             tags.append(tag)
             offset += burst_len * (i + 1)
 
@@ -83,22 +84,75 @@ class qa_short_burst_shaper(gr_unittest.TestCase):
             d = d.astype(data.dtype)
             data = np.append(data, d)
             r = np.concatenate((np.zeros(pre_padding, dtype=d.dtype),
-                              d, np.zeros(post_padding, dtype=d.dtype)))
+                                d, np.zeros(post_padding, dtype=d.dtype)))
             ref = np.append(ref, r)
         # ref = np.concatenate((np.zeros(pre_padding, dtype=data.dtype),
         #                       data, np.zeros(post_padding, dtype=data.dtype)))
 
         src = blocks.vector_source_c(data, tags=tags)
-        uut = gfdm.short_burst_shaper(pre_padding, post_padding, 1.+0.j, tkey)
+        uut = gfdm.short_burst_shaper(
+            pre_padding, post_padding, 1.+0.j, 1, tkey)
         snk = blocks.vector_sink_c()
         # set up fg
         self.tb.connect(src, uut, snk)
         self.tb.run()
         # check data
         res = np.array(snk.data())
-        print(res)
+        # print(res)
 
         self.assertComplexTuplesAlmostEqual(ref, res)
+
+    def test_003_nports(self):
+        tkey = 'packet_len'
+        tsrc = 'testsrc'
+        ptkey = pmt.intern(tkey)
+        ptsrc = pmt.intern(tsrc)
+        pre_padding = 17
+        post_padding = 23
+        n_bursts = 3
+        nports = 3
+        tags = []
+        burst_len = 128
+        offset = 0
+        data = np.array((), dtype=np.complex)
+        ref = np.array((), dtype=np.complex)
+        for i in range(n_bursts):
+            tag = gr.tag_utils.python_to_tag((offset, ptkey,
+                                              pmt.from_long(burst_len * (i + 1)), ptsrc))
+            tags.append(tag)
+            offset += burst_len * (i + 1)
+
+            d = np.arange(burst_len * (i + 1)) + 1
+            d = d.astype(data.dtype)
+            data = np.append(data, d)
+            r = np.concatenate((np.zeros(pre_padding, dtype=d.dtype),
+                                d, np.zeros(post_padding, dtype=d.dtype)))
+            ref = np.append(ref, r)
+
+        # set up fg
+        srcs = [blocks.vector_source_c(data, tags=tags) for _ in range(nports)]
+        uut = gfdm.short_burst_shaper(
+            pre_padding, post_padding, 1.+0.j, nports, tkey)
+        snks = [blocks.vector_sink_c() for _ in range(nports)]
+
+        for i in range(nports):
+            self.tb.connect(srcs[i], (uut, i))
+            self.tb.connect((uut, i), snks[i])
+
+        self.tb.run()
+
+        # check data
+        for i, snk in enumerate(snks):
+            res = np.array(snk.data())
+            self.assertComplexTuplesAlmostEqual(ref, res)
+            tags = snk.tags()
+            offset = 0
+            for j, t in enumerate(tags):
+                print(
+                    f'port={i}, offset={t.offset}, value={pmt.to_python(t.value)}')
+                self.assertEqual(t.offset, offset)
+                offset += pmt.to_python(t.value)
+            # print(tags)
 
 
 if __name__ == '__main__':

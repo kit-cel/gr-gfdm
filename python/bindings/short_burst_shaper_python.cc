@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Free Software Foundation, Inc.
+ * Copyright 2021 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -13,8 +13,8 @@
 /* If manual edits are made, the following tags should be modified accordingly.    */
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
-/* BINDTOOL_HEADER_FILE(short_burst_shaper.h)                                      */
-/* BINDTOOL_HEADER_FILE_HASH(a79017e5646866042c77f14da755d07c)                     */
+/* BINDTOOL_HEADER_FILE(short_burst_shaper.h)                                        */
+/* BINDTOOL_HEADER_FILE_HASH(65338311b805d470713e96fc909e575d)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -44,6 +44,7 @@ void bind_short_burst_shaper(py::module& m)
              py::arg("pre_padding"),
              py::arg("post_padding"),
              py::arg("scale"),
+             py::arg("nports") = 1,
              py::arg("length_tag_name") = "packet_len",
              py::arg("use_timed_commands") = false,
              py::arg("timing_advance") = 0.001,

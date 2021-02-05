@@ -57,7 +57,8 @@ public:
                      int overlap,
                      std::vector<gr_complex> frequency_taps,
                      std::vector<gr_complex> window_taps,
-                     std::vector<gr_complex> preamble,
+                     std::vector<int> cyclic_shifts,
+                     std::vector<std::vector<gr_complex>> preambles,
                      const std::string& tsb_tag_key = "");
 };
 

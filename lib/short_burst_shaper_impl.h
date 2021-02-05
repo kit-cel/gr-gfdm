@@ -99,6 +99,7 @@ public:
     short_burst_shaper_impl(int pre_padding,
                             int post_padding,
                             gr_complex scale,
+                            const unsigned nports,
                             const std::string& length_tag_name,
                             bool use_timed_commands,
                             double timing_advance,

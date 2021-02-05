@@ -49,6 +49,7 @@ public:
     static sptr make(int pre_padding,
                      int post_padding,
                      gr_complex scale,
+                     const unsigned nports = 1,
                      const std::string& length_tag_name = "packet_len",
                      bool use_timed_commands = false,
                      double timing_advance = 1.0e-3,

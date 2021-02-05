@@ -27,6 +27,7 @@
 #include <gfdm/api.h>
 #include <gfdm/modulator_kernel_cc.h>
 #include <gfdm/resource_mapper_kernel_cc.h>
+#include <unordered_map>
 #include <volk/volk_alloc.hh>
 #include <memory>
 
@@ -55,22 +56,30 @@ public:
                        int overlap,
                        std::vector<gfdm_complex> frequency_taps,
                        std::vector<gfdm_complex> window_taps,
-                       std::vector<gfdm_complex> preamble);
+                       std::vector<int> cyclic_shifts,
+                       std::vector<std::vector<gfdm_complex>> preambles);
     ~transmitter_kernel();
 
     int input_vector_size() { return d_mapper->input_vector_size(); }
-    int output_vector_size() { return d_prefixer->frame_size() + d_preamble.size(); }
+    int output_vector_size() { return d_prefixer->frame_size() + d_preamble_size; }
     void
     generic_work(gfdm_complex* p_out, const gfdm_complex* p_in, const int ninput_size);
+    void modulate(gfdm_complex* out, const gfdm_complex* in, const int ninput_size);
+    void add_frame(gfdm_complex* out, const gfdm_complex* in, const int cyclic_shift);
+    const std::vector<int>& cyclic_shifts() const { return d_cyclic_shifts; };
 
 private:
     std::unique_ptr<resource_mapper_kernel_cc> d_mapper;
     std::unique_ptr<modulator_kernel_cc> d_modulator;
     std::unique_ptr<add_cyclic_prefix_cc> d_prefixer;
 
+    std::vector<int> d_cyclic_shifts;
+
     volk::vector<gfdm_complex> d_mapped;
     volk::vector<gfdm_complex> d_frame;
-    volk::vector<gfdm_complex> d_preamble;
+    const unsigned d_preamble_size;
+    std::unordered_map<int, volk::vector<gfdm_complex>> d_preambles;
+    void insert_preamble(gfdm_complex* out, const int cyclic_shift);
 };
 
 } // namespace gfdm

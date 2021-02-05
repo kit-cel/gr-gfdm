@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2016 Johannes Demel.
+ * Copyright 2016, 2021 Johannes Demel.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,22 +60,41 @@ add_cyclic_prefix_cc::~add_cyclic_prefix_cc() {}
 
 void add_cyclic_prefix_cc::generic_work(gfdm_complex* p_out, const gfdm_complex* p_in)
 {
-    const unsigned cp_start = block_size() - d_cp_len - d_cyclic_shift;
-    const unsigned shifted_cp_len = d_cp_len + d_cyclic_shift;
-    memcpy(p_out, p_in + cp_start, sizeof(gfdm_complex) * shifted_cp_len);
+    add_cyclic_prefix(p_out, p_in, d_cyclic_shift);
+}
 
-    memcpy(p_out + shifted_cp_len, p_in, sizeof(gfdm_complex) * block_size());
-    const unsigned shifted_cs_len = d_cs_len - d_cyclic_shift;
-    memcpy(p_out + shifted_cp_len + block_size(),
-           p_in,
-           sizeof(gfdm_complex) * shifted_cs_len);
+
+void add_cyclic_prefix_cc::add_cyclic_prefix(gfdm_complex* p_out,
+                                             const gfdm_complex* p_in,
+                                             const int cyclic_prefix)
+{
+    add_cyclic_extension(p_out, p_in, cyclic_prefix);
 
     if (d_ramp_len > 0) {
-        const unsigned tail_start = block_size() + d_cp_len + d_cs_len - d_ramp_len;
-        volk_32fc_x2_multiply_32fc(p_out, p_out, d_front_ramp.data(), d_ramp_len);
-        volk_32fc_x2_multiply_32fc(
-            p_out + tail_start, p_out + tail_start, d_back_ramp.data(), d_ramp_len);
+        apply_ramp(p_out, p_out);
     }
+}
+
+void add_cyclic_prefix_cc::add_cyclic_extension(gfdm_complex* out,
+                                                const gfdm_complex* in,
+                                                const int cyclic_shift)
+{
+    const unsigned cp_start = block_size() - d_cp_len - cyclic_shift;
+    const unsigned shifted_cp_len = d_cp_len + cyclic_shift;
+    memcpy(out, in + cp_start, sizeof(gfdm_complex) * shifted_cp_len);
+
+    memcpy(out + shifted_cp_len, in, sizeof(gfdm_complex) * block_size());
+    const unsigned shifted_cs_len = d_cs_len - cyclic_shift;
+    memcpy(
+        out + shifted_cp_len + block_size(), in, sizeof(gfdm_complex) * shifted_cs_len);
+}
+
+void add_cyclic_prefix_cc::apply_ramp(gfdm_complex* out, const gfdm_complex* in)
+{
+    const unsigned tail_start = block_size() + d_cp_len + d_cs_len - d_ramp_len;
+    volk_32fc_x2_multiply_32fc(out, in, d_front_ramp.data(), d_ramp_len);
+    volk_32fc_x2_multiply_32fc(
+        out + tail_start, in + tail_start, d_back_ramp.data(), d_ramp_len);
 }
 
 void add_cyclic_prefix_cc::remove_cyclic_prefix(gfdm_complex* p_out,

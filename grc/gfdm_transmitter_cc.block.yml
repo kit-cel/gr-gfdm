@@ -2,64 +2,73 @@
 
 id: gfdm_transmitter_cc
 label: GFDM Transmitter
-category: '[GFDM]'
+category: "[GFDM]"
 
 parameters:
--   id: timeslots
+  - id: timeslots
     label: Timeslots
     dtype: int
--   id: subcarriers
+  - id: subcarriers
     label: Subcarriers
     dtype: int
--   id: active_subcarriers
+  - id: active_subcarriers
     label: Active subcarriers
     dtype: int
--   id: cp_len
+  - id: cp_len
     label: CP length
     dtype: int
--   id: cs_len
+  - id: cs_len
     label: CS length
     dtype: int
--   id: ramp_len
+  - id: ramp_len
     label: Ramp length
     dtype: int
--   id: subcarrier_map
+  - id: subcarrier_map
     label: Subcarrier map
     dtype: raw
--   id: per_timeslot
+  - id: per_timeslot
     label: per Timeslot
     dtype: bool
-    default: 'True'
--   id: overlap
+    default: "True"
+  - id: overlap
     label: Overlap
     dtype: int
--   id: frequency_taps
+  - id: frequency_taps
     label: Frequency domain taps
     dtype: raw
--   id: window_taps
+  - id: window_taps
     label: Window taps
     dtype: raw
--   id: preamble
-    label: Preamble
+  - id: cyclic_shifts
+    label: Cyclic shifts
+    dtype: int_vector
+    default: "[0, ]"
+  - id: preambles
+    label: Preambles
     dtype: raw
--   id: tsb_tag_key
+  - id: tsb_tag_key
     label: Length Tag Key
     dtype: string
     default: '"packet_len"'
 
+asserts:
+  - ${ len(preambles) == len(cyclic_shifts) }
+
 inputs:
--   domain: stream
+  - domain: stream
     dtype: complex
 
 outputs:
--   domain: stream
+  - domain: stream
     dtype: complex
+    multiplicity: ${ len(cyclic_shifts) }
 
 templates:
-    imports: import gfdm
-    make: |-
-        gfdm.transmitter_cc(${timeslots}, ${subcarriers}, ${active_subcarriers},
-                                          ${cp_len}, ${cs_len}, ${ramp_len}, ${subcarrier_map},
-                                          ${per_timeslot}, ${overlap}, ${frequency_taps}, ${window_taps}, ${preamble}, ${tsb_tag_key})
+  imports: import gfdm
+  make: |-
+    gfdm.transmitter_cc(${timeslots}, ${subcarriers}, ${active_subcarriers},
+                        ${cp_len}, ${cs_len}, ${ramp_len}, ${subcarrier_map},
+                        ${per_timeslot}, ${overlap}, ${frequency_taps}, ${window_taps},
+                        ${cyclic_shifts}, ${preambles}, ${tsb_tag_key})
 
 file_format: 1

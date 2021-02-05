@@ -36,7 +36,9 @@ def get_padding_configuration(frame_len):
 preamble_seed = int(3660365253)
 
 
-def get_gfdm_configuration(timeslots=9, subcarriers=64, active_subcarriers=52, overlap=2, cp_len=16, cs_len=8, filtertype='rrc', filteralpha=0.2):
+def get_gfdm_configuration(timeslots=9, subcarriers=64, active_subcarriers=52, overlap=2,
+                           cp_len=16, cs_len=8, filtertype='rrc', filteralpha=0.2,
+                           cyclic_shifts=[0, ]):
     ramp_len = cs_len
     dconf = {
         'timeslots': timeslots,
@@ -46,6 +48,7 @@ def get_gfdm_configuration(timeslots=9, subcarriers=64, active_subcarriers=52, o
         'cp_len': cp_len,
         'cs_len': cs_len,
         'ramp_len': ramp_len,
+        'cyclic_shifts': cyclic_shifts,
         'seed': preamble_seed,
     }
     dconf['block_len'] = block_len = timeslots * subcarriers
@@ -55,11 +58,12 @@ def get_gfdm_configuration(timeslots=9, subcarriers=64, active_subcarriers=52, o
 
     dconf['subcarrier_map'] = subcarrier_map = get_subcarrier_map(
         subcarriers, active_subcarriers, dc_free=True)
-    preambles = mapped_preamble(preamble_seed, filtertype, filteralpha, active_subcarriers,
-                                subcarriers, subcarrier_map, overlap, cp_len, ramp_len, use_zadoff_chu=True)
-    dconf['full_preamble'] = full_preamble = preambles[0]
-    dconf['core_preamble'] = core_preamble = preambles[1]
-    dconf['preamble_len'] = preamble_len = full_preamble.size
+    preambles = [mapped_preamble(preamble_seed, filtertype, filteralpha, active_subcarriers,
+                                 subcarriers, subcarrier_map, overlap, cp_len, ramp_len, use_zadoff_chu=True,
+                                 cyclic_shift=cs) for cs in cyclic_shifts]
+    dconf['full_preambles'] = full_preambles = [p[0] for p in preambles]
+    dconf['core_preamble'] = core_preamble = preambles[0][1]
+    dconf['preamble_len'] = preamble_len = full_preambles[0].size
     dconf['core_preamble_len'] = core_preamble_len = core_preamble.size
     dconf['frame_len'] = frame_len = window_len + preamble_len
     pre_padding_len, post_padding_len = get_padding_configuration(frame_len)

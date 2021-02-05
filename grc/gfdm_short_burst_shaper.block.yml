@@ -2,58 +2,69 @@
 
 id: gfdm_short_burst_shaper
 label: Short Burst Shaper
-category: '[GFDM]'
+category: "[GFDM]"
 
 parameters:
--   id: pre_padding
-    label: Pre-padding Length
-    dtype: int
-    default: '128'
--   id: post_padding
-    label: Post-padding Length
-    dtype: int
-    default: '128'
--   id: scale
-    label: Scale
-    dtype: complex
-    default: '1.0+0.0j'
--   id: length_tag_name
-    label: Length Tag Name
-    dtype: string
-    default: '"packet_len"'
-- id: use_timed_commands
-  label: Timed commands
-  dtype: bool
-  default: False
--   id: timing_advance
-    label: Timing advance
-    dtype: float
-    default: 1.0e-3
--   id: cycle_interval
-    label: Cycle interval
-    dtype: float
-    default: 250.0e-6
+    - id: pre_padding
+      label: Pre-padding Length
+      dtype: int
+      default: "128"
+    - id: post_padding
+      label: Post-padding Length
+      dtype: int
+      default: "128"
+    - id: scale
+      label: Scale
+      dtype: complex
+      default: "1.0+0.0j"
+    - id: nports
+      label: Ports
+      dtype: int
+      default: "1"
+    - id: length_tag_name
+      label: Length Tag Name
+      dtype: string
+      default: '"packet_len"'
+    - id: use_timed_commands
+      label: Timed commands
+      dtype: bool
+      default: False
+    - id: timing_advance
+      label: Timing advance
+      dtype: float
+      default: 1.0e-3
+    - id: cycle_interval
+      label: Cycle interval
+      dtype: float
+      default: 250.0e-6
+
+asserts:
+    - ${ pre_padding >= 0 }
+    - ${ post_padding >= 0 }
+    - ${ nports > 0 }
 
 inputs:
--   domain: stream
-    dtype: complex
--   domain: message
-    id: time_tag
-    optional: True
+    - domain: stream
+      dtype: complex
+      multiplicity: ${nports}
+    - domain: message
+      id: time_tag
+      optional: True
 
 outputs:
--   domain: stream
-    dtype: complex
--   domain: message
-    id: command
-    optional: True
+    - domain: stream
+      dtype: complex
+      multiplicity: ${nports}
+    - domain: message
+      id: command
+      optional: True
 
 templates:
     imports: import gfdm
-    make: gfdm.short_burst_shaper(${pre_padding}, ${post_padding}, ${scale}, ${length_tag_name}, ${use_timed_commands}, ${timing_advance}, ${cycle_interval})
+    make: gfdm.short_burst_shaper(${pre_padding}, ${post_padding}, ${scale}, ${nports}, ${length_tag_name}, ${use_timed_commands}, ${timing_advance}, ${cycle_interval})
     callbacks:
-    - set_scale(${scale})
-    - set_timing_advance(${timing_advance})
-    - set_timing_advance(${cycle_interval})
+        - set_scale(${scale})
+        - set_timing_advance(${timing_advance})
+        - set_timing_advance(${cycle_interval})
 
 file_format: 1

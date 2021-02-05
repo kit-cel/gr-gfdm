@@ -40,7 +40,8 @@ transmitter_cc::sptr transmitter_cc::make(int timeslots,
                                           int overlap,
                                           std::vector<gr_complex> frequency_taps,
                                           std::vector<gr_complex> window_taps,
-                                          std::vector<gr_complex> preamble,
+                                          std::vector<int> cyclic_shifts,
+                                          std::vector<std::vector<gr_complex>> preambles,
                                           const std::string& tsb_tag_key)
 {
     return gnuradio::make_block_sptr<transmitter_cc_impl>(timeslots,
@@ -54,7 +55,8 @@ transmitter_cc::sptr transmitter_cc::make(int timeslots,
                                                           overlap,
                                                           frequency_taps,
                                                           window_taps,
-                                                          preamble,
+                                                          cyclic_shifts,
+                                                          preambles,
                                                           tsb_tag_key);
 }
 
@@ -72,11 +74,13 @@ transmitter_cc_impl::transmitter_cc_impl(int timeslots,
                                          int overlap,
                                          std::vector<gr_complex> frequency_taps,
                                          std::vector<gr_complex> window_taps,
-                                         std::vector<gr_complex> preamble,
+                                         std::vector<int> cyclic_shifts,
+                                         std::vector<std::vector<gr_complex>> preambles,
                                          const std::string& tsb_tag_key)
     : gr::block("transmitter_cc",
                 gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                gr::io_signature::make(1, 1, sizeof(gr_complex))),
+                gr::io_signature::make(
+                    cyclic_shifts.size(), cyclic_shifts.size(), sizeof(gr_complex))),
       d_length_tag_key_str(tsb_tag_key),
       d_length_tag_key(pmt::string_to_symbol(tsb_tag_key))
 {
@@ -91,11 +95,13 @@ transmitter_cc_impl::transmitter_cc_impl(int timeslots,
                                                     overlap,
                                                     frequency_taps,
                                                     window_taps,
-                                                    preamble);
+                                                    cyclic_shifts,
+                                                    preambles);
     set_relative_rate(1.0 * d_kernel->output_vector_size() /
                       d_kernel->input_vector_size());
     set_fixed_rate(true);
     set_output_multiple(d_kernel->output_vector_size());
+    d_modulated.resize(d_kernel->output_vector_size());
 }
 
 /*
@@ -127,19 +133,14 @@ int transmitter_cc_impl::general_work(int noutput_items,
                                       gr_vector_void_star& output_items)
 {
     const gr_complex* in = (const gr_complex*)input_items[0];
-    gr_complex* out = (gr_complex*)output_items[0];
 
-    // std::vector<tag_t> tags;
-    // get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items,
-    // pmt::string_to_symbol("time")); for(auto t: tags){
-    //   auto cn = std::chrono::high_resolution_clock::now().time_since_epoch();
-    //   auto s = std::chrono::nanoseconds(pmt::to_long(t.value));
-    //   auto d = std::chrono::duration_cast<std::chrono::nanoseconds>(cn - s);
-    //   std::cout << "Transmitter before duration: " << d.count() << "ns" << std::endl;
-    // }
+    std::vector<gr_complex*> outs(output_items.size());
+    for (unsigned i = 0; i < outs.size(); ++i) {
+        outs[i] = (gr_complex*)output_items[i];
+    }
 
-    int n_frames = std::min(noutput_items / d_kernel->output_vector_size(),
-                            ninput_items[0] / d_kernel->input_vector_size());
+    unsigned n_frames = std::min(noutput_items / d_kernel->output_vector_size(),
+                                 ninput_items[0] / d_kernel->input_vector_size());
 
     if (not d_length_tag_key_str.empty()) {
         std::vector<tag_t> tags;
@@ -161,29 +162,33 @@ int transmitter_cc_impl::general_work(int noutput_items,
         }
     }
 
-
     for (int i = 0; i < n_frames; ++i) {
-        d_kernel->generic_work(out, in, d_kernel->input_vector_size());
-        out += d_kernel->output_vector_size();
+        // Modulate frame only once! This is a costly operation.
+        d_kernel->modulate(d_modulated.data(), in, d_kernel->input_vector_size());
         in += d_kernel->input_vector_size();
+
+        // Produce the cyclically shifted frame.
+        // This is output specific.
+        for (unsigned j = 0; j < outs.size(); ++j) {
+            d_kernel->add_frame(
+                outs[j], d_modulated.data(), d_kernel->cyclic_shifts()[j]);
+            outs[j] += d_kernel->output_vector_size();
+        }
     }
 
     consume_each(n_frames * d_kernel->input_vector_size());
 
     if (not d_length_tag_key_str.empty()) {
-        for (int i = 0; i < n_frames; ++i) {
-            add_item_tag(0,
-                         nitems_written(0) + i * d_kernel->output_vector_size(),
-                         d_length_tag_key,
-                         pmt::from_long(d_kernel->output_vector_size()));
+        for (unsigned i = 0; i < n_frames; ++i) {
+            const auto value = pmt::from_long(d_kernel->output_vector_size());
+            for (unsigned port = 0; port < output_items.size(); ++port) {
+                add_item_tag(port,
+                             nitems_written(port) + i * d_kernel->output_vector_size(),
+                             d_length_tag_key,
+                             value);
+            }
         }
     }
-    // for(auto t: tags){
-    //   auto cn = std::chrono::high_resolution_clock::now().time_since_epoch();
-    //   auto s = std::chrono::nanoseconds(pmt::to_long(t.value));
-    //   auto d = std::chrono::duration_cast<std::chrono::nanoseconds>(cn - s);
-    //   std::cout << "Transmitter after duration: " << d.count() << "ns" << std::endl;
-    // }
 
     // Tell runtime system how many output items we produced.
     return n_frames * d_kernel->output_vector_size();

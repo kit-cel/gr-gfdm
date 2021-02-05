@@ -23,6 +23,7 @@
 
 #include <gfdm/transmitter_cc.h>
 #include <gfdm/transmitter_kernel.h>
+#include <volk/volk_alloc.hh>
 
 namespace gr {
 namespace gfdm {
@@ -33,6 +34,7 @@ private:
     std::unique_ptr<transmitter_kernel> d_kernel;
     std::string d_length_tag_key_str;
     pmt::pmt_t d_length_tag_key;
+    volk::vector<gr_complex> d_modulated;
 
 public:
     transmitter_cc_impl(int timeslots,
@@ -46,7 +48,8 @@ public:
                         int overlap,
                         std::vector<gr_complex> frequency_taps,
                         std::vector<gr_complex> window_taps,
-                        std::vector<gr_complex> preamble,
+                        std::vector<int> cyclic_shifts,
+                        std::vector<std::vector<gr_complex>> preambles,
                         const std::string& tsb_tag_key = "");
     ~transmitter_cc_impl();
 

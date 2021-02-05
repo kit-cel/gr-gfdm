@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Free Software Foundation, Inc.
+ * Copyright 2021 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(transmitter_cc.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(c83a365049114786b9f518aa76ecef80)                     */
+/* BINDTOOL_HEADER_FILE_HASH(20483d83cf9e9306a359b915651bc41c)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -50,7 +50,8 @@ void bind_transmitter_cc(py::module& m)
              py::arg("overlap"),
              py::arg("frequency_taps"),
              py::arg("window_taps"),
-             py::arg("preamble"),
+             py::arg("cyclic_shifts"),
+             py::arg("preambles"),
              py::arg("tsb_tag_key") = "",
              D(transmitter_cc, make))
 

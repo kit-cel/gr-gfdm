@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2016 Johannes Demel.
+ * Copyright 2016, 2021 Johannes Demel.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,9 @@ public:
                          int cyclic_shift = 0);
     ~add_cyclic_prefix_cc();
     void generic_work(gfdm_complex* p_out, const gfdm_complex* p_in);
+    void add_cyclic_prefix(gfdm_complex* p_out,
+                           const gfdm_complex* p_in,
+                           const int cyclic_prefix);
     void remove_cyclic_prefix(gfdm_complex* p_out, const gfdm_complex* p_in);
     int block_size() { return d_block_len; };
     int frame_size() { return block_size() + d_cp_len + d_cs_len; };
@@ -60,8 +63,13 @@ private:
     const int d_ramp_len;
     const int d_cyclic_shift;
 
+    void add_cyclic_extension(gfdm_complex* out,
+                              const gfdm_complex* in,
+                              const int cyclic_shift);
+
     volk::vector<gfdm_complex> d_front_ramp;
     volk::vector<gfdm_complex> d_back_ramp;
+    void apply_ramp(gfdm_complex* out, const gfdm_complex* in);
 };
 
 } // namespace gfdm
